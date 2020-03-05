@@ -1,6 +1,6 @@
 package services.criticalsection;
 
 public enum CriticalSectionState {
-	FREE, REQUESTED, GRANTED,
+	FREE, REQUESTED, ACQUIRED
 	
 }

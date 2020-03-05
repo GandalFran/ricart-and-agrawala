@@ -1,5 +1,7 @@
 package services.criticalsection;
 
+import com.google.gson.Gson;
+
 public class CriticalSectionRequest{
 	
 	private String processId;
@@ -11,11 +13,19 @@ public class CriticalSectionRequest{
 		this.lamportTime = lamportTime;
 	}
 
-	public boolean hasPriority(CriticalSectionRequest o) {
-		return ( (this.lamportTime > o.lamportTime) || 
-				 ((this.lamportTime == o.lamportTime) && (this.processId.compareTo(o.processId) < 0))
+	public boolean hasPriority(String otherId, long otherLamport) {
+		return ( (this.lamportTime > otherLamport) || 
+				 ((this.lamportTime == otherLamport) && (this.processId.compareTo(otherId) < 0))
 				);
 	}
+	
+    public String toJson(){
+        return new Gson().toJson(this);
+    }
+
+    public static CriticalSectionRequest fromJson(String data){
+        return new Gson().fromJson(data, CriticalSectionRequest.class);
+    }
 	
 	public String getProcessId() {
 		return processId;

@@ -1,5 +1,5 @@
 package services.criticalsection;
 
-public class CriticalSectionProxy extends CriticalSection{
+public class CriticalSectionProxy extends CriticalSectionQueue{
 
 }
