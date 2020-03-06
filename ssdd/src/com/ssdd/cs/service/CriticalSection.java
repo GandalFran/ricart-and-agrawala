@@ -1,4 +1,4 @@
-package services.criticalsection;
+package com.ssdd.cs.service;
 
 
 import java.util.Map;
@@ -7,6 +7,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Semaphore;
 
+import com.ssdd.cs.bean.CriticalSectionMessage;
+import com.ssdd.cs.bean.CriticalSectionMessageType;
+import com.ssdd.cs.bean.CriticalSectionState;
+import com.ssdd.cs.bean.LamportCounter;
 import com.sun.org.slf4j.internal.Logger;
 import com.sun.org.slf4j.internal.LoggerFactory;
 
@@ -17,14 +21,14 @@ public class CriticalSection {
     private final static Logger LOGGER = LoggerFactory.getLogger(CriticalSection.class);
 	
 	private Semaphore accessSemaphore;
-	private Map<String, Long> lamportTime;
+	private Map<String, LamportCounter> lamportTime;
 	private Map<String, CriticalSectionState> state;
 	private Map<String, Queue<CriticalSectionMessage>> accessRequests;
 	
 	public CriticalSection() {
 		LOGGER.debug("Creating critical section");
 		this.accessSemaphore = new Semaphore(1);
-		this.lamportTime = new ConcurrentHashMap<String, Long>();
+		this.lamportTime = new ConcurrentHashMap<String, LamportCounter>();
 		this.state = new ConcurrentHashMap<String, CriticalSectionState>();
 		this.accessRequests = new ConcurrentHashMap<String, Queue<CriticalSectionMessage>>();
 	}
@@ -51,7 +55,7 @@ public class CriticalSection {
 	 * */
 	public void subscribe(String nodeId){
 		LOGGER.debug("[" + nodeId + "] /cs/subscribe");
-		this.lamportTime.put(nodeId, new Long(0));
+		this.lamportTime.put(nodeId, new LamportCounter());
 		this.state.put(nodeId, CriticalSectionState.FREE);
 		this.accessRequests.put(nodeId, new ConcurrentLinkedQueue<>());
 	}
@@ -66,6 +70,10 @@ public class CriticalSection {
 	 * */
 	public void acquire(String nodeId) {
 		LOGGER.debug("[" + nodeId + "] /cs/acquire");
+		
+		// update process time
+		this.lamportTime.get(nodeId).update();
+		
 		
 	}
 
@@ -85,12 +93,15 @@ public class CriticalSection {
 		CriticalSectionMessage response;
 		CriticalSectionMessage r = CriticalSectionMessage.fromJson(request);
 
+		// update process time
+		this.lamportTime.get(nodeId).update(r.getTime());
+		
 		// get node state
-		long lamportTime = this.lamportTime.get(nodeId);
+		LamportCounter lamportTime = this.lamportTime.get(nodeId);
 		CriticalSectionState state = this.state.get(nodeId);
 		
 		if(state == CriticalSectionState.ACQUIRED 
-				|| (state == CriticalSectionState.REQUESTED && r.hasPriority(nodeId, r.getLamportTime()))) {
+				|| (state == CriticalSectionState.REQUESTED && r.hasPriority(nodeId, r.getTime()))) {
 			this.accessRequests.get(nodeId).add(r);
 			// build response
 			response = new CriticalSectionMessage(nodeId, lamportTime, CriticalSectionMessageType.RESPONSE_DELAYED);
@@ -121,21 +132,21 @@ public class CriticalSection {
 	public void release(String nodeId) {
 		LOGGER.debug("[" + nodeId + "] /cs/release");
 		
+		// update process time
+		this.lamportTime.get(nodeId).update();
+		
+		// set state to released
 		LOGGER.debug("["+nodeId+"] /cs/release: changing state");
 		this.state.put(nodeId, CriticalSectionState.FREE);
+		
+		// answer to responses
 		LOGGER.debug("["+nodeId+"] /cs/release: replying requests");
 		for(CriticalSectionMessage r : this.accessRequests.get(nodeId)) {
 			//TODO: responder a nodo
 			response = new CriticalSectionMessage(nodeId, lamportTime, CriticalSectionMessageType.RESPONSE_ALLOW);
+			// TODO: responder con proxy a servidor que lo envio
 		}
 	}
 	
-	private void updateLamportTime(nodeId) {
-		
-	}
-	
-	private void updateLamportTime(String nodeId, long messageLamportTime) {
-		
-	}
 
 }

@@ -1,11 +1,10 @@
-package client;
+package com.ssdd.main;
 
 import java.util.Random;
 
+import com.ssdd.util.IConstants;
 import com.sun.org.slf4j.internal.Logger;
 import com.sun.org.slf4j.internal.LoggerFactory;
-
-import util.IConstants;
 
 public class ClientBehaviour {
 

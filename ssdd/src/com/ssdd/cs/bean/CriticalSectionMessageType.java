@@ -1,4 +1,4 @@
-package services.criticalsection;
+package com.ssdd.cs.bean;
 
 public enum CriticalSectionMessageType {
 	REQUEST,					// used to send request

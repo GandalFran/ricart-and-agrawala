@@ -1,9 +1,10 @@
-package util;
+package com.ssdd.util;
 
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
+import java.util.Random;
 
 public class Utils {
 
@@ -18,4 +19,9 @@ public class Utils {
 		}
 		return p;
 	}
+	 
+	 
+	 public static long randomBetweenInterval(Random r, long min, long max) {
+		 return (min + (r.nextLong() % (max - min)));
+	 }
 }

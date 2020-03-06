@@ -1,4 +1,4 @@
-package client;
+package com.ssdd.main;
 
 public class main {
 

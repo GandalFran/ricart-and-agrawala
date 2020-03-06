@@ -1,4 +1,4 @@
-package services.criticalsection;
+package com.ssdd.cs.service;
 
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;

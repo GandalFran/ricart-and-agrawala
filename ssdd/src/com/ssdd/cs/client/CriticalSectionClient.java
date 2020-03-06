@@ -1,4 +1,4 @@
-package client.criticalsection;
+package com.ssdd.cs.client;
 
 public class CriticalSectionClient {
 
