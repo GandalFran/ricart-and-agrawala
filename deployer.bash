@@ -9,6 +9,7 @@ service=/ntp
 project_name=s3
 service_path=/$project_name$service
 project_folder=/home/gandalfran/repos/ssdd-ejercicios/$project_name
+build_folder=/tmp/build
 
 # tomcat
 tomcat_tar=/tmp/tomcat.tar.gz
@@ -62,20 +63,39 @@ clean_file(){
 
 # project jar and war generation utils
 
+generate_build(){
+	# if not exists the build folder, then create it
+	if [ ! -d "$build_folder" ]; then
+		mkdir $build_folder
+	fi
+	cp -R $project_folder $build_folder
+	find $build_folder -type f -name *.java -exec javac '{}' \; rm '{}' \;
+}
+
 generate_project_jar(){
-	classes_folder="$project_folder/src"
-	jar -cfm $client_jar_initial $manifest_file $project_folder
+	jar -cfm $client_jar_initial $manifest_file $build_folder
 }
 
 generate_project_war(){
-	jar -cf $server_war_initial $project_folder
+	jar -cf $server_war_initial $build_folder
 }
 
-regenerate_project_files(){
-	rm $client_jar_initial
-	rm $server_war_initial
+generate_project_files(){
+	generate_build
 	generate_project_jar
 	generate_project_war
+}
+
+clean_project(){
+	if [ -f "$client_jar_initial" ]; then
+		rm $client_jar_initial
+	fi
+	if [ -f "$server_war_initial" ]; then
+		rm $server_war_initial
+	fi
+	if [ -d "$build_folder" ]; then
+		rm -rf $build_folder
+	fi
 }
 
 # tomcat utils
@@ -340,20 +360,19 @@ do
 			user_host2="$user@$host2"
 			user_host3="$user@$host3"
 
-			# clean tomcat download folder
-			echo "cleaning tomcat download files ..."
-			rm $tomcat_download_folder
-
-			# cleaning project .jar and .war files
-			echo "cleaning project .jar and .war files ..."
-			rm $client_jar_initial
-			rm $server_war_initial
-
 			# shutdown tomcat in each server
 			echo "shutting down tomcat ..."
 			remote_exec $user_host1 "$tomcat_folder_final/bin/shutdown.sh"
 			remote_exec $user_host2 "$tomcat_folder_final/bin/shutdown.sh"
 			remote_exec $user_host3 "$tomcat_folder_final/bin/shutdown.sh"
+
+			# clean tomcat download folder
+			echo "cleaning tomcat download files ..."
+			rm $tomcat_download_folder
+
+			# cleaning local project build folder, .jar and .war files
+			echo "cleaning local project files ..."
+			clean_project
 
 			# clean client files in remotes
 			echo "cleaning client files ..."

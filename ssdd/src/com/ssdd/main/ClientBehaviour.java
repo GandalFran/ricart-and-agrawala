@@ -1,40 +1,87 @@
 package com.ssdd.main;
 
+import java.util.Map;
 import java.util.Random;
 
+import com.ssdd.cs.client.CriticalSectionClient;
+import com.ssdd.ntp.bean.Pair;
+import com.ssdd.ntp.client.NTPClient;
+import com.ssdd.ntp.server.NTPService;
 import com.ssdd.util.IConstants;
-import com.sun.org.slf4j.internal.Logger;
-import com.sun.org.slf4j.internal.LoggerFactory;
+import com.ssdd.util.Utils;
+import com.ssdd.util.logging.SSDDLogFactory;
 
-public class ClientBehaviour {
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-    private final static Logger LOGGER = LoggerFactory.getLogger(ClientBehaviour.class);
+public class ClientBehaviour extends Thread{
+
+    private final static Logger LOGGER = SSDDLogFactory.logger(ClientBehaviour.class);
     
-
-	private Random random;
+	private String nodeId;
+	private Random generator;
 	
-	public ClientBehaviour() {
-		this.random = new Random();
+	private NTPClient ntp;
+	private CriticalSectionClient cs;
+    private CriticalSectionLog csLog;
+	
+	public ClientBehaviour(String nodeId, NTPClient ntp, CriticalSectionClient cs) {
+		super();
+		this.cs = cs;
+		this.ntp = ntp;
+		this.nodeId = nodeId;
+		this.generator = new Random();
 	}
 	
+	public void run() {
+		// calculate the ntp delay and offset at the begginng
+		LOGGER.log(Level.INFO, String.format("[node: %s] ntp initial", nodeId));
+		Map<NTPService, Pair> ntpInitialResult = ntp.estimate();
+		
+		// iterate N times simulating calculus and entering in the critical section
+		for(int i=0; i< IConstants.SIMULATION_NUM_ITERATIONS; i++) {
+			LOGGER.log(Level.INFO, String.format("[node: %s] iter %d", nodeId, i));
+			LOGGER.log(Level.INFO, String.format("[node: %s] iter %d simulating calculus", nodeId, i));
+			this.simulateSleep(IConstants.SIMULATION_MIN_CALULUS_TIME, IConstants.SIMULATION_MAX_CALULUS_TIME);
+			LOGGER.log(Level.INFO, String.format("[node: %s] iter %d entering critical section", nodeId, i));
+			this.enterCriticalSection();
+		}
+
+		// calculate the ntp delay and offset at the end
+		LOGGER.log(Level.INFO, String.format("[node: %s] ntp final", nodeId));
+		Map<NTPService, Pair> ntpFinalResult = ntp.estimate();
+	}
 	
-	public void start() {
+
+	private void enterCriticalSection() {	
+		// acquire critical section
+		cs.acquire();
 		
-		long sleepIntervalMs = this.generateSleepInterval();
+		// log to file when entered in critical section
+		csLog.log(nodeId);
 		
-		LOGGER.debug("sleep " + sleepIntervalMs + " ms");
+		LOGGER.log(Level.INFO, String.format("[node: %s] simulating calculus in critical section", nodeId));
+		this.simulateSleep(IConstants.SIMULATION_MIN_CRITICAL_SECTION_TIME, IConstants.SIMULATION_MAX_CRITICAL_SECTION_TIME);
+
+		// log to file when exited from critical section
+		csLog.log(nodeId);
+		
+		// release critical section
+		cs.release();
+		
+	}
+	
+	private void simulateSleep(long min, long max) {
+		// calculate the sleep interval
+		long sleepIntervalMs = Utils.randomBetweenInterval(this.generator, min, max);
+		
+		// sleep to simulate calculus
+		LOGGER.log(Level.INFO, String.format("[node: %s] simulating sleep of %d ms", nodeId, sleepIntervalMs));
 		try {
 			Thread.sleep(sleepIntervalMs);
 		} catch (InterruptedException e) {
-			LOGGER.error(e.getMessage(), e);
+			LOGGER.log(Level.INFO, String.format("[node: %s] simulateSleep: error %s", nodeId, e.getMessage()), e);
 		}
-		LOGGER.debug("sleep ended, accessing critical section");
 	}
 	
-	
-	private long generateSleepInterval() {
-		long randomNumber = this.random.nextLong();
-		long sleepIntervalMs = IConstants.MIN_CALCULUS_TIME_MS + ( randomNumber % (IConstants.MAX_CALCULUS_TIME_MS-IConstants.MIN_CALCULUS_TIME_MS));
-		return sleepIntervalMs;
-	}
 }

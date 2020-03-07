@@ -6,19 +6,28 @@ import java.util.Map;
 import com.ssdd.ntp.bean.Pair;
 import com.ssdd.ntp.server.NTPService;
 import com.ssdd.ntp.server.NTPServiceProxy;
+import com.ssdd.util.IConstants;
 
 
 public class NTPClient {
 	
-	public Map<NTPService, Pair> estimate(NTPService[] servers, int numIterations) {
+	private NTPService[] services;
+	
+	
+	public NTPClient(NTPService[] services) {
+		super();
+		this.services = services;
+	}
+
+	public Map<NTPService, Pair> estimate() {
 		long time0, time1, time2, time3;
 		Map<NTPService, Pair> bestPairs = new HashMap<>();
 				
 		// for each server
-		for(NTPService server : servers) {
+		for(NTPService server : this.services) {
 			// for each iteration
-			Pair [] pairs = new Pair [numIterations];
-			for(int currIteration=0; currIteration<numIterations; currIteration++) {
+			Pair [] pairs = new Pair [IConstants.NTP_NUM_ITERATIONS];
+			for(int currIteration=0; currIteration<IConstants.NTP_NUM_ITERATIONS; currIteration++) {
 				// get times
 				time0 = System.currentTimeMillis();
 				long [] response = NTPServiceProxy.parsePedirTiempoResponse(server.pedirTiempo());
@@ -50,6 +59,14 @@ public class NTPClient {
 			}
 		}
 		return bestPair;
+	}
+
+	public NTPService[] getServers() {
+		return services;
+	}
+
+	public void setServers(NTPService[] servers) {
+		this.services = servers;
 	}
 	
 }
