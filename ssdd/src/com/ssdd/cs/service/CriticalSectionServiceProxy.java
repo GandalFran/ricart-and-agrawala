@@ -14,6 +14,17 @@ public class CriticalSectionServiceProxy extends CriticalSectionService{
 		this.service = ClientBuilder.newClient().target(UriBuilder.fromUri(serviceUri).build());
 	}
 	
+	/**
+	 * method to parse the /cs/suscribed response from String to String [].
+	 * 
+	 * @version 1.0
+	 * @author Héctor Sánchez San Blas
+	 * @author Francisco Pinto Santos
+	 * 
+	 * @param response of the /cs/suscribed response
+	 * 
+	 * @return String [], with splitted response by the selected character "_"
+	 * */
 	public static String [] parseSuscribedResponse(String response) {
 		String [] splittedresponse = response.split("_");
 		return splittedresponse;

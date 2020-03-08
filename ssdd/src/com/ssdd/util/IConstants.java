@@ -11,6 +11,17 @@ public interface IConstants {
 	final static String PROPERTIES_FILE = "constants.properties";
 	final static Properties PROPERTIES = loadPropertiesFile(PROPERTIES_FILE);
 
+	/**
+	 * builds a properties file reader.
+	 * 
+	 * @version 1.0
+	 * @author Héctor Sánchez San Blas
+	 * @author Francisco Pinto Santos
+	 * 
+	 * @param file full path to the .properties file
+	 * 
+	 * @return a java.util.Properties object containing the properties read from given file
+	 * */
 	static Properties loadPropertiesFile(String file) {
 		// src: https://mkyong.com/java/java-properties-file-examples/
 		Properties p = new Properties();

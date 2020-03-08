@@ -1,4 +1,4 @@
-package com.ssdd.ntp.server;
+package com.ssdd.ntp.service;
 
 import java.util.Random;
 import java.util.logging.Level;
@@ -28,12 +28,15 @@ public class NTPService{
 	}
 
 	/**
-	 * Factory method, to build a proxy to access an instance of this service in remote.
+	 * factory method, to build a proxy to access an instance of this service in remote.
 	 * 
 	 * @version 1.0
-	 * @author Héctor Sánchez San Blas and Francisco Pinto Santos
+	 * @author Héctor Sánchez San Blas
+	 * @author Francisco Pinto Santos
 	 * 
 	 * @param host the IP adress and PORT of server in which the service is allocated.
+	 * 
+	 * @return NTPServiceProxy to serve as proxy for the /ntp service, served in the given host
 	 * */
 	public static NTPService buildProxy(String host) {
 		String serviceUri = NTPService.buildServiceUri(host);
@@ -41,12 +44,15 @@ public class NTPService{
 	}
 	
 	/**
-	 * Factory method, to build a URI for a NTPService from the host IP and port.
+	 * factory method, to build a URI for a NTPService from the host IP and port.
 	 * 
 	 * @version 1.0
-	 * @author Héctor Sánchez San Blas and Francisco Pinto Santos
+	 * @author Héctor Sánchez San Blas
+	 * @author Francisco Pinto Santos
 	 * 
 	 * @param host the IP adress and PORT of server in which the service is allocated.
+	 * 
+	 * @return String containing the URI to the service, served in the given host
 	 * */
 	public static String buildServiceUri(String host) {
 		return String.format("http://%s/ssdd/ntp", host);
@@ -56,7 +62,8 @@ public class NTPService{
 	 * shows service status.
 	 * 
 	 * @version 1.0
-	 * @author Héctor Sánchez San Blas and Francisco Pinto Santos
+	 * @author Héctor Sánchez San Blas
+	 * @author Francisco Pinto Santos
 	 * 
 	 * @return string indicating the status of the service is up.
 	 * */
@@ -70,10 +77,11 @@ public class NTPService{
 
 	/**
 	 * samples the time twice separated by a random interval and returns it in a time1_time2 format.
-	 * @see #System.currentTimeMillis
+	 * @see System#currentTimeMillis()
 	 * 
 	 * @version 1.0
-	 * @author Héctor Sánchez San Blas and Francisco Pinto Santos
+	 * @author Héctor Sánchez San Blas
+	 * @author Francisco Pinto Santos
 	 * 
 	 * @return the two samples formatted into "time1_time2" if succeed. If it fails returns "0_0".
 	 * */

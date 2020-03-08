@@ -6,7 +6,7 @@ import java.util.Random;
 import com.ssdd.cs.client.CriticalSectionClient;
 import com.ssdd.ntp.bean.Pair;
 import com.ssdd.ntp.client.NTPClient;
-import com.ssdd.ntp.server.NTPService;
+import com.ssdd.ntp.service.NTPService;
 import com.ssdd.util.IConstants;
 import com.ssdd.util.Utils;
 import com.ssdd.util.logging.SSDDLogFactory;
@@ -14,9 +14,9 @@ import com.ssdd.util.logging.SSDDLogFactory;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class ClientBehaviour extends Thread{
+public class Node extends Thread{
 
-    private final static Logger LOGGER = SSDDLogFactory.logger(ClientBehaviour.class);
+    private final static Logger LOGGER = SSDDLogFactory.logger(Node.class);
     
 	private String nodeId;
 	private Random generator;
@@ -25,7 +25,7 @@ public class ClientBehaviour extends Thread{
 	private CriticalSectionClient cs;
     private CriticalSectionLog csLog;
 	
-	public ClientBehaviour(String nodeId, NTPClient ntp, CriticalSectionClient cs) {
+	public Node(String nodeId, NTPClient ntp, CriticalSectionClient cs) {
 		super();
 		this.cs = cs;
 		this.ntp = ntp;

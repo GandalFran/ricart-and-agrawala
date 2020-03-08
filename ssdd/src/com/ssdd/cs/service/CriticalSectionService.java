@@ -39,12 +39,15 @@ public class CriticalSectionService{
 	}
 
 	/**
-	 * Factory method, to build a proxy to access an instance of this service in remote.
+	 * factory method, to build a proxy to access an instance of this service in remote.
 	 * 
 	 * @version 1.0
-	 * @author Héctor Sánchez San Blas and Francisco Pinto Santos
+	 * @author Héctor Sánchez San Blas
+	 * @author Francisco Pinto Santos
 	 * 
 	 * @param host the IP adress and PORT of server in which the service is allocated.
+	 * 
+	 * @return CriticalSectionService to serve as proxy for the /cs service, served in the given host
 	 * */
 	public static CriticalSectionService buildProxy(String host) {
 		String serviceUri = CriticalSectionService.buildServiceUri(host);
@@ -52,12 +55,15 @@ public class CriticalSectionService{
 	}
 
 	/**
-	 * Factory method, to build a URI for a CriticalSectionService from the host IP and port.
+	 * factory method, to build a URI for a CriticalSectionService from the host IP and port.
 	 * 
 	 * @version 1.0
-	 * @author Héctor Sánchez San Blas and Francisco Pinto Santos
+	 * @author Héctor Sánchez San Blas
+	 * @author Francisco Pinto Santos
 	 * 
 	 * @param host the IP adress and PORT of server in which the service is allocated.
+	 * 
+	 * @return String containing the URI to the service, served in the given host
 	 * */
 	public static String buildServiceUri(String host) {
 		return String.format("http://%s/ssdd/cs", host);
@@ -67,7 +73,10 @@ public class CriticalSectionService{
 	 * shows service status.
 	 * 
 	 * @version 1.0
-	 * @author Héctor Sánchez San Blas and Francisco Pinto Santos
+	 * @author Héctor Sánchez San Blas
+	 * @author Francisco Pinto Santos
+	 * 
+	 * @return string indicating the status of the service is up.
 	 * */
 	@GET
 	@Produces(MediaType.TEXT_PLAIN)
@@ -80,7 +89,8 @@ public class CriticalSectionService{
 	 * registers a node, and create the neccesary structures to work with it.
 	 * 
 	 * @version 1.0
-	 * @author Héctor Sánchez San Blas and Francisco Pinto Santos
+	 * @author Héctor Sánchez San Blas
+	 * @author Francisco Pinto Santos
 	 * 
 	 * @param nodeId the id of the node who wants to suscribe to current service.
 	 * */
@@ -95,7 +105,8 @@ public class CriticalSectionService{
 	 * return a list of suscribed nodes.
 	 * 
 	 * @version 1.0
-	 * @author Héctor Sánchez San Blas and Francisco Pinto Santos
+	 * @author Héctor Sánchez San Blas
+	 * @author Francisco Pinto Santos
 	 * 
 	 * @return String containing the list of suscribed nodes separated with the '_character'.
 	  */
@@ -119,10 +130,14 @@ public class CriticalSectionService{
 	 * processes the requests to the critical section access send by other nodes.
 	 * 
 	 * @version 1.0
-	 * @author Héctor Sánchez San Blas and Francisco Pinto Santos
+	 * @author Héctor Sánchez San Blas
+	 * @author Francisco Pinto Santos
 	 * 
 	 * @param nodeId the id of the node trying to accces the critical section. Must be a suscribed node.
+	 * 
 	 * @throws NodeNotSuscribedInServiceException when then nodeId doesn't corresponds to any node suscribed to current service.
+	 * 
+	 * @return CriticalSectionMessage with the response
 	 * */
 	public String requestAccess(String nodeId, String request) throws NodeNotSuscribedInServiceException {
 		LOGGER.log(Level.INFO, String.format("[node: %s] /cs/requestAccess", nodeId));
@@ -161,9 +176,11 @@ public class CriticalSectionService{
 	 * processes the delayed responses to the critical seciton access send by other nodes. Only can be called by a suscribed node.
 	 * 
 	 * @version 1.0
-	 * @author Héctor Sánchez San Blas and Francisco Pinto Santos
+	 * @author Héctor Sánchez San Blas
+	 * @author Francisco Pinto Santos
 	 * 
 	 * @param nodeId the id of the node for which the delayed answer is directed. Must be a suscribed node.
+	 * 
 	 * @throws NodeNotSuscribedInServiceException when then nodeId doesn't corresponds to any node suscribed to current service.
 	 * */
 	public void treatDelayedresponses(String nodeId) throws NodeNotSuscribedInServiceException {
@@ -182,9 +199,11 @@ public class CriticalSectionService{
 	 * releases critical section. Only can be called by a suscribed node.
 	 * 
 	 * @version 1.0
-	 * @author Héctor Sánchez San Blas and Francisco Pinto Santos
+	 * @author Héctor Sánchez San Blas
+	 * @author Francisco Pinto Santos
 	 * 
 	 * @param nodeId the id of the node which is releasing the critical section. Must be a suscribed node.
+	 * 
 	 * @throws NodeNotSuscribedInServiceException when then nodeId doesn't corresponds to any node suscribed to current service.
 	 * */
 	public void release(String nodeId) throws NodeNotSuscribedInServiceException {
@@ -217,9 +236,12 @@ public class CriticalSectionService{
 	 * given a nodeId checks if is suscribed to current service instance.
 	 * 
 	 * @version 1.0
-	 * @author Héctor Sánchez San Blas and Francisco Pinto Santos
+	 * @author Héctor Sánchez San Blas
+	 * @author Francisco Pinto Santos
 	 * 
 	 * @param nodeId id of the node we want to check if you have subscribed to this service.
+	 * 
+	 * @return boolean indicating if node is suscribed to this broker
 	 * */
 	private boolean isSuscribed(String nodeId) {
 		return this.state.keySet().contains(nodeId);
