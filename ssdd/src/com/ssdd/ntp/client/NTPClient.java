@@ -6,7 +6,7 @@ import java.util.Map;
 import com.ssdd.ntp.bean.Pair;
 import com.ssdd.ntp.service.NTPService;
 import com.ssdd.ntp.service.NTPServiceProxy;
-import com.ssdd.util.IConstants;
+import com.ssdd.util.constants.IConstants;
 
 
 public class NTPClient {

@@ -7,8 +7,8 @@ import com.ssdd.cs.client.CriticalSectionClient;
 import com.ssdd.ntp.bean.Pair;
 import com.ssdd.ntp.client.NTPClient;
 import com.ssdd.ntp.service.NTPService;
-import com.ssdd.util.IConstants;
 import com.ssdd.util.Utils;
+import com.ssdd.util.constants.IConstants;
 import com.ssdd.util.logging.SSDDLogFactory;
 
 import java.util.logging.Level;
@@ -31,12 +31,14 @@ public class Node extends Thread{
 		this.ntp = ntp;
 		this.nodeId = nodeId;
 		this.generator = new Random();
+		this.csLog = new CriticalSectionLog(nodeId);
 	}
 	
 	public void run() {
 		// calculate the ntp delay and offset at the begginng
 		LOGGER.log(Level.INFO, String.format("[node: %s] ntp initial", nodeId));
 		Map<NTPService, Pair> ntpInitialResult = ntp.estimate();
+		LOGGER.log(Level.INFO, String.format("[node: %s] ntp initial result: %s", nodeId, ntpInitialResult.toString()));
 		
 		// iterate N times simulating calculus and entering in the critical section
 		for(int i=0; i< IConstants.SIMULATION_NUM_ITERATIONS; i++) {
@@ -50,6 +52,10 @@ public class Node extends Thread{
 		// calculate the ntp delay and offset at the end
 		LOGGER.log(Level.INFO, String.format("[node: %s] ntp final", nodeId));
 		Map<NTPService, Pair> ntpFinalResult = ntp.estimate();
+		LOGGER.log(Level.INFO, String.format("[node: %s] ntp final result: %s", nodeId, ntpFinalResult.toString()));
+		
+
+		LOGGER.log(Level.INFO, String.format("[node: %s] finished", nodeId));
 	}
 	
 
@@ -58,13 +64,13 @@ public class Node extends Thread{
 		cs.acquire();
 		
 		// log to file when entered in critical section
-		csLog.log(nodeId);
+		csLog.logIn();
 		
 		LOGGER.log(Level.INFO, String.format("[node: %s] simulating calculus in critical section", nodeId));
 		this.simulateSleep(IConstants.SIMULATION_MIN_CRITICAL_SECTION_TIME, IConstants.SIMULATION_MAX_CRITICAL_SECTION_TIME);
 
 		// log to file when exited from critical section
-		csLog.log(nodeId);
+		csLog.logOut();
 		
 		// release critical section
 		cs.release();

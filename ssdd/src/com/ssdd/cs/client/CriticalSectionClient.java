@@ -18,6 +18,7 @@ public class CriticalSectionClient {
 		super();
 		this.ID = ID;
 		this.router = new CriticalSectionRouter(nodes, services);
+		this.router.update(ID, selectedBroker);
 		this.suscribe();
 	}
 

@@ -127,6 +127,27 @@ clean_server(){
 	clean_file $user_host $tomcat_folder_final/webapps/$project_name
 }
 
+# client utils
+
+run_all_clients(){
+	user=$1
+	client1=$2
+	client2=$3
+	client3=$4
+
+	user_client1="$user@$client1"
+	user_client2="$user@$client2"
+	user_client3="$user@$client3"
+
+	service1="$client1:8080"
+	service2="$client2:8080"
+	service3="$client3:8080"
+
+	remote_exec $client1 6 1 2 $service1 $service1 $service2 $service3
+	remote_exec $client2 6 3 4 $service2 $service1 $service2 $service3
+ 	remote_exec $client3 6 5 6 $service3 $service1 $service2 $service3
+}
+
 
 # ================================================== #
 # 					application						 #
@@ -232,11 +253,6 @@ do
 			user_host2="$user@$host2"
 			user_host3="$user@$host3"
 
-			# calculate services uris
-			service_uri_1="http://$host1:8080$service_path"
-			service_uri_2="http://$host2:8080$service_path"
-			service_uri_3="http://$host3:8080$service_path"
-
 			# generate session key and share keys
 			echo "preparing ssh connections ..."
 			gen_key
@@ -276,9 +292,7 @@ do
 			sleep 5
 
 			# run clients
-			remote_exec $user_host1 "java -jar $client_jar_final $service_uri_1 $service_uri_2 $service_uri_3" &
-			remote_exec $user_host2 "java -jar $client_jar_final $service_uri_1 $service_uri_2 $service_uri_3" &
-			remote_exec $user_host3 "java -jar $client_jar_final $service_uri_1 $service_uri_2 $service_uri_3"
+			run_all_clients $user $host1 $host2 $host3
       ;;
       "-redeployall")
 			i=$((i+1))
@@ -294,11 +308,6 @@ do
 			user_host1="$user@$host1"
 			user_host2="$user@$host2"
 			user_host3="$user@$host3"
-
-			# calculate services uris
-			service_uri_1="http://$host1:8080$service_path"
-			service_uri_2="http://$host2:8080$service_path"
-			service_uri_3="http://$host3:8080$service_path"
 
 			# clean client files
 			echo "cleaning older client files ..."
@@ -341,9 +350,7 @@ do
 			sleep 5
 
 			# run clients
-			remote_exec $user_host1 "java -jar $client_jar_final $service_uri_1 $service_uri_2 $service_uri_3" &
-			remote_exec $user_host2 "java -jar $client_jar_final $service_uri_1 $service_uri_2 $service_uri_3" &
-			remote_exec $user_host3 "java -jar $client_jar_final $service_uri_1 $service_uri_2 $service_uri_3"
+			run_all_clients $user $host1 $host2 $host3
       ;;
       "-cleanall")
 			i=$((i+1))

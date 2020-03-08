@@ -22,13 +22,14 @@ public class SSDDLogFactory {
 	 * 
 	 * @return a java.util.logging.Logger object with the setted Formatter and Handler.
 	 * */
-	public static Logger logger(Class<?> c) {
-		// generate log name
-		String className = c.getClass().getPackage().getName() + "." + c.getClass().getName();
+	public static Logger logger(Class c) {
+		// generate log name	
+		String [] classInfo = c.getCanonicalName().split("\\.");
+		String className = classInfo[classInfo.length-1];
 
 		// generate handler and formatter
 		Handler handler = SSDDLogFactory.buildHandler();
-	    handler.setFormatter(SSDDLogFactory.buildFormatter());
+	    handler.setFormatter(SSDDLogFactory.buildFormatter(className));
 	    
 	    // create and configure log
 		Logger log = Logger.getLogger(className);
@@ -62,9 +63,9 @@ public class SSDDLogFactory {
 	 * 
 	 * @return a java.util.logging.SimpleFormatter object with the selected format.
 	 * */
-	private static SimpleFormatter buildFormatter() {
+	private static SimpleFormatter buildFormatter(String className) {
 		return new SimpleFormatter() {
-	          private static final String format = "[%1$tF %1$tT] [%2$-7s] %3$s %n";
+	          private String format = "[%1$tF %1$tT] [%2$-7s] [" + className + "] %3$s %n";
 
 	          @Override
 	          public synchronized String format(LogRecord lr) {

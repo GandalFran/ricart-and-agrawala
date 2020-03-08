@@ -10,6 +10,16 @@ public class Pair implements Comparable<Pair>{
 		this.offset = offset;
 		this.delay = delay;
 	}
+
+	@Override
+	public int compareTo(Pair p) {
+		return Double.compare(this.offset, p.offset);
+	}
+	
+	@Override
+	public String toString() {
+		return String.format("(o:%f, d:%f)",this.offset, this.delay);
+	}
 	
 	public double getOffset() {
 		return offset;
@@ -22,10 +32,5 @@ public class Pair implements Comparable<Pair>{
 	}
 	public void setDelay(double delay) {
 		this.delay = delay;
-	}
-
-	@Override
-	public int compareTo(Pair p) {
-		return Double.compare(this.offset, p.offset);
 	}
 }

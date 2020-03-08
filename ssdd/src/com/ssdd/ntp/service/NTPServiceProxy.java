@@ -50,6 +50,11 @@ public class NTPServiceProxy extends NTPService{
 		String [] splittedresponse = response.split("_");
 		return new long [] {Long.parseLong(splittedresponse[0]), Long.parseLong(splittedresponse[1]) };
 	}
+	
+	@Override
+	public String toString() {
+		return this.serviceUri;
+	}
 
 	public String getServiceUri() {
 		return serviceUri;

@@ -63,7 +63,7 @@ public class NodeBuilder {
 		for(int i=0; i<services.length; i++)
 			services[i] = CriticalSectionService.buildProxy(servers[i]);
 		
-		String [] nodes = this.buildNodeIds(0, this.numNodes);
+		String [] nodes = this.buildNodeIds(1, this.numNodes);
 		
 		return new CriticalSectionClient(nodeId, CriticalSectionService.buildProxy(this.selectedServer), nodes, services);
 	}
@@ -78,9 +78,9 @@ public class NodeBuilder {
 	 * @return CriticalSectionClient to be used as critical section interface
 	 * */
 	public String [] buildNodeIds(int rangeStart, int rangeEnd) {
-		String [] nodes = new String [rangeEnd-rangeStart];
+		String [] nodes = new String [(rangeEnd-rangeStart)+1];
 		for(int i=rangeStart; i<=rangeEnd; i++)
-			nodes[i-rangeStart] = String.format("Node%d", i);
+			nodes[i-rangeStart] = String.format("%d", i);
 		return nodes;
 	}
 
