@@ -14,13 +14,22 @@ import com.ssdd.util.Utils;
 import com.ssdd.util.constants.IConstants;
 import com.ssdd.util.logging.SSDDLogFactory;
 
-
+/** 
+ * NTP service to deploy in Apache Tomcat 7.0.
+ * 
+ * @version 1.0
+ * @author Héctor Sánchez San Blas
+ * @author Francisco Pinto Santos
+*/
 @Singleton
 @Path("/ntp")
 public class NTPService{
 
     private final static Logger LOGGER = SSDDLogFactory.logger(NTPService.class);
 	
+    /** 
+     * Random number generator.
+    */
 	private Random generator;
 
 	public NTPService() {
@@ -68,7 +77,7 @@ public class NTPService{
 	 * @return string indicating the status of the service is up.
 	 * */
 	@GET
-	@Produces(MediaType.TEXT_PLAIN)
+	@Produces(MediaType.APPLICATION_JSON)
 	@Path("/status")
 	public String status() {
 		return "{ \"service\": \"ntp\", \"status\": \"ok\"}";
@@ -87,9 +96,9 @@ public class NTPService{
 	 * */
 	@GET
 	@Produces(MediaType.TEXT_PLAIN)
-	@Path("/pedirTiempo")
-	public String pedirTiempo() {
-		LOGGER.log(Level.INFO, "/ntp/pedirTiempo");
+	@Path("/time")
+	public String time() {
+		LOGGER.log(Level.INFO, "/ntp/time");
 		
 		// sample time
 		long time1 = System.currentTimeMillis(); 

@@ -15,7 +15,7 @@ public class Utils {
 	 * @param min interval start
 	 * @param max interval end
 	 * 
-	 * @return random number containted in (min, max) interval. 
+	 * @return positive random number containted in (min, max) interval. 
 	 * 
 	 * */
 	 public static long randomBetweenInterval(Random r, long min, long max) {

@@ -7,12 +7,19 @@ import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 
+/** 
+ * Class with static methods to build and configure {@link java.util.logging.Logger}
+ * @see <a href="https://www.logicbig.com/tutorials/core-java-tutorial/logging/customizing-default-format.html">https://www.logicbig.com/tutorials/core-java-tutorial/logging/customizing-default-format.html</a> 
+ * 
+ * @version 1.0
+ * @author Héctor Sánchez San Blas
+ * @author Francisco Pinto Santos
+*/
 public class SSDDLogFactory {
 	// src: https://www.logicbig.com/tutorials/core-java-tutorial/logging/customizing-default-format.html
 	
 	/**
-	 * buils a logger for a given class.
-	 * @see https://www.logicbig.com/tutorials/core-java-tutorial/logging/customizing-default-format.html
+	 * buils a {@link java.util.logging.Logger} for a given class.
 	 * 
 	 * @version 1.0
 	 * @author Héctor Sánchez San Blas
@@ -20,7 +27,7 @@ public class SSDDLogFactory {
 	 * 
 	 * @param c class which the name for the logger will be taken from
 	 * 
-	 * @return a java.util.logging.Logger object with the setted Formatter and Handler.
+	 * @return a {@link java.util.logging.Logger} object with the setted Formatter and Handler.
 	 * */
 	public static Logger logger(Class c) {
 		// generate log name	
@@ -40,28 +47,28 @@ public class SSDDLogFactory {
 	}
 	
 	/**
-	 * buils a Handler for the logger.
-	 * @see https://www.logicbig.com/tutorials/core-java-tutorial/logging/customizing-default-format.html
+	 * buils a Handler for {@link java.util.logging.Logger}
 	 * 
 	 * @version 1.0
 	 * @author Héctor Sánchez San Blas
 	 * @author Francisco Pinto Santos
 	 * 
-	 * @return a java.util.logging.Handler for the configured medium (currently console).
+	 * @return a {@link java.util.logging.Handler} for the configured medium (currently console).
 	 * */
 	private static Handler buildHandler() {
 		return new ConsoleHandler(); 
 	}
 	
 	/**
-	 * buils a Formatter for the logger.
-	 * @see https://www.logicbig.com/tutorials/core-java-tutorial/logging/customizing-default-format.html
+	 * buils a Formatter for the {@link java.util.logging.Logger}
 	 * 
 	 * @version 1.0
 	 * @author Héctor Sánchez San Blas
 	 * @author Francisco Pinto Santos
 	 * 
-	 * @return a java.util.logging.SimpleFormatter object with the selected format.
+	 * @param className string containig the name of the class where the logger is instanced
+	 * 
+	 * @return a {@link java.util.logging.SimpleFormatter} object with the selected format.
 	 * */
 	private static SimpleFormatter buildFormatter(String className) {
 		return new SimpleFormatter() {

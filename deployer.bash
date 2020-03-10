@@ -10,6 +10,8 @@ project_name=s3
 service_path=/$project_name$service
 project_folder=/home/gandalfran/repos/ssdd-ejercicios/$project_name
 build_folder=/tmp/build
+log_file=/tmp/simulation.txt
+local_log_folder=/tmp
 
 # tomcat
 tomcat_tar=/tmp/tomcat.tar.gz
@@ -48,11 +50,18 @@ remote_exec(){
 	ssh $user_host "$command"
 }
 
-copy_files(){
+copy_file(){
 	user_host=$1
 	initial=$2
 	final=$3
 	scp -rq $initial $user_host:$final
+}
+
+copy_file_from_remote(){
+	user_host=$1
+	initial=$2
+	final=$3
+	scp -rq $user_host:$initial $final
 }
 
 clean_file(){
@@ -108,7 +117,7 @@ download_tomcat(){
 
 deploy_tomcat(){
 	user_host=$1
-	copy_files $user_host $tomcat_download_folder $tomcat_folder_final
+	copy_file $user_host $tomcat_download_folder $tomcat_folder_final
 	remote_exec $user_host "$tomcat_folder_final/bin/startup.sh"
 }
 
@@ -146,6 +155,27 @@ run_all_clients(){
 	remote_exec $client1 6 1 2 $service1 $service1 $service2 $service3
 	remote_exec $client2 6 3 4 $service2 $service1 $service2 $service3
  	remote_exec $client3 6 5 6 $service3 $service1 $service2 $service3
+}
+
+verify_logs(){
+	user=$1
+	client1=$2
+	client2=$3
+	client3=$4
+
+	user_client1="$user@$client1"
+	user_client2="$user@$client2"
+	user_client3="$user@$client3"
+
+	client1_log="$local_log_folder/$client1_log.txt"
+	client2_log="$local_log_folder/$client2_log.txt"
+	client3_log="$local_log_folder/$client3_log.txt"
+
+	copy_file_from_remote $user_client1 $log_file 
+	copy_file_from_remote $user_client2 $log_file 
+	copy_file_from_remote $user_client3 $log_file 
+
+	java -jar $verifier_jar_final $client1_log $client2_log $client3_log
 }
 
 
@@ -207,12 +237,12 @@ do
       "-copyclient")
 			i=$((i+1))
 			user_host=${args[$i]}
-			copy_files $user_host $client_jar_initial $client_jar_final
+			copy_file $user_host $client_jar_initial $client_jar_final
       ;;
       "-copyserver")
 			i=$((i+1))
 			user_host=${args[$i]}
-			copy_files $user_host $server_war_initial $server_war_final
+			copy_file $user_host $server_war_initial $server_war_final
 			remote_exec $user_host "$tomcat_folder_final/bin/shutdown.sh"
 			remote_exec $user_host "$tomcat_folder_final/bin/startup.sh"
 			echo "wait 5 seconds for server to deploy copied .war file properly..."
@@ -277,22 +307,27 @@ do
 
 			# copy client files
 			echo "copying new client files ..."
-			copy_files $user_host1 $client_jar_initial $client_jar_final
-			copy_files $user_host2 $client_jar_initial $client_jar_final
-			copy_files $user_host3 $client_jar_initial $client_jar_final
+			copy_file $user_host1 $client_jar_initial $client_jar_final
+			copy_file $user_host2 $client_jar_initial $client_jar_final
+			copy_file $user_host3 $client_jar_initial $client_jar_final
 
 			# copy server files
 			echo "copying new server files ..."
-			copy_files $user_host1 $server_war_initial $server_war_final
-			copy_files $user_host2 $server_war_initial $server_war_final
-			copy_files $user_host3 $server_war_initial $server_war_final
+			copy_file $user_host1 $server_war_initial $server_war_final
+			copy_file $user_host2 $server_war_initial $server_war_final
+			copy_file $user_host3 $server_war_initial $server_war_final
 
 			# wait for server to complete deploy
 			echo "waiting 5 seconds to allow servers to complete the deploy ..."
 			sleep 5
 
 			# run clients
+			echo "running clients ..."
 			run_all_clients $user $host1 $host2 $host3
+
+			# run log verifier
+			echo "running log verifier ..."
+			verify_logs $user $host1 $host2 $host3
       ;;
       "-redeployall")
 			i=$((i+1))
@@ -335,22 +370,27 @@ do
 
 			# copy client files
 			echo "copying new client files ..."
-			copy_files $user_host1 $client_jar_initial $client_jar_final
-			copy_files $user_host2 $client_jar_initial $client_jar_final
-			copy_files $user_host3 $client_jar_initial $client_jar_final
+			copy_file $user_host1 $client_jar_initial $client_jar_final
+			copy_file $user_host2 $client_jar_initial $client_jar_final
+			copy_file $user_host3 $client_jar_initial $client_jar_final
 
 			# copy server files
 			echo "copying new server files ..."
-			copy_files $user_host1 $server_war_initial $server_war_final
-			copy_files $user_host2 $server_war_initial $server_war_final
-			copy_files $user_host3 $server_war_initial $server_war_final
+			copy_file $user_host1 $server_war_initial $server_war_final
+			copy_file $user_host2 $server_war_initial $server_war_final
+			copy_file $user_host3 $server_war_initial $server_war_final
 
 			# wait for server to complete deploy
 			echo "waiting 5 seconds to allow servers to complete the deploy ..."
 			sleep 5
 
 			# run clients
+			echo "running clients ..."
 			run_all_clients $user $host1 $host2 $host3
+
+			# run log verifier
+			echo "running log verifier ..."
+			verify_logs $user $host1 $host2 $host3
       ;;
       "-cleanall")
 			i=$((i+1))

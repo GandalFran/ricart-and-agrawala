@@ -17,6 +17,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
+import com.google.gson.Gson;
 import com.ssdd.cs.bean.CriticalSectionMessage;
 import com.ssdd.cs.bean.CriticalSectionMessageType;
 import com.ssdd.cs.bean.CriticalSectionState;
@@ -33,12 +34,14 @@ public class CriticalSectionService{
 	private Map<String, LamportCounter> lamportTime;
 	private Map<String, CriticalSectionState> state;
 	private Map<String, Queue<CriticalSectionMessage>> accessRequests;
+	private Map<String, Semaphore> waitToCompleteResponsesSemaphore;
 	
 	public CriticalSectionService() {
 		this.accessSemaphore = new Semaphore(1);
 		this.lamportTime = new ConcurrentHashMap<String, LamportCounter>();
 		this.state = new ConcurrentHashMap<String, CriticalSectionState>();
 		this.accessRequests = new ConcurrentHashMap<String, Queue<CriticalSectionMessage>>();
+		this.waitToCompleteResponsesSemaphore = new ConcurrentHashMap<String, Semaphore>();
 	}
 
 	/**
@@ -83,7 +86,7 @@ public class CriticalSectionService{
 	 * */
 	@GET
 	@Path("/status")
-	@Produces(MediaType.TEXT_PLAIN)
+	@Produces(MediaType.APPLICATION_JSON)
 	public String status() {
 		return "{ \"service\": \"cs\", \"status\": \"ok\"}";
 	}
@@ -104,10 +107,11 @@ public class CriticalSectionService{
 		this.lamportTime.put(nodeId, new LamportCounter());
 		this.state.put(nodeId, CriticalSectionState.FREE);
 		this.accessRequests.put(nodeId, new ConcurrentLinkedQueue<>());
+		this.waitToCompleteResponsesSemaphore.put(nodeId, new Semaphore(0));		
 	}
 
 	/**
-	 * return a list of suscribed nodes.
+	 * return a JSON serialized list of suscribed nodes.
 	 * 
 	 * @version 1.0
 	 * @author Héctor Sánchez San Blas
@@ -117,20 +121,45 @@ public class CriticalSectionService{
 	  */
 	@GET
 	@Path("/subscribed")
-	@Produces(MediaType.TEXT_PLAIN)
+	@Produces(MediaType.APPLICATION_JSON)
 	public String suscribed(){
 		LOGGER.log(Level.INFO, String.format("/cs/suscribed"));
 
-		StringBuilder sb = new StringBuilder();
+		// get nodes
+		String[] suscribedNodes = new String[this.state.keySet().size()];
+		this.state.keySet().toArray(suscribedNodes);
 		
-		for(String nodeId : this.state.keySet()) {
-			sb.append(nodeId).append("_");
+		// serialize list of nodes to JSON
+		String response = new Gson().toJson(suscribedNodes);
+		return response;
+	}
+	
+	/**
+	 * set new state for the critical section variable on a concrete node.
+	 * 
+	 * @version 1.0
+	 * @author Héctor Sánchez San Blas
+	 * @author Francisco Pinto Santos
+	 * 
+	 * @param nodeId the id of the node trying to accces the critical section. Must be a suscribed node.
+	 * @param newstate the new state given to the critical section by the node
+	 * 
+	 * @throws NodeNotFoundException when then nodeId doesn't corresponds to any node suscribed to current service.
+	 * */
+	@POST
+	@Path("/setState")
+	public void setCsState(@QueryParam(value="node") String nodeId, @QueryParam(value="state") String newState) throws NodeNotFoundException {
+		LOGGER.log(Level.INFO, String.format("[node: %s] /cs/setState %s", nodeId, newState));
+		
+		// check if given nodeId corresponds to a suscribed process
+		if(! this.isSuscribed(nodeId)) {
+			LOGGER.log(Level.WARNING, String.format("[node: %s] /cs/release: ERROR the given node is not subscribed", nodeId));
+			throw new NodeNotFoundException(nodeId);
 		}
 		
-		String result = sb.toString();
-		String response = result.substring(0, result.length() - 1);
-		
-		return response;
+		//set new state
+		CriticalSectionState state = CriticalSectionState.valueOf(newState);
+		this.state.put(nodeId, state);
 	}
 	
 	
@@ -142,6 +171,7 @@ public class CriticalSectionService{
 	 * @author Francisco Pinto Santos
 	 * 
 	 * @param nodeId the id of the node trying to accces the critical section. Must be a suscribed node.
+	 * @param request a JSON serialized {@link com.ssdd.cs.bean.CriticalSectionMessage} containing the request.
 	 * 
 	 * @throws NodeNotFoundException when then nodeId doesn't corresponds to any node suscribed to current service.
 	 * 
@@ -149,8 +179,8 @@ public class CriticalSectionService{
 	 * */
 	@GET
 	@Path("/request")
-	@Produces(MediaType.TEXT_PLAIN)
-	public String requestAccess(@QueryParam(value="node") String nodeId, @QueryParam(value="request") String request) throws NodeNotFoundException {
+	@Produces(MediaType.APPLICATION_JSON)
+	public String requestAccess(@QueryParam(value="node") String nodeId, @QueryParam(value="request") String requestStr) throws NodeNotFoundException {
 		LOGGER.log(Level.INFO, String.format("[node: %s] /cs/requestAccess", nodeId));
 		
 		// check if given nodeId corresponds to a suscribed process
@@ -161,27 +191,58 @@ public class CriticalSectionService{
 		
 		// get node response
 		CriticalSectionMessage response;
-		CriticalSectionMessage r = CriticalSectionMessage.fromJson(request);
+		CriticalSectionMessage request = CriticalSectionMessage.fromJson(requestStr);
 
 		// update process time
-		this.lamportTime.get(nodeId).update(r.getTime());
+		this.lamportTime.get(nodeId).update(request.getTime());
 		
 		// get node state
 		LamportCounter lamportTime = this.lamportTime.get(nodeId);
 		CriticalSectionState state = this.state.get(nodeId);
 		
-		if(state == CriticalSectionState.ACQUIRED 
-				|| (state == CriticalSectionState.REQUESTED && r.hasPriority(nodeId, r.getTime()))) {
-			this.accessRequests.get(nodeId).add(r);
+		if(state == CriticalSectionState.ACQUIRED
+				|| (state == CriticalSectionState.REQUESTED && request.hasPriority(nodeId, request.getTime()))) {
+			LOGGER.log(Level.INFO, String.format("[node: %s] /cs/requestAccess queued request from %s", nodeId, request.getSenderId()));
+			// queue response
+			this.accessRequests.get(nodeId).add(request);
 			// build response
 			response = new CriticalSectionMessage(nodeId, lamportTime, CriticalSectionMessageType.RESPONSE_DELAYED);
 		}else {
-			//TODO: no se si hay que responder esto
+			LOGGER.log(Level.INFO, String.format("[node: %s] /cs/requestAccess delayed request from %s", nodeId, request.getSenderId()));
+			// build alternative response
 			response = new CriticalSectionMessage(nodeId, lamportTime, CriticalSectionMessageType.RESPONSE_ALLOW);
 		}
 		
 		return response.toJson();
 	}
+	
+	/**
+	 * set new state for the critical section variable on a concrete node.
+	 * 
+	 * @version 1.0
+	 * @author Héctor Sánchez San Blas
+	 * @author Francisco Pinto Santos
+	 * 
+	 * @param nodeId the id of the node trying to accces the critical section. Must be a suscribed node.
+	 * @param newstate the new state given to the critical section by the node
+	 * 
+	 * @throws NodeNotFoundException when then nodeId doesn't corresponds to any node suscribed to current service.
+	 * */
+	@POST
+	@Path("/waitToCompleteResponses")
+	public void waitToCompleteResponses(@QueryParam(value="node") String nodeId) throws NodeNotFoundException {
+		LOGGER.log(Level.INFO, String.format("[node: %s] /cs/waitToCompleteResponses", nodeId));
+		
+		// check if given nodeId corresponds to a suscribed process
+		if(! this.isSuscribed(nodeId)) {
+			LOGGER.log(Level.WARNING, String.format("[node: %s] /cs/release: ERROR the given node is not subscribed", nodeId));
+			throw new NodeNotFoundException(nodeId);
+		}
+		
+		this.waitToCompleteResponsesSemaphore.get(nodeId).acquire();
+	}
+	
+	
 	
 	/**
 	 * processes the delayed responses to the critical seciton access send by other nodes. Only can be called by a suscribed node.

@@ -1,30 +1,35 @@
 package com.ssdd.cs.service;
 
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
 
+import com.google.gson.Gson;
 import com.ssdd.cs.bean.CriticalSectionMessage;
-import com.ssdd.cs.bean.CriticalSectionMessageType;
-import com.ssdd.cs.bean.CriticalSectionState;
-import com.ssdd.cs.bean.LamportCounter;
 import com.ssdd.util.logging.SSDDLogFactory;
 
+/** 
+ * Critical section proxy, to access a Critical Section service in a easier way
+ * 
+ * @version 1.0
+ * @author Héctor Sánchez San Blas
+ * @author Francisco Pinto Santos
+*/
 public class CriticalSectionServiceProxy extends CriticalSectionService{
 
     private final static Logger LOGGER = SSDDLogFactory.logger(CriticalSectionServiceProxy.class);
-	
+    
+    /**
+	 * Critical section service URI.
+	 * */
 	private String serviceUri;
+	/**
+	 * api client to make requests to Critical section service..
+	 * */
 	private WebTarget service;
 	
 	public CriticalSectionServiceProxy(String serviceUri) {
@@ -33,7 +38,7 @@ public class CriticalSectionServiceProxy extends CriticalSectionService{
 	}
 	
 	/**
-	 * method to parse the /cs/suscribed response from String to String [].
+	 * method to parse the /cs/suscribed response from JSON serialized String [] to String [].
 	 * 
 	 * @version 1.0
 	 * @author Héctor Sánchez San Blas
@@ -41,11 +46,10 @@ public class CriticalSectionServiceProxy extends CriticalSectionService{
 	 * 
 	 * @param response of the /cs/suscribed response
 	 * 
-	 * @return String [], with splitted response by the selected character "_"
+	 * @return String [] with deserialized response
 	 * */
 	public static String [] parseSuscribedResponse(String response) {
-		String [] splittedresponse = response.split("_");
-		return splittedresponse;
+		return new Gson().fromJson(response, String[].class);
 	}
 	
 	
@@ -73,7 +77,7 @@ public class CriticalSectionServiceProxy extends CriticalSectionService{
 	public String suscribed(){
 		LOGGER.log(Level.INFO, String.format("subscribed"));
 		try {
-			return this.service.path("subscribed").request(MediaType.TEXT_PLAIN).get(String.class);
+			return this.service.path("subscribed").request(MediaType.APPLICATION_JSON).get(String.class);
 		} catch (Exception e) {
 			LOGGER.log(Level.WARNING, String.format("suscribed: error %s", e.getMessage()), e);
 			return null;

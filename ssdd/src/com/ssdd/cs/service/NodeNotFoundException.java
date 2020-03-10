@@ -8,11 +8,21 @@ import javax.ws.rs.ext.ExceptionMapper;
 import javax.ws.rs.ext.Provider;
 
 
-// src: https://stackoverflow.com/questions/23858488/how-i-return-http-404-json-xml-response-in-jax-rs-jersey-on-tomcat
-
+/** 
+ * Exception to represent that the requested node is not suscribed to curent broker.
+ * Is only a security check to avoid unhandled errors like NoSuchKeyException on Maps, ...
+ * @see <a href="https://stackoverflow.com/questions/23858488/how-i-return-http-404-json-xml-response-in-jax-rs-jersey-on-tomcat">https://stackoverflow.com/questions/23858488/how-i-return-http-404-json-xml-response-in-jax-rs-jersey-on-tomcat</a>
+ * 
+ * @version 1.0
+ * @author Héctor Sánchez San Blas
+ * @author Francisco Pinto Santos
+*/
 @Provider
 public class NodeNotFoundException extends Exception implements ExceptionMapper<NodeNotFoundException>{
 
+	/**
+	 * The requested node's id.
+	 * */
 	private String nodeId;
 	
 	public NodeNotFoundException() {

@@ -1,58 +1,58 @@
 package com.ssdd.ntp.client;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 
 import com.ssdd.ntp.bean.Pair;
 import com.ssdd.ntp.service.NTPService;
 import com.ssdd.ntp.service.NTPServiceProxy;
 import com.ssdd.util.constants.IConstants;
 
-
+/** 
+ * NTP client to wrapp the access to implement the client part
+ * of the NTP algorithm.
+ * 
+ * @version 1.0
+ * @author Héctor Sánchez San Blas
+ * @author Francisco Pinto Santos
+*/
 public class NTPClient {
 	
-	private NTPService[] services;
+	/**
+	 * list of services to request the time samples.
+	 * */
+	private NTPService service;
 		
-	public NTPClient(NTPService[] services) {
+	public NTPClient(NTPService service) {
 		super();
-		this.services = services;
+		this.service = service;
 	}
 
 	/**
-	 * for each given {@link com.ssdd.ntp.service.NTPService} does the following {@link com.ssdd.util.IConstants.NTP_NUM_ITERATIONS} times:
-	 * Samples time once, invokes the com.ssdd.ntp.service.NTPServiceProxy#pedirTiempo() method, parses it and samples the time again. Then
-	 * calculates the delay and offset. After, this process has been completed {@link com.ssdd.util.IConstants.NTP_NUM_ITERATIONS} times, it
-	 * takes the best pair (delay, offset).
+	 * samples time in host and serer and calculates the delay and offset for {@link com.ssdd.util.constants.IConstants#NTP_NUM_ITERATIONS} times
 	 * 
-	 * @see com.ssdd.ntp.service.NTPService#pedirTiempo()
+	 * @see com.ssdd.ntp.service.NTPService#time()
 	 * 
 	 * @version 1.0
 	 * @author Héctor Sánchez San Blas
 	 * @author Francisco Pinto Santos
 	 * 
-	 * @return map with the asociation between a service and the best pair (offset, delay) for this service.
+	 * @return array with calculated {@link com.ssdd.ntp.bean.Pair}
 	 * */
-	public Map<NTPService, Pair> estimate() {
+	public Pair [] sample() {
 		long time0, time1, time2, time3;
-		Map<NTPService, Pair> bestPairs = new HashMap<>();
-				
-		// for each server
-		for(NTPService server : this.services) {
-			// for each iteration
-			Pair [] pairs = new Pair [IConstants.NTP_NUM_ITERATIONS];
-			for(int currIteration=0; currIteration<IConstants.NTP_NUM_ITERATIONS; currIteration++) {
-				// get times
-				time0 = System.currentTimeMillis();
-				long [] response = NTPServiceProxy.parsePedirTiempoResponse(server.pedirTiempo());
-				time1 = response[0]; 
-				time2 = response[1]; 
-				time3 = System.currentTimeMillis();
-				pairs[currIteration] = new Pair(this.calculateDelay(time0, time1, time2, time3), this.calculateOffset(time0, time1, time2, time3));
-			}
-			bestPairs.put(server, this.selectBestPair(pairs));
+		Pair [] pairs = new Pair [IConstants.NTP_NUM_ITERATIONS];
+		
+		for(int currIteration=0; currIteration<IConstants.NTP_NUM_ITERATIONS; currIteration++) {
+			// get times
+			time0 = System.currentTimeMillis();
+			long [] response = NTPServiceProxy.parseTimeResponse(this.service.time());
+			time1 = response[0]; 
+			time2 = response[1]; 
+			time3 = System.currentTimeMillis();
+			pairs[currIteration] = new Pair(this.calculateDelay(time0, time1, time2, time3), this.calculateOffset(time0, time1, time2, time3));
 		}
 		
-		return bestPairs;
+		return pairs;
 	} 
 	
 	/**
@@ -92,24 +92,21 @@ public class NTPClient {
 	}
 	
 	/**
-	 * Given a list of Pairs (delay, offset), selects the best pair. The pair selected as best
-	 * is theone with smallest delay.
+	 * Given a list of Pairs (delay, offset), selects the best pair. Currently, the pair selected as best
+	 * is the one with smallest delay.
 	 * 
 	 * @version 1.0
 	 * @author Héctor Sánchez San Blas
 	 * @author Francisco Pinto Santos
 	 * 
-	 * @param time0 first time sampled in client
-	 * @param time1 first time sampled in server
-	 * @param time2 first time sampled in server
-	 * @param time3 second time sampled in client
+	 * @param allPairs list from which pair will be selected
 	 * 
 	 * @return the Pair selected as Best.
 	 * */
-	protected Pair selectBestPair(Pair [] pairs) {
+	public Pair selectBestPair(List<Pair> allPairs) {
 		Pair bestPair = new Pair(Long.MAX_VALUE, 0);
 		
-		for(Pair p: pairs) {
+		for(Pair p: allPairs) {
 			if(p.getDelay() < bestPair.getDelay()) {
 				bestPair = p;
 			}
@@ -117,12 +114,11 @@ public class NTPClient {
 		return bestPair;
 	}
 
-	public NTPService[] getServers() {
-		return services;
+	public NTPService getService() {
+		return service;
 	}
 
-	public void setServers(NTPService[] servers) {
-		this.services = servers;
+	public void setService(NTPService service) {
+		this.service = service;
 	}
-	
 }

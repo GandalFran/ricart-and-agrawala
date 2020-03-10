@@ -15,15 +15,17 @@ public class main {
 		int numberOfNodes = Integer.parseInt(args[0]);
 		int assignedNodeIdRangeStart = Integer.parseInt(args[1]);
 		int assignedNodeIdRangeEnd = Integer.parseInt(args[2]);
-		String selectedService = args[3];
-		String [] servers = Arrays.copyOfRange(args, 4, args.length);
+		String assignedBroker = args[3];
+		String ntpService = args[4];
+		String [] servers = Arrays.copyOfRange(args, 5, args.length);
 		
 		// print information about params
 		LOGGER.log(Level.INFO, "Params:");
 		LOGGER.log(Level.INFO, "\t number of nodes: " + numberOfNodes);
 		LOGGER.log(Level.INFO, "\t assigned range start: " + assignedNodeIdRangeStart);
 		LOGGER.log(Level.INFO, "\t assigned range start: " + assignedNodeIdRangeEnd);
-		LOGGER.log(Level.INFO, "\t selected service: " + selectedService);
+		LOGGER.log(Level.INFO, "\t ntp service: " + ntpService);
+		LOGGER.log(Level.INFO, "\t asigned broker: " + assignedBroker);
 		LOGGER.log(Level.INFO, "\t services: " + Arrays.toString(servers));
 		
 		
@@ -36,7 +38,8 @@ public class main {
 		// configure builder
 		builder.servers(servers)
 				.numNodes(numberOfNodes)
-				.selectedServer(selectedService)
+				.ntpServer(ntpService)
+				.asignedBroker(assignedBroker)
 				.assignedIdRange(assignedNodeIdRangeStart, assignedNodeIdRangeEnd);
 		
 		// build and start nodes

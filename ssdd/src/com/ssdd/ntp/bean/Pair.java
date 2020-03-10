@@ -1,8 +1,21 @@
 package com.ssdd.ntp.bean;
 
+/** 
+ * Represents a pair of (delay,offset) for NTP bussines logic.
+ * 
+ * @version 1.0
+ * @author Héctor Sánchez San Blas
+ * @author Francisco Pinto Santos
+*/
 public class Pair implements Comparable<Pair>{
 	
-	private double delay;
+	/**
+	 * Delay calculated with the server and client samples in NTP algorithm.
+	 * */
+	private double delay;	
+	/**
+	 * Offset calculated with the server and client samples in NTP algorithm.
+	 * */
 	private double offset;
 	
 	public Pair(double delay, double offset) {

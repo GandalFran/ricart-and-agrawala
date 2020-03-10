@@ -1,0 +1,12 @@
+com.ssdd.cs.bean
+com.ssdd.cs.client
+com.ssdd.cs.service
+com.ssdd.cs.verify
+com.ssdd.cs.verify.bean
+com.ssdd.main
+com.ssdd.ntp.bean
+com.ssdd.ntp.client
+com.ssdd.ntp.service
+com.ssdd.util
+com.ssdd.util.constants
+com.ssdd.util.logging

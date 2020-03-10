@@ -1,5 +1,7 @@
 package com.ssdd.main;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
@@ -14,15 +16,37 @@ import com.ssdd.util.logging.SSDDLogFactory;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/** 
+ * Behaviour of a process in critical section test simulation.
+ * 
+ * @version 1.0
+ * @author Héctor Sánchez San Blas
+ * @author Francisco Pinto Santos
+*/
 public class Node extends Thread{
 
     private final static Logger LOGGER = SSDDLogFactory.logger(Node.class);
     
-	private String nodeId;
+    /** 
+     * the node's id
+    */
+	private String nodeId;    
+	/** 
+     * random number generator
+    */
 	private Random generator;
-	
-	private NTPClient ntp;
+    
+	/** 
+     * client to access the system's private NTP service.
+    */
+	private NTPClient ntp;	
+	/** 
+     * client to access the system's private critical section service.
+    */
 	private CriticalSectionClient cs;
+	/** 
+     * critical section log, to register the events and its respectives timestamp.
+    */
     private CriticalSectionLog csLog;
 	
 	public Node(String nodeId, NTPClient ntp, CriticalSectionClient cs) {
@@ -34,11 +58,24 @@ public class Node extends Thread{
 		this.csLog = new CriticalSectionLog(nodeId);
 	}
 	
+	/** 
+	 * Behaviour to be executed as a independient Thread.
+	 * Run steps:
+	 * 	+ runs NTP algorithm to obtain {@link com.ssdd.util.constants.IConstants#NTP_NUM_ITERATIONS} {@link com.ssdd.ntp.bean.Pair} 
+	 *  + iterates {@link com.ssdd.util.constants.IConstants#SIMULATION_NUM_ITERATIONS} times doing the following:
+	 *  	- sleep during a random interval of time simulating a calulation
+	 *  	- try acces to critical section
+	 * 	+ runs NTP algorithm to obtain {@link com.ssdd.util.constants.IConstants#NTP_NUM_ITERATIONS} {@link com.ssdd.ntp.bean.Pair}
+	 *  + calculates the delay and offset with the 2*{@link com.ssdd.util.constants.IConstants#NTP_NUM_ITERATIONS} obtained {@link com.ssdd.ntp.bean.Pair}
+	 * 
+	 * @version 1.0
+	 * @author Héctor Sánchez San Blas
+	 * @author Francisco Pinto Santos
+	*/
 	public void run() {
 		// calculate the ntp delay and offset at the begginng
 		LOGGER.log(Level.INFO, String.format("[node: %s] ntp initial", nodeId));
-		Map<NTPService, Pair> ntpInitialResult = ntp.estimate();
-		LOGGER.log(Level.INFO, String.format("[node: %s] ntp initial result: %s", nodeId, ntpInitialResult.toString()));
+		Pair [] ntpInitialResult = ntp.sample();
 		
 		// iterate N times simulating calculus and entering in the critical section
 		for(int i=0; i< IConstants.SIMULATION_NUM_ITERATIONS; i++) {
@@ -51,14 +88,25 @@ public class Node extends Thread{
 
 		// calculate the ntp delay and offset at the end
 		LOGGER.log(Level.INFO, String.format("[node: %s] ntp final", nodeId));
-		Map<NTPService, Pair> ntpFinalResult = ntp.estimate();
-		LOGGER.log(Level.INFO, String.format("[node: %s] ntp final result: %s", nodeId, ntpFinalResult.toString()));
-		
+		Pair [] ntpFinalResult = ntp.sample();
 
+		// join all obtained pairs and calculate the best pair
+		List <Pair> allPairs = Arrays.asList(ntpInitialResult);
+		allPairs.addAll(Arrays.asList(ntpFinalResult));
+		Pair pair = this.ntp.selectBestPair(allPairs);
+		LOGGER.log(Level.INFO, String.format("[node: %s] ntp result: ", pair.toString()));
+		
 		LOGGER.log(Level.INFO, String.format("[node: %s] finished", nodeId));
 	}
 	
-
+	/** 
+	 * Enteres in critical section, logs it with a {@link com.ssdd.main.CriticalSectionLog}, sleeps during a random interval
+	 * of time, and then logs the out of critical section again. At last, releases the critical section.
+	 * 
+	 * @version 1.0
+	 * @author Héctor Sánchez San Blas
+	 * @author Francisco Pinto Santos
+	*/
 	private void enterCriticalSection() {	
 		// acquire critical section
 		cs.acquire();
@@ -74,9 +122,18 @@ public class Node extends Thread{
 		
 		// release critical section
 		cs.release();
-		
 	}
 	
+	/** 
+	 * Simulates a sleep between an interval of min and max.
+	 * 
+	 * @version 1.0
+	 * @author Héctor Sánchez San Blas
+	 * @author Francisco Pinto Santos
+	 * 
+	 * @param min minimun time to sleep
+	 * @param max maximum time to sleep
+	*/
 	private void simulateSleep(long min, long max) {
 		// calculate the sleep interval
 		long sleepIntervalMs = Utils.randomBetweenInterval(this.generator, min, max);

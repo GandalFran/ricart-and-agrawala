@@ -22,18 +22,55 @@ public class CriticalSectionClient {
 		this.suscribe();
 	}
 
+	/** 
+	 * Suscribes this client to a broker
+	 * 
+	 * @version 1.0
+	 * @author Héctor Sánchez San Blas
+	 * @author Francisco Pinto Santos
+	*/
 	public void suscribe() {
 		CriticalSectionService myService = this.router.route(this.ID);
 		myService.subscribe(this.ID);
-		LOGGER.log(Level.INFO, "Suscribed to " + myService.toString());
+		LOGGER.log(Level.INFO, String.format("Suscribed to %s", myService.toString()));
 	}
 	
+	/** 
+	 * PONER DESCRIPCION
+	 * 
+	 * TODO:
+	 * 	- establecer estado a buscada
+	 *  - for each node:
+	 *  	- hacer request a /request
+	 *  	- si respuesta es delayed
+	 *  		delayed_responses.add(response)
+	 *  - hacer request a /waitToCompleteResponses
+	 * 
+	 * @version 1.0
+	 * @author Héctor Sánchez San Blas
+	 * @author Francisco Pinto Santos
+	*/
 	public void acquire() {
-		
+		// Hola amigo, usa loggers y String,format para dejar constancia de cada accion porfa
+		// 	luego si es necesario ya quitamos cosas.
 	}
 	
+	/** 
+	 * PONER DESCRIPCION
+	 * 
+	 * TODO:
+	 * 	- establecer estado a libre
+	 *  - llamar a /getQueuedRequests
+	 *  - for each request
+	 *  	- responder a /delayedRequest
+	 * 
+	 * @version 1.0
+	 * @author Héctor Sánchez San Blas
+	 * @author Francisco Pinto Santos
+	*/
 	public void release() {
-		
+		// Hola amigo, usa loggers y String,format para dejar constancia de cada accion porfa
+		// 	luego si es necesario ya quitamos cosas.
 	}
 	
 }

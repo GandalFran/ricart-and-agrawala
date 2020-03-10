@@ -5,6 +5,13 @@ import com.ssdd.cs.service.CriticalSectionService;
 import com.ssdd.ntp.client.NTPClient;
 import com.ssdd.ntp.service.NTPService;
 
+/**
+ * Builder to create {@link com.ssdd.main.Node}
+ * 
+ * @version 1.0
+ * @author Héctor Sánchez San Blas
+ * @author Francisco Pinto Santos
+ * */
 public class NodeBuilder {
 
 	private String nodeId;
@@ -13,18 +20,17 @@ public class NodeBuilder {
 	private int nodeIdRagneEnd;
 
 	private String [] servers;
-	private String selectedServer;
+	private String ntpServer;
+	private String asignedBroker;
 
 	/**
-	 * builds a Node 
+	 * builds a {@link com.ssdd.main.Node} with the setted parameters 
 	 * 
 	 * @version 1.0
 	 * @author Héctor Sánchez San Blas
 	 * @author Francisco Pinto Santos
 	 * 
-	 * @param servers array with the ip and port of all servers in system
-	 * 
-	 * @return NTPClient to be used as critical ntp interface
+	 * @return Node build with the provied data in other methods
 	 * */
 	public Node build() {
 		NTPClient ntp = this.buildNtpClient();
@@ -33,29 +39,26 @@ public class NodeBuilder {
 	}
 	
 	/**
-	 * builds a ntp service client.
+	 * builds a {@link com.ssdd.ntp.service.NTPService} client.
 	 * 
 	 * @version 1.0
 	 * @author Héctor Sánchez San Blas
 	 * @author Francisco Pinto Santos
 	 * 
-	 * @return NTPClient to be used as critical ntp interface
+	 * @return {@link com.ssdd.ntp.client.NTPClient} to be used as ntp interface
 	 * */
 	private NTPClient buildNtpClient() {
-		NTPService [] services = new NTPService [this.servers.length];
-		for(int i=0; i<services.length; i++)
-			services[i] = NTPService.buildProxy(this.servers[i]);
-		return new NTPClient(services);
+		return new NTPClient(NTPService.buildProxy(this.ntpServer));
 	}
 	
 	/**
-	 * builds a criticalSection client.
+	 * builds a {@link com.ssdd.cs.service.CriticalSectionService} client.
 	 * 
 	 * @version 1.0
 	 * @author Héctor Sánchez San Blas
 	 * @author Francisco Pinto Santos
 	 * 
-	 * @return CriticalSectionClient to be used as critical section interface
+	 * @return {@link com.ssdd.cs.client.CriticalSectionClient}  to be used as critical section interface
 	 * */
 	private CriticalSectionClient buildCsClient() {
 		CriticalSectionService [] services = new CriticalSectionService [this.servers.length];
@@ -65,7 +68,7 @@ public class NodeBuilder {
 		
 		String [] nodes = this.buildNodeIds(1, this.numNodes);
 		
-		return new CriticalSectionClient(nodeId, CriticalSectionService.buildProxy(this.selectedServer), nodes, services);
+		return new CriticalSectionClient(nodeId, CriticalSectionService.buildProxy(this.asignedBroker), nodes, services);
 	}
 	
 	/**
@@ -75,7 +78,10 @@ public class NodeBuilder {
 	 * @author Héctor Sánchez San Blas
 	 * @author Francisco Pinto Santos
 	 * 
-	 * @return CriticalSectionClient to be used as critical section interface
+	 * @param rangeStart start of range
+	 * @param rangeEnd end of range
+	 * 
+	 * @return String[] with the id of nodes in given range
 	 * */
 	public String [] buildNodeIds(int rangeStart, int rangeEnd) {
 		String [] nodes = new String [(rangeEnd-rangeStart)+1];
@@ -106,8 +112,13 @@ public class NodeBuilder {
 		return this;
 	}
 	
-	public NodeBuilder selectedServer(String selectedServer) {
-		this.setSelectedServer(selectedServer);
+	public NodeBuilder asignedBroker(String asignedBroker) {
+		this.setAsignedBroker(asignedBroker);
+		return this;
+	}
+	
+	public NodeBuilder ntpServer(String ntpServer) {
+		this.setNtpServer(ntpServer);
 		return this;
 	}
 	
@@ -151,14 +162,20 @@ public class NodeBuilder {
 		this.servers = servers;
 	}
 
-	public String getSelectedServer() {
-		return selectedServer;
+	public String getAsignedBroker() {
+		return asignedBroker;
 	}
 
-	public void setSelectedServer(String selectedServer) {
-		this.selectedServer = selectedServer;
+	public void setAsignedBroker(String asignedBroker) {
+		this.asignedBroker = asignedBroker;
 	}
-	
-	
+
+	public String getNtpServer() {
+		return ntpServer;
+	}
+
+	public void setNtpServer(String ntpServer) {
+		this.ntpServer = ntpServer;
+	}
 	
 }
