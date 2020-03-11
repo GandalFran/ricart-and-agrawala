@@ -147,7 +147,7 @@ public class CriticalSectionService{
 	 * @throws NodeNotFoundException when then nodeId doesn't corresponds to any node suscribed to current service.
 	 * */
 	@POST
-	@Path("/setState")
+	@Path("/set/state")
 	public void setCsState(@QueryParam(value="node") String nodeId, @QueryParam(value="state") String newState) throws NodeNotFoundException {
 		LOGGER.log(Level.INFO, String.format("[node: %s] /cs/setState %s", nodeId, newState));
 		
@@ -229,7 +229,7 @@ public class CriticalSectionService{
 	 * @throws NodeNotFoundException when then nodeId doesn't corresponds to any node suscribed to current service.
 	 * */
 	@POST
-	@Path("/waitToCompleteResponses")
+	@Path("/wait/completeResponses")
 	public void waitToCompleteResponses(@QueryParam(value="node") String nodeId) throws NodeNotFoundException {
 		LOGGER.log(Level.INFO, String.format("[node: %s] /cs/waitToCompleteResponses", nodeId));
 		
@@ -242,7 +242,31 @@ public class CriticalSectionService{
 		this.waitToCompleteResponsesSemaphore.get(nodeId).acquire();
 	}
 	
-	
+	/**
+	 * set new state for the critical section variable on a concrete node.
+	 * 
+	 * @version 1.0
+	 * @author Héctor Sánchez San Blas
+	 * @author Francisco Pinto Santos
+	 * 
+	 * @param nodeId the id of the node trying to accces the critical section. Must be a suscribed node.
+	 * @param newstate the new state given to the critical section by the node
+	 * 
+	 * @throws NodeNotFoundException when then nodeId doesn't corresponds to any node suscribed to current service.
+	 * */
+	@POST
+	@Path("/response/delayed")
+	public void responseToDelayedResponse(@QueryParam(value="node") String nodeId) throws NodeNotFoundException {
+		LOGGER.log(Level.INFO, String.format("[node: %s] /cs/waitToCompleteResponses", nodeId));
+		
+		// check if given nodeId corresponds to a suscribed process
+		if(! this.isSuscribed(nodeId)) {
+			LOGGER.log(Level.WARNING, String.format("[node: %s] /cs/release: ERROR the given node is not subscribed", nodeId));
+			throw new NodeNotFoundException(nodeId);
+		}
+		
+		this.waitToCompleteResponsesSemaphore.get(nodeId).acquire();
+	}
 	
 	/**
 	 * processes the delayed responses to the critical seciton access send by other nodes. Only can be called by a suscribed node.
@@ -255,10 +279,11 @@ public class CriticalSectionService{
 	 * 
 	 * @throws NodeNotFoundException when then nodeId doesn't corresponds to any node suscribed to current service.
 	 * */
-	@POST
-	@Path("/response")
-	public void treatDelayedresponses(@QueryParam(value="node") String nodeId) throws NodeNotFoundException {
-		LOGGER.log(Level.INFO, String.format("[node: %s] /cs/release", nodeId));
+	@GET
+	@Path("/get/delayed")
+	@Produces(MediaType.APPLICATION_JSON)
+	public void getDelayedResponses(@QueryParam(value="node") String nodeId) throws NodeNotFoundException {
+		LOGGER.log(Level.INFO, String.format("[node: %s] /cs/getDelayed", nodeId));
 
 		// check if given nodeId corresponds to a suscribed process
 		if(! this.isSuscribed(nodeId)) {
@@ -266,47 +291,10 @@ public class CriticalSectionService{
 			throw new NodeNotFoundException(nodeId);
 		}
 		
-		//TODO: esto es un problema porque necesitamos tratar las respuestas retardadas
+		return "TODO";
+		
 	}
 	
-	/**
-	 * releases critical section. Only can be called by a suscribed node.
-	 * 
-	 * @version 1.0
-	 * @author Héctor Sánchez San Blas
-	 * @author Francisco Pinto Santos
-	 * 
-	 * @param nodeId the id of the node which is releasing the critical section. Must be a suscribed node.
-	 * 
-	 * @throws NodeNotFoundException when then nodeId doesn't corresponds to any node suscribed to current service.
-	 * */
-	@POST
-	@Path("/release")
-	public void release(@QueryParam(value="node") String nodeId) throws NodeNotFoundException {
-		LOGGER.log(Level.INFO, String.format("[node: %s] /cs/release", nodeId));
-
-		// check if given nodeId corresponds to a suscribed process
-		if(! this.isSuscribed(nodeId)) {
-			LOGGER.log(Level.WARNING, String.format("[node: %s] /cs/release: ERROR the given node is not subscribed", nodeId));
-			throw new NodeNotFoundException(nodeId);
-		}
-		
-		// update process time
-		LamportCounter myTime = this.lamportTime.get(nodeId);
-		myTime.update();
-		
-		// set state to released
-		LOGGER.log(Level.INFO, String.format("[node: %s] /cs/release: changing cs state to FREE", nodeId));
-		this.state.put(nodeId, CriticalSectionState.FREE);
-		
-		// answer to responses
-		LOGGER.log(Level.INFO, String.format("[node: %s] /cs/release: replying request", nodeId));
-		for(CriticalSectionMessage r : this.accessRequests.get(nodeId)) {
-			//TODO: responder a nodo
-			CriticalSectionMessage response = new CriticalSectionMessage(nodeId, myTime, CriticalSectionMessageType.RESPONSE_ALLOW);
-			// TODO: responder con proxy (de este servicio con direccion a otro servicio) a servidor que lo envio
-		}
-	}
 	
 	/**
 	 * given a nodeId checks if is suscribed to current service instance.
