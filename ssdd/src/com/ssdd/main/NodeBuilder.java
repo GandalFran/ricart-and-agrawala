@@ -35,6 +35,7 @@ public class NodeBuilder {
 	public Node build() {
 		NTPClient ntp = this.buildNtpClient();
 		CriticalSectionClient cs = this.buildCsClient();
+		cs.suscribe();
 		return new Node(nodeId, ntp, cs);
 	}
 	

@@ -7,7 +7,7 @@ public class Verifier {
 	}
 
 	public static CriticalSectionEvent [] load(String file) {
-		
+		return null;
 	}
 
 }

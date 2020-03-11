@@ -96,5 +96,25 @@ public class CriticalSectionRouter {
 			}
 		}
 	}
+
+	public List<String> getNodes(){
+		return new ArrayList<>(this.router.keySet());
+	}
+	
+	public List<CriticalSectionService> getBrokers() {
+		return brokers;
+	}
+
+	public void setBrokers(List<CriticalSectionService> brokers) {
+		this.brokers = brokers;
+	}
+
+	public Map<String, CriticalSectionService> getRouter() {
+		return router;
+	}
+
+	public void setRouter(Map<String, CriticalSectionService> router) {
+		this.router = router;
+	}
 	
 }

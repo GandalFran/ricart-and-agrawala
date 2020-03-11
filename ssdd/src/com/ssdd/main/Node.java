@@ -1,5 +1,6 @@
 package com.ssdd.main;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -91,7 +92,7 @@ public class Node extends Thread{
 		Pair [] ntpFinalResult = ntp.sample();
 
 		// join all obtained pairs and calculate the best pair
-		List <Pair> allPairs = Arrays.asList(ntpInitialResult);
+		List <Pair> allPairs = new ArrayList<>(Arrays.asList(ntpInitialResult));
 		allPairs.addAll(Arrays.asList(ntpFinalResult));
 		Pair pair = this.ntp.selectBestPair(allPairs);
 		LOGGER.log(Level.INFO, String.format("[node: %s] ntp result: ", pair.toString()));

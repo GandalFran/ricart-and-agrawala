@@ -1,25 +1,39 @@
 package com.ssdd.cs.client;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.ssdd.cs.bean.CriticalSectionState;
+import com.ssdd.cs.bean.LamportCounter;
 import com.ssdd.cs.service.CriticalSectionService;
+import com.ssdd.cs.service.NodeNotFoundException;
 import com.ssdd.util.logging.SSDDLogFactory;
 
 public class CriticalSectionClient {
-
-	private static Logger LOGGER = SSDDLogFactory.logger(CriticalSectionClient.class);
-
+	
+	private final static Logger LOGGER = SSDDLogFactory.logger(CriticalSectionClient.class);
+    
 	private String ID;
+	private List<String> nodes;
 	private CriticalSectionRouter router;
 	
-	
 	public CriticalSectionClient(String ID, CriticalSectionService selectedBroker, String [] nodes, CriticalSectionService [] services) {
-		super();
 		this.ID = ID;
 		this.router = new CriticalSectionRouter(nodes, services);
 		this.router.update(ID, selectedBroker);
-		this.suscribe();
+		this.nodes = this.buildNodeArray(nodes);
+	}
+	
+	private List<String> buildNodeArray(String [] allNodes) {
+		List<String> nodes =  new ArrayList<>();
+		for(String node : allNodes) {
+			if(!node.equals(this.ID)) {
+				nodes.add(node);
+			}
+		}
+		return nodes;
 	}
 
 	/** 
@@ -31,8 +45,9 @@ public class CriticalSectionClient {
 	*/
 	public void suscribe() {
 		CriticalSectionService myService = this.router.route(this.ID);
-		myService.subscribe(this.ID);
-		LOGGER.log(Level.INFO, String.format("Suscribed to %s", myService.toString()));
+		LOGGER.log(Level.INFO, String.format("[node %s] suscribing to %s", this.ID, myService.toString()));
+		myService.suscribe(this.ID);
+		LOGGER.log(Level.INFO, String.format("[node %s] suscribed to %s", this.ID, myService.toString()));
 	}
 	
 	/** 
@@ -51,8 +66,30 @@ public class CriticalSectionClient {
 	 * @author Francisco Pinto Santos
 	*/
 	public void acquire() {
-		// Hola amigo, usa loggers y String,format para dejar constancia de cada accion porfa
-		// 	luego si es necesario ya quitamos cosas.
+		LOGGER.log(Level.INFO, String.format("[node %s] acquiring", this.ID));
+		try {
+			
+			this.router.route(this.ID).lock(this.ID);
+			
+			// get my lamport counter
+			String lamportStr = this.router.route(this.ID).getLamport(this.ID);
+			LamportCounter c = LamportCounter.fromJson(lamportStr);
+					
+			// set cs state
+			this.router.route(this.ID).setCsState(this.ID, CriticalSectionState.REQUESTED.toString());
+			
+			this.router.route(this.ID).unlock(this.ID);
+			
+			// send requests
+			for(String node : this.nodes) {
+				CriticalSectionService service = this.router.route(node);
+				service.request(node, this.ID, c.getCounter());
+			}
+			this.router.route(this.ID).setCsState(this.ID, CriticalSectionState.ACQUIRED.toString());
+		} catch (NodeNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	/** 
@@ -69,8 +106,16 @@ public class CriticalSectionClient {
 	 * @author Francisco Pinto Santos
 	*/
 	public void release() {
-		// Hola amigo, usa loggers y String,format para dejar constancia de cada accion porfa
-		// 	luego si es necesario ya quitamos cosas.
+		LOGGER.log(Level.INFO, String.format("[node %s] releasing", this.ID));
+		try {
+			this.router.route(this.ID).lock(this.ID);
+			this.router.route(this.ID).setCsState(this.ID, CriticalSectionState.FREE.toString());
+			this.router.route(this.ID).release(this.ID);
+			this.router.route(this.ID).unlock(this.ID);
+		} catch (NodeNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 }

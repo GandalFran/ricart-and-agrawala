@@ -1,6 +1,8 @@
 package com.ssdd.main;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -43,10 +45,12 @@ public class main {
 				.assignedIdRange(assignedNodeIdRangeStart, assignedNodeIdRangeEnd);
 		
 		// build and start nodes
+		List<Node> nodes = new ArrayList<>();
 		for(String node : assignedNodes) {
-			Node n = builder.nodeId(node).build();
-			n.start();
+			nodes.add( builder.nodeId(node).build());
 		}
+		
+		nodes.forEach(n -> n.start());
 		
 	}
 }

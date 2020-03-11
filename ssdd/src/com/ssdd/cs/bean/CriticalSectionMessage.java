@@ -19,23 +19,17 @@ public class CriticalSectionMessage{
 	 * the sender's lamport counter to update the reciver counter
 	 * */
 	private LamportCounter time;
-	/**
-	 * the message type
-	 * */
-	private CriticalSectionMessageType messageType;
 	
-	public CriticalSectionMessage(String processId, long time, CriticalSectionMessageType messageType) {
+	public CriticalSectionMessage(String processId, long time) {
 		super();
 		this.senderId = processId;
-		this.messageType = messageType;
 		this.time = new LamportCounter(time);
 	}
 	
-	public CriticalSectionMessage(String senderId, LamportCounter time, CriticalSectionMessageType messageType) {
+	public CriticalSectionMessage(String senderId, LamportCounter time) {
 		super();
 		this.time = time;
 		this.senderId = senderId;
-		this.messageType = messageType;
 	}
 
 	/**
