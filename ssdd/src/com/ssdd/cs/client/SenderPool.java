@@ -33,6 +33,8 @@ public class SenderPool {
 				
 		pool.shutdown();
 		
+		router.route(sender).unlock(sender);
+		
 		try {
 			pool.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
 		} catch (InterruptedException e) {

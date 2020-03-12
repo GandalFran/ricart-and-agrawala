@@ -32,7 +32,7 @@ public class CriticalSectionService{
 	private Map<String, LamportCounter> lamportTime;
 	private Map<String, CriticalSectionState> state;
 	private Map<String, Object> releaseNotifier;
-	private Map<String,Semaphore> locks;
+	private Map<String, Semaphore> locks;
 	
 	public CriticalSectionService() {
 		this.lamportTime = new ConcurrentHashMap<String, LamportCounter>();
@@ -218,6 +218,12 @@ public class CriticalSectionService{
 			throw new NodeNotFoundException(nodeId);
 		}
 		
+		try {
+			this.locks.get(nodeId).acquire();
+		} catch (InterruptedException e) {
+			LOGGER.log(Level.WARNING, String.format("[node: %s] /cs/request: ERROR ", e.getMessage()), e);
+		}
+		
 		// get node state
 		LamportCounter lamportTime = this.lamportTime.get(nodeId);
 		CriticalSectionState state = this.state.get(nodeId);
@@ -230,6 +236,8 @@ public class CriticalSectionService{
 			LOGGER.log(Level.INFO, String.format("[node: %s] /cs/request node %s QUEUED", nodeId, sender));
 			// make wait for process to release the critical section
 			LOGGER.log(Level.INFO, String.format("[node: %s] /cs/request node %s ALLOWED", nodeId, sender));
+
+			this.locks.get(nodeId).release();
 			try {
 				Object notifier = this.releaseNotifier.get(nodeId);
 				synchronized(notifier) {
@@ -239,6 +247,7 @@ public class CriticalSectionService{
 				LOGGER.log(Level.WARNING, String.format("[node: %s] /cs/request: ERROR when waiting", nodeId));
 			}
 		}else {
+			this.locks.get(nodeId).release();
 			LOGGER.log(Level.INFO, String.format("[node: %s] /cs/request node %s ALLOWED", nodeId, sender));
 		}
 		
@@ -270,12 +279,22 @@ public class CriticalSectionService{
 			LOGGER.log(Level.WARNING, String.format("[node: %s] /cs/release: ERROR the given node is not subscribed", nodeId));
 			throw new NodeNotFoundException(nodeId);
 		}
+
+		try {
+			this.locks.get(nodeId).acquire();
+		} catch (InterruptedException e) {
+			LOGGER.log(Level.WARNING, String.format("[node: %s] /cs/release: ERROR ", e.getMessage()), e);
+		}
+		
+		this.state.put(nodeId, CriticalSectionState.FREE);
 		
 		// notify all that critical section has been released
 		Object notifier = this.releaseNotifier.get(nodeId);
 		synchronized(notifier){
 			notifier.notifyAll();
 		}
+		
+		this.locks.get(nodeId).release();
 	}
 	
 	
