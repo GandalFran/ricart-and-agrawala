@@ -64,8 +64,9 @@ public class NodeBuilder {
 	private CriticalSectionClient buildCsClient() {
 		CriticalSectionService [] services = new CriticalSectionService [this.servers.length];
 		
-		for(int i=0; i<services.length; i++)
+		for(int i=0; i<services.length; i++) {
 			services[i] = CriticalSectionService.buildProxy(servers[i]);
+		}
 		
 		String [] nodes = this.buildNodeIds(1, this.numNodes);
 		

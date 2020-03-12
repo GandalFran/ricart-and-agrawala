@@ -87,7 +87,7 @@ public class CriticalSectionService{
 	public String status() {
 		return "{ \"service\": \"cs\", \"status\": \"ok\"}";
 	}
-
+	
 	/**
 	 * registers a node, and create the neccesary structures to work with it.
 	 * 
@@ -130,25 +130,7 @@ public class CriticalSectionService{
 		String response = new Gson().toJson(suscribedNodes);
 		return response;
 	}
-	
-	@POST
-	@Path("/lock")
-	public void lock(@QueryParam(value="node") String nodeId){
-		LOGGER.log(Level.INFO, String.format("[node: %s] /cs/lock", nodeId));
-		try {
-			this.locks.get(nodeId).acquire();
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
-	
-	@POST
-	@Path("/unlock")
-	public void unlock(@QueryParam(value="node") String nodeId){
-		LOGGER.log(Level.INFO, String.format("[node: %s] /cs/unlock", nodeId));
-		this.locks.get(nodeId).release();
-	}
+
 	
 	/**
 	 * set new state for the critical section variable on a concrete node.
@@ -194,7 +176,7 @@ public class CriticalSectionService{
 	 * */
 	@GET
 	@Path("/get/lamport")
-	@Produces(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.TEXT_PLAIN)
 	public String getLamport(@QueryParam(value="node") String nodeId) throws NodeNotFoundException {
 		LOGGER.log(Level.INFO, String.format("[node: %s] /cs/get/lamport", nodeId));
 		
@@ -210,6 +192,7 @@ public class CriticalSectionService{
 		
 		return jsonCounter;
 	}
+
 	
 	
 	/**
@@ -233,15 +216,6 @@ public class CriticalSectionService{
 		if(! this.isSuscribed(nodeId)) {
 			LOGGER.log(Level.WARNING, String.format("[node: %s] /cs/request: ERROR the given node is not subscribed", nodeId));
 			throw new NodeNotFoundException(nodeId);
-		}
-
-		// try to acquire the lock
-		try {
-			this.locks.get(nodeId).acquire();
-			this.locks.get(nodeId).release();
-		} catch (InterruptedException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
 		}
 		
 		// get node state
@@ -319,6 +293,50 @@ public class CriticalSectionService{
 	private boolean isSuscribed(String nodeId) {
 		return this.state.keySet().contains(nodeId);
 	}
+	
+	@GET
+	@Path("/update/lamport")
+	public void updateLamport(@QueryParam(value="node") String nodeId) throws NodeNotFoundException {
+		LOGGER.log(Level.INFO, String.format("[node: %s] /cs/update/lamport", nodeId));
+		
+		// check if given nodeId corresponds to a suscribed process
+		if(! this.isSuscribed(nodeId)) {
+			LOGGER.log(Level.WARNING, String.format("[node: %s] /cs/set/state: ERROR the given node is not subscribed", nodeId));
+			throw new NodeNotFoundException(nodeId);
+		}
 
+		// get lamport counter and update
+		LamportCounter counter = this.lamportTime.get(nodeId);
+		counter.update();
+	}	
+	
+	@POST
+	@Path("/lock")
+	public void lock(@QueryParam(value="node") String nodeId){
+		LOGGER.log(Level.INFO, String.format("[node: %s] /cs/lock", nodeId));
+		try {
+			this.locks.get(nodeId).acquire();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	@POST
+	@Path("/unlock")
+	public void unlock(@QueryParam(value="node") String nodeId){
+		LOGGER.log(Level.INFO, String.format("[node: %s] /cs/unlock", nodeId));
+		this.locks.get(nodeId).release();
+	}
+	
+	@POST
+	@Path("/restart")
+	public void restart(){
+		LOGGER.log(Level.INFO, String.format("/cs/restart"));
+		this.lamportTime = new ConcurrentHashMap<String, LamportCounter>();
+		this.state = new ConcurrentHashMap<String, CriticalSectionState>();
+		this.releaseNotifier = new ConcurrentHashMap<String, Object>();
+		this.locks = new ConcurrentHashMap<String, Semaphore>();
+	}
 
 }

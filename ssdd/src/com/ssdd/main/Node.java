@@ -95,7 +95,7 @@ public class Node extends Thread{
 		List <Pair> allPairs = new ArrayList<>(Arrays.asList(ntpInitialResult));
 		allPairs.addAll(Arrays.asList(ntpFinalResult));
 		Pair pair = this.ntp.selectBestPair(allPairs);
-		LOGGER.log(Level.INFO, String.format("[node: %s] ntp result: ", pair.toString()));
+		LOGGER.log(Level.INFO, String.format("[node: %s] ntp result: %s", nodeId, pair.toString()));
 		
 		LOGGER.log(Level.INFO, String.format("[node: %s] finished", nodeId));
 	}

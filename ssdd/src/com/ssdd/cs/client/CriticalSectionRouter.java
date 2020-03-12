@@ -91,7 +91,7 @@ public class CriticalSectionRouter {
 		for(CriticalSectionService broker : this.brokers) {
 			String response = broker.suscribed();
 			String [] nodes = CriticalSectionServiceProxy.parseSuscribedResponse(response);
-			for(String node :nodes) {
+			for(String node : nodes) {
 				this.update(node, broker);
 			}
 		}

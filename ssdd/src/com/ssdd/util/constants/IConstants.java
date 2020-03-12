@@ -31,7 +31,7 @@ public interface IConstants {
 	/** 
 	 * Number of iterations of calculus and critical section wait in simulation.
 	 */
-	public static final int SIMULATION_NUM_ITERATIONS = 100;
+	public static final int SIMULATION_NUM_ITERATIONS = 10;
 	/** 
 	 * Minimum time (in milliseconds) of calclus simulation in application.
 	 */

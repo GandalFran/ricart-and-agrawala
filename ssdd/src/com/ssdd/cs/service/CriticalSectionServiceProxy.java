@@ -76,26 +76,6 @@ public class CriticalSectionServiceProxy extends CriticalSectionService{
 			LOGGER.log(Level.WARNING, String.format("[node: %s] suscribe: error %s", nodeId, e.getMessage()), e);
 		}
 	}
-	
-	@Override
-	public void lock(String nodeId){
-		LOGGER.log(Level.INFO, String.format("[node: %s] lock", nodeId));
-		try {
-			this.service.path("lock").queryParam("node", nodeId).request().post(null);
-		} catch (Exception e) {
-			LOGGER.log(Level.WARNING, String.format("[node: %s] lock: error %s", nodeId, e.getMessage()), e);
-		}
-	}
-	
-	@Override
-	public void unlock(String nodeId){
-		LOGGER.log(Level.INFO, String.format("[node: %s] unlock", nodeId));
-		try {
-			this.service.path("unlock").queryParam("node", nodeId).request().post(null);
-		} catch (Exception e) {
-			LOGGER.log(Level.WARNING, String.format("[node: %s] unlock: error %s", nodeId, e.getMessage()), e);
-		}
-	}
 
 	/**
 	 * See {@link com.ssdd.cs.service.CriticalSectionService#suscribed()}
@@ -153,13 +133,12 @@ public class CriticalSectionServiceProxy extends CriticalSectionService{
 	public String getLamport(String nodeId){
 		LOGGER.log(Level.INFO, String.format("[node: %s] /cs/get/lamport", nodeId));
 		try {
-			return this.service.path("get").path("lamport").queryParam("node", nodeId).request(MediaType.APPLICATION_JSON).get(String.class);
+			return this.service.path("get").path("lamport").queryParam("node", nodeId).request(MediaType.TEXT_PLAIN).get(String.class);
 		} catch (Exception e) {
-			LOGGER.log(Level.WARNING, String.format("[node: %s] /cs/get/lamport: error %s", nodeId, e.getMessage()), e);
+			LOGGER.log(Level.WARNING, String.format("[node: %s] /cs/lamport: error %s", nodeId, e.getMessage()), e);
 			return null;
 		}
 	}
-	
 	
 	/**
 	 * See {@link com.ssdd.cs.service.CriticalSectionService#request(String, String)}
@@ -199,6 +178,48 @@ public class CriticalSectionServiceProxy extends CriticalSectionService{
 			this.service.path("release").queryParam("node", nodeId).request().post(null);
 		} catch (Exception e) {
 			LOGGER.log(Level.WARNING, String.format("[node: %s] /cs/release: error %s", nodeId, e.getMessage()), e);
+		}
+	}
+	
+
+	
+	@Override
+	public void lock(String nodeId){
+		LOGGER.log(Level.INFO, String.format("[node: %s] lock", nodeId));
+		try {
+			this.service.path("lock").queryParam("node", nodeId).request().post(null);
+		} catch (Exception e) {
+			LOGGER.log(Level.WARNING, String.format("[node: %s] lock: error %s", nodeId, e.getMessage()), e);
+		}
+	}
+	
+	@Override
+	public void unlock(String nodeId){
+		LOGGER.log(Level.INFO, String.format("[node: %s] unlock", nodeId));
+		try {
+			this.service.path("unlock").queryParam("node", nodeId).request().post(null);
+		} catch (Exception e) {
+			LOGGER.log(Level.WARNING, String.format("[node: %s] unlock: error %s", nodeId, e.getMessage()), e);
+		}
+	}
+	
+	@Override
+	public void updateLamport(String nodeId){
+		LOGGER.log(Level.INFO, String.format("[node: %s] /cs/update/lamport", nodeId));
+		try {
+			this.service.path("update").path("lamport").queryParam("node", nodeId).request().post(null);
+		} catch (Exception e) {
+			LOGGER.log(Level.WARNING, String.format("[node: %s] /cs/update/lamport: error %s", nodeId, e.getMessage()), e);
+		}
+	}
+	
+	@Override
+	public void restart() {
+		LOGGER.log(Level.INFO, String.format("/cs/restart"));
+		try {
+			this.service.path("restart").request().post(null);
+		} catch (Exception e) {
+			LOGGER.log(Level.WARNING, String.format("/cs/restart: error %s", e.getMessage()), e);
 		}
 	}
 	

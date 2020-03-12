@@ -24,11 +24,11 @@ public class CriticalSectionLog {
     /**
      * Format to log the ins to critical section
      * */
-	private static final String IN_FORMAT = "\nP%s E %d";
+	private static final String IN_FORMAT = "P%s E %d\n";
     /**
      * Format to log the outs to critical section
      * */
-	private static final String OUT_FORMAT = "\nP%s S %d";
+	private static final String OUT_FORMAT = "P%s S %d\n";
 
 
     /**

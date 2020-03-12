@@ -66,29 +66,29 @@ public class CriticalSectionClient {
 	 * @author Francisco Pinto Santos
 	*/
 	public void acquire() {
-		LOGGER.log(Level.INFO, String.format("[node %s] acquiring", this.ID));
+		LOGGER.log(Level.INFO, String.format("[node %s] acquire", this.ID));
 		try {
-			
-			this.router.route(this.ID).lock(this.ID);
+
+			CriticalSectionService myservice = this.router.route(this.ID);
+
+			// set cs state
+			myservice.setCsState(this.ID, CriticalSectionState.REQUESTED.toString());
 			
 			// get my lamport counter
-			String lamportStr = this.router.route(this.ID).getLamport(this.ID);
+			String lamportStr = myservice.getLamport(this.ID);
 			LamportCounter c = LamportCounter.fromJson(lamportStr);
 					
-			// set cs state
-			this.router.route(this.ID).setCsState(this.ID, CriticalSectionState.REQUESTED.toString());
-			
-			this.router.route(this.ID).unlock(this.ID);
-			
 			// send requests
-			for(String node : this.nodes) {
-				CriticalSectionService service = this.router.route(node);
-				service.request(node, this.ID, c.getCounter());
-			}
-			this.router.route(this.ID).setCsState(this.ID, CriticalSectionState.ACQUIRED.toString());
+			SenderPool.send(this.ID, c, this.nodes, router);
+
+			// set cs state
+			myservice.setCsState(this.ID, CriticalSectionState.ACQUIRED.toString());
+			
+			// update lamport counter
+			myservice.updateLamport(this.ID);
+			
 		} catch (NodeNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			LOGGER.log(Level.WARNING, String.format("[node: %s] acquire: error %s", this.ID, e.getMessage()), e);
 		}
 	}
 	
@@ -106,15 +106,13 @@ public class CriticalSectionClient {
 	 * @author Francisco Pinto Santos
 	*/
 	public void release() {
-		LOGGER.log(Level.INFO, String.format("[node %s] releasing", this.ID));
+		LOGGER.log(Level.INFO, String.format("[node %s] release", this.ID));
 		try {
-			this.router.route(this.ID).lock(this.ID);
-			this.router.route(this.ID).setCsState(this.ID, CriticalSectionState.FREE.toString());
-			this.router.route(this.ID).release(this.ID);
-			this.router.route(this.ID).unlock(this.ID);
+			CriticalSectionService myservice = this.router.route(this.ID);
+			myservice.setCsState(this.ID, CriticalSectionState.FREE.toString());
+			myservice.release(this.ID);
 		} catch (NodeNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			LOGGER.log(Level.WARNING, String.format("[node: %s] release: error %s", this.ID, e.getMessage()), e);
 		}
 	}
 	
