@@ -23,7 +23,7 @@ public interface IConstants {
 	 */
 	public static final long NTP_MAX_SLEEP_MS = 500;
 	
-	// client constants	
+	// simulation constants	
 	/** 
 	 * Path to the application critical secion in and out registration log.
 	 */

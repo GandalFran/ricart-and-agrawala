@@ -75,5 +75,4 @@ public class NTPServiceProxy extends NTPService{
 		this.serviceUri = serviceUri;
 	}
 	
-	
 }

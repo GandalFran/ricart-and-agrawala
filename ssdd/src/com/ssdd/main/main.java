@@ -1,9 +1,14 @@
 package com.ssdd.main;
 
+import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.ssdd.cs.service.CriticalSectionService;
+import com.ssdd.util.constants.IConstants;
 import com.ssdd.util.logging.SSDDLogFactory;
 
 public class main {
@@ -28,6 +33,9 @@ public class main {
 		LOGGER.log(Level.INFO, "\t asigned broker: " + assignedBroker);
 		LOGGER.log(Level.INFO, "\t services: " + Arrays.toString(servers));
 		
+		// restart servers
+		for(String server : servers)
+			CriticalSectionService.buildProxy(server).restart();
 		
 		// instance node builder
 		NodeBuilder builder = new NodeBuilder();
@@ -41,12 +49,28 @@ public class main {
 				.ntpServer(ntpService)
 				.asignedBroker(assignedBroker)
 				.assignedIdRange(assignedNodeIdRangeStart, assignedNodeIdRangeEnd);
+			
+		// delete old log file
+		 new File(IConstants.SIMULATION_LOG_FILE).delete(); 
 		
 		// build and start nodes
+		List<Node> nodes = new ArrayList<>();
 		for(String node : assignedNodes) {
-			Node n = builder.nodeId(node).build();
-			n.start();
+			nodes.add( builder.nodeId(node).build());
 		}
+		nodes.forEach(n -> n.start());	
 		
+		// wait for nodoes to finish
+		nodes.forEach(n -> {
+			try {
+				n.join();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		});	
+		
+		// pass test
+		Comprobador.main(new String [] {IConstants.SIMULATION_LOG_FILE});
 	}
 }

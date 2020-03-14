@@ -1,20 +1,18 @@
 package com.ssdd.main;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import com.ssdd.cs.client.CriticalSectionClient;
 import com.ssdd.ntp.bean.Pair;
 import com.ssdd.ntp.client.NTPClient;
-import com.ssdd.ntp.service.NTPService;
 import com.ssdd.util.Utils;
 import com.ssdd.util.constants.IConstants;
 import com.ssdd.util.logging.SSDDLogFactory;
-
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /** 
  * Behaviour of a process in critical section test simulation.
@@ -91,10 +89,10 @@ public class Node extends Thread{
 		Pair [] ntpFinalResult = ntp.sample();
 
 		// join all obtained pairs and calculate the best pair
-		List <Pair> allPairs = Arrays.asList(ntpInitialResult);
+		List <Pair> allPairs = new ArrayList<>(Arrays.asList(ntpInitialResult));
 		allPairs.addAll(Arrays.asList(ntpFinalResult));
 		Pair pair = this.ntp.selectBestPair(allPairs);
-		LOGGER.log(Level.INFO, String.format("[node: %s] ntp result: ", pair.toString()));
+		LOGGER.log(Level.INFO, String.format("[node: %s] ntp result: %s", nodeId, pair.toString()));
 		
 		LOGGER.log(Level.INFO, String.format("[node: %s] finished", nodeId));
 	}

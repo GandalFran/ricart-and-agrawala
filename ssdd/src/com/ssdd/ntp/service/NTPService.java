@@ -77,7 +77,7 @@ public class NTPService{
 	 * @return string indicating the status of the service is up.
 	 * */
 	@GET
-	@Produces(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.TEXT_PLAIN)
 	@Path("/status")
 	public String status() {
 		return "{ \"service\": \"ntp\", \"status\": \"ok\"}";
@@ -95,8 +95,8 @@ public class NTPService{
 	 * @return the two samples formatted into "time1_time2" if succeed. If it fails returns "0_0".
 	 * */
 	@GET
-	@Produces(MediaType.TEXT_PLAIN)
 	@Path("/time")
+	@Produces(MediaType.TEXT_PLAIN)
 	public String time() {
 		LOGGER.log(Level.INFO, "/ntp/time");
 		
