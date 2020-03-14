@@ -14,9 +14,21 @@ public class CriticalSectionClient {
 	
 	private final static Logger LOGGER = SSDDLogFactory.logger(CriticalSectionClient.class);
     
+	/**
+	 * client's node id
+	 * */
 	private String ID;
+	/**
+	 * the other node's trying to access critical section, ids
+	 * */
 	private List<String> nodes;
+	/**
+	 * router to access other nodes
+	 * */
 	private CriticalSectionRouter router;
+	/**
+	 * threadpool to send a multicast access request
+	 * */
 	private SenderPool multicastSender;
 	
 	public CriticalSectionClient(String ID, CriticalSectionService selectedBroker, String [] nodes, CriticalSectionService [] services) {
@@ -27,6 +39,17 @@ public class CriticalSectionClient {
 		this.multicastSender = new SenderPool();
 	}
 	
+	/** 
+	 * builds an array with all nodes' ids except the client's node id
+	 * 
+	 * @version 1.0
+	 * @author Héctor Sánchez San Blas
+	 * @author Francisco Pinto Santos
+	 * 
+	 * @param allNodes array containing all nodes
+	 * 
+	 * @return a list with all nodes' ids except the client's node id
+	*/
 	private List<String> buildNodeArray(String [] allNodes) {
 		List<String> nodes =  new ArrayList<>();
 		for(String node : allNodes) {
@@ -38,7 +61,7 @@ public class CriticalSectionClient {
 	}
 
 	/** 
-	 * Suscribes this client to a broker
+	 * suscribes this client to a broker
 	 * 
 	 * @version 1.0
 	 * @author Héctor Sánchez San Blas
@@ -52,15 +75,7 @@ public class CriticalSectionClient {
 	}
 	
 	/** 
-	 * PONER DESCRIPCION
-	 * 
-	 * TODO:
-	 * 	- establecer estado a buscada
-	 *  - for each node:
-	 *  	- hacer request a /request
-	 *  	- si respuesta es delayed
-	 *  		delayed_responses.add(response)
-	 *  - hacer request a /waitToCompleteResponses
+	 * acquires the critical section with the Ricart and Argawala algorithm.
 	 * 
 	 * @version 1.0
 	 * @author Héctor Sánchez San Blas
@@ -101,13 +116,7 @@ public class CriticalSectionClient {
 	}
 	
 	/** 
-	 * PONER DESCRIPCION
-	 * 
-	 * TODO:
-	 * 	- establecer estado a libre
-	 *  - llamar a /getQueuedRequests
-	 *  - for each request
-	 *  	- responder a /delayedRequest
+	 *  releases the critical section with the Ricart and Argawala algorithm.
 	 * 
 	 * @version 1.0
 	 * @author Héctor Sánchez San Blas

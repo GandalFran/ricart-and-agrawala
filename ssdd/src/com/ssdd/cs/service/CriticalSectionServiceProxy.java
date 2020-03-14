@@ -37,7 +37,7 @@ public class CriticalSectionServiceProxy extends CriticalSectionService{
 	}
 	
 	/**
-	 * method to parse the /cs/suscribed response from JSON serialized String [] to String [].
+	 * method to parse the /cs/suscribed response from JSON serialized string array, to a String [].
 	 * 
 	 * @see com.ssdd.cs.service.CriticalSectionService#suscribed()
 	 * @version 1.0
@@ -52,7 +52,13 @@ public class CriticalSectionServiceProxy extends CriticalSectionService{
 		return new Gson().fromJson(response, String[].class);
 	}
 	
-
+	/**
+	 * See {@link com.ssdd.cs.service.CriticalSectionService#restart()}
+	 * 
+	 * @version 1.0
+	 * @author Héctor Sánchez San Blas
+	 * @author Francisco Pinto Santos
+	 * */
 	@Override
 	public void restart() {
 		LOGGER.log(Level.INFO, String.format("/cs/restart"));
@@ -70,7 +76,7 @@ public class CriticalSectionServiceProxy extends CriticalSectionService{
 	 * @author Héctor Sánchez San Blas
 	 * @author Francisco Pinto Santos
 	 * 
-	 * @param nodeId the id of the node who wants to suscribe to current service.
+	 * @param nodeId the id of the node who wants to suscribe to requested service
 	 * */
 	@Override
 	public void suscribe(String nodeId){
@@ -89,7 +95,7 @@ public class CriticalSectionServiceProxy extends CriticalSectionService{
 	 * @author Héctor Sánchez San Blas
 	 * @author Francisco Pinto Santos
 	 * 
-	 * @return String containing the list of suscribed nodes separated with the '_character'.
+	 * @return String containing a JSON serialized array with the list of nodes suscribed to requested service
 	 * */
 	@Override
 	public String suscribed(){
@@ -109,9 +115,10 @@ public class CriticalSectionServiceProxy extends CriticalSectionService{
 	 * @author Héctor Sánchez San Blas
 	 * @author Francisco Pinto Santos
 	 * 
-	 * @param nodeId the id of the node trying to accces the critical section. Must be a suscribed node.
-	 * @param newstate the new state given to the critical section by the node
-	 * @throws NodeNotFoundException 
+	 * @param nodeId the id of the node trying to accces the critical section. Must be suscribed to requested service.
+	 * @param newState the new state given to the critical section by the node. Must be a String serialized {@link com.ssdd.cs.bean.CriticalSectionState}
+	 * 
+	 * @throws NodeNotFoundException when then nodeId doesn't corresponds to any node suscribed to requested service.
 	 * */
 	@Override
 	public void setCsState(String nodeId, String newState) throws NodeNotFoundException{
@@ -125,17 +132,17 @@ public class CriticalSectionServiceProxy extends CriticalSectionService{
 	}
 	
 	/**
-	 * See {@link com.ssdd.cs.service.CriticalSectionService#getLamport(String)}
+	 * See {@link com.ssdd.cs.service.CriticalSectionService#getMessageTimeStamp(String)}
 	 * 
 	 * @version 1.0
 	 * @author Héctor Sánchez San Blas
 	 * @author Francisco Pinto Santos
 	 * 
-	 * @param nodeId the id of the node trying to accces the critical section. Must be a suscribed node.
+	 * @param nodeId the id of the node trying to accces the critical section. Must be suscribed to requested service.
 	 * 
-	 * @return a JSON serialized lamport counter, correspondind to the requested node
-	 * @throws NodeNotFoundException 
+	 * @return the current lamport counter value, corresponding to the requested node.
 	 * 
+	 * @throws NodeNotFoundException when then nodeId doesn't corresponds to any node suscribed to requested service.
 	 * */
 	@Override
 	public long getMessageTimeStamp(String nodeId) throws NodeNotFoundException{
@@ -149,7 +156,17 @@ public class CriticalSectionServiceProxy extends CriticalSectionService{
 		}
 	}
 
-	
+	/**
+	 * See {@link com.ssdd.cs.service.CriticalSectionService#updateCounter(String)}
+	 * 
+	 * @version 1.0
+	 * @author Héctor Sánchez San Blas
+	 * @author Francisco Pinto Santos
+	 * 
+	 * @param nodeId the id of the node trying to accces the critical section. Must be suscribed to requested service.
+	 * 
+	 * @throws NodeNotFoundException when then nodeId doesn't corresponds to any node suscribed to requested service.
+	 * */
 	@Override
 	public void updateCounter(String nodeId) throws NodeNotFoundException{
 		LOGGER.log(Level.INFO, String.format("[node: %s] /cs/update/counter", nodeId));
@@ -162,15 +179,17 @@ public class CriticalSectionServiceProxy extends CriticalSectionService{
 	}
 	
 	/**
-	 * See {@link com.ssdd.cs.service.CriticalSectionService#request(String, String)}
+	 * See {@link com.ssdd.cs.service.CriticalSectionService#request(String, String, long)}
 	 * 
 	 * @version 1.0
 	 * @author Héctor Sánchez San Blas
 	 * @author Francisco Pinto Santos
 	 * 
-	 * @param nodeId the id of the node trying to accces the critical section. Must be a suscribed node.
-	 * @param request a JSON serialized {@link com.ssdd.cs.bean.CriticalSectionMessage} containing the request.
-	 * @throws NodeNotFoundException 
+	 * @param nodeId the id of the node that will be asked to access the critical section. Must be suscribed to requested service.
+	 * @param sender the id of the node trying to accces the critical section.
+	 * @param messageTimeStamp the message's timestamp (node's lamport time counter value)
+	 * 
+	 * @throws NodeNotFoundException when then nodeId doesn't corresponds to any node suscribed to requested service
 	 * */
 	@Override
 	public void request(String nodeId, String sender, long messageTimeStamp) throws NodeNotFoundException{
@@ -191,9 +210,9 @@ public class CriticalSectionServiceProxy extends CriticalSectionService{
 	 * @author Héctor Sánchez San Blas
 	 * @author Francisco Pinto Santos
 	 * 
-	 * @param nodeId the id of the node trying to accces the critical section. Must be a suscribed node.
-	 * @param request a JSON serialized {@link com.ssdd.cs.bean.CriticalSectionMessage} containing the request.
-	 * @throws NodeNotFoundException 
+	 * @param nodeId the id of the node trying to accces the critical section. Must be suscribed to requested service.
+	 * 
+	 * @throws NodeNotFoundException when then nodeId doesn't corresponds to any node suscribed to requested service. 
 	 * */
 	@Override
 	public void release(String nodeId) throws NodeNotFoundException{
@@ -206,7 +225,17 @@ public class CriticalSectionServiceProxy extends CriticalSectionService{
 		}
 	}
 	
-	
+	/**
+	 * See {@link com.ssdd.cs.service.CriticalSectionService#lock(String)}
+	 * 
+	 * @version 1.0
+	 * @author Héctor Sánchez San Blas
+	 * @author Francisco Pinto Santos
+	 * 
+	 * @param nodeId the id of the node trying to lock. Must be suscribed to requested service.
+	 * 
+	 * @throws NodeNotFoundException when then nodeId doesn't corresponds to any node suscribed to requested service. 
+	 * */
 	@Override
 	public void lock(String nodeId) throws NodeNotFoundException{
 		LOGGER.log(Level.INFO, String.format("[node: %s] lock", nodeId));
@@ -218,6 +247,17 @@ public class CriticalSectionServiceProxy extends CriticalSectionService{
 		}
 	}
 	
+	/**
+	 * See {@link com.ssdd.cs.service.CriticalSectionService#unlock(String)}
+	 * 
+	 * @version 1.0
+	 * @author Héctor Sánchez San Blas
+	 * @author Francisco Pinto Santos
+	 * 
+	 * @param nodeId the id of the node trying to unlock. Must be suscribed to requested service.
+	 * 
+	 * @throws NodeNotFoundException when then nodeId doesn't corresponds to any node suscribed to requested service. 
+	 * */
 	@Override
 	public void unlock(String nodeId) throws NodeNotFoundException{
 		LOGGER.log(Level.INFO, String.format("[node: %s] unlock", nodeId));

@@ -26,6 +26,10 @@ public class CriticalSectionService{
 
     private final static Logger LOGGER = SSDDLogFactory.logger(CriticalSectionService.class);
 
+    /**
+     * associates the state of a subscribed node to it's id, and stores the state relative to
+     * the node's critical section state
+     * */
 	private Map<String, CritialSectionServiceNode> nodes;
 	
 	public CriticalSectionService() {
@@ -79,6 +83,13 @@ public class CriticalSectionService{
 		return "{ \"service\": \"cs\", \"status\": \"ok\"}";
 	}
 	
+	/**
+	 * restarts the service cleaning all node's state structures
+	 * 
+	 * @version 1.0
+	 * @author Héctor Sánchez San Blas
+	 * @author Francisco Pinto Santos
+	 * */
 	@POST
 	@Path("/restart")
 	public void restart(){
@@ -129,14 +140,14 @@ public class CriticalSectionService{
 
 	
 	/**
-	 * set new state for the critical section variable on a concrete node.
+	 * set new state for the critical section on a concrete node.
 	 * 
 	 * @version 1.0
 	 * @author Héctor Sánchez San Blas
 	 * @author Francisco Pinto Santos
 	 * 
 	 * @param nodeId the id of the node trying to accces the critical section. Must be a suscribed node.
-	 * @param newstate the new state given to the critical section by the node
+	 * @param newState the new state given to the critical section by the node. Must be a String serialized {@link com.ssdd.cs.bean.CriticalSectionState}
 	 * 
 	 * @throws NodeNotFoundException when then nodeId doesn't corresponds to any node suscribed to current service.
 	 * */
@@ -159,18 +170,17 @@ public class CriticalSectionService{
 	}
 	
 	/**
-	 * get lamport counter for a node.
+	 * get a node's current lamport counter value, to use it as a timestamp on a message
 	 * 
 	 * @version 1.0
 	 * @author Héctor Sánchez San Blas
 	 * @author Francisco Pinto Santos
 	 * 
-	 * @param nodeId the id of the node trying to accces the critical section. Must be a suscribed node.
+	 * @param nodeId the id of the node trying to accces the critical section. Must be a suscribed node
 	 * 
+	 * @return requested node's current lamport counter value
 	 * 
-	 * @return a JSON serialized lamport counter, correspondind to the requested node
-	 * 
-	 * @throws NodeNotFoundException when then nodeId doesn't corresponds to any node suscribed to current service.
+	 * @throws NodeNotFoundException when then nodeId doesn't corresponds to any node suscribed to current service
 	 * */
 	@GET
 	@Path("/get/messagetimestamp")
@@ -180,7 +190,7 @@ public class CriticalSectionService{
 		
 		// check if given nodeId corresponds to a suscribed process
 		if(! this.isSuscribed(nodeId)) {
-			LOGGER.log(Level.WARNING, String.format("[node: %s] /cs/set/state: ERROR the given node is not subscribed", nodeId));
+			LOGGER.log(Level.WARNING, String.format("[node: %s] /cs/set/messagetimestamp: ERROR the given node is not subscribed", nodeId));
 			throw new NodeNotFoundException(nodeId);
 		}
 		
@@ -193,7 +203,17 @@ public class CriticalSectionService{
 		return timeStamp;
 	}
 
-
+	/**
+	 * updates a node's lamport counter value in one unit with the LC1 formule
+	 * 
+	 * @version 1.0
+	 * @author Héctor Sánchez San Blas
+	 * @author Francisco Pinto Santos
+	 * 
+	 * @param nodeId the id of the node trying to accces the critical section. Must be a suscribed node
+	 * 
+	 * @throws NodeNotFoundException when then nodeId doesn't corresponds to any node suscribed to current service
+	 * */
 	@GET
 	@Path("/update/counter")
 	public void updateCounter(@QueryParam(value="node") String nodeId) throws NodeNotFoundException {
@@ -214,16 +234,17 @@ public class CriticalSectionService{
 	
 	
 	/**
-	 * processes the requests to the critical section access send by other nodes.
+	 * processes the requests to the critical section access, send by other nodes
 	 * 
 	 * @version 1.0
 	 * @author Héctor Sánchez San Blas
 	 * @author Francisco Pinto Santos
 	 * 
-	 * @param nodeId the id of the node trying to accces the critical section. Must be a suscribed node.
-	 * @param request a JSON serialized {@link com.ssdd.cs.bean.CriticalSectionMessage} containing the request.
+	 * @param nodeId the id of the node that will be asked to access the critical section. Must be suscribed to requested service.
+	 * @param sender the id of the node trying to accces the critical section.
+	 * @param messageTimeStamp the message's timestamp (node's lamport time counter value)
 	 * 
-	 * @throws NodeNotFoundException when then nodeId doesn't corresponds to any node suscribed to current service.
+	 * @throws NodeNotFoundException when then nodeId doesn't corresponds to any node suscribed to current service
 	 * */
 	@POST
 	@Path("/request")
@@ -251,7 +272,7 @@ public class CriticalSectionService{
 			// unlock operations
 			node.unlock();
 			// wait until the enter in CS is permited
-			node.waitToReleaseCriticalSection();
+			node.queueAccessRequest();
 			LOGGER.log(Level.INFO, String.format("[node: %s] /cs/request node %s DEQUEUED (ALLOWED)", nodeId, sender));
 		}else {
 			// unlock operations
@@ -266,16 +287,15 @@ public class CriticalSectionService{
 	}
 
 	/**
-	 * processes the requests to the critical section access send by other nodes.
+	 * used by suscribed nodes to to release the critical section
 	 * 
 	 * @version 1.0
 	 * @author Héctor Sánchez San Blas
 	 * @author Francisco Pinto Santos
 	 * 
-	 * @param nodeId the id of the node trying to accces the critical section. Must be a suscribed node.
-	 * @param request a JSON serialized {@link com.ssdd.cs.bean.CriticalSectionMessage} containing the request.
+	 * @param nodeId the id of the node trying to accces the critical section. Must be suscribed to requested service
 	 * 
-	 * @throws NodeNotFoundException when then nodeId doesn't corresponds to any node suscribed to current service.
+	 * @throws NodeNotFoundException when then nodeId doesn't corresponds to any node suscribed to current service
 	 * */
 	@POST
 	@Path("/release")
@@ -298,28 +318,23 @@ public class CriticalSectionService{
 		node.setState(CriticalSectionState.FREE);
 		
 		// notify all that critical section has been released
-		node.releaseCriticalSection();
+		node.dequeueAcessRequest();
 
 		// unlock operations
 		node.unlock();
 	}
 	
-	
 	/**
-	 * given a nodeId checks if is suscribed to current service instance.
+	 * locks the operations over a suscribed node
 	 * 
 	 * @version 1.0
 	 * @author Héctor Sánchez San Blas
 	 * @author Francisco Pinto Santos
 	 * 
-	 * @param nodeId id of the node we want to check if you have subscribed to this service.
+	 * @param nodeId the id of the node trying to lock. Must be suscribed to requested service
 	 * 
-	 * @return boolean indicating if node is suscribed to this broker
+	 * @throws NodeNotFoundException when then nodeId doesn't corresponds to any node suscribed to current service
 	 * */
-	private boolean isSuscribed(String nodeId) {
-		return this.nodes.keySet().contains(nodeId);
-	}
-	
 	@POST
 	@Path("/lock")
 	public void lock(@QueryParam(value="node") String nodeId) throws NodeNotFoundException {
@@ -338,6 +353,17 @@ public class CriticalSectionService{
 		node.lock();
 	}
 	
+	/**
+	 * unlocks the operations over a suscribed node
+	 * 
+	 * @version 1.0
+	 * @author Héctor Sánchez San Blas
+	 * @author Francisco Pinto Santos
+	 * 
+	 * @param nodeId the id of the node trying to lock. Must be suscribed to requested service
+	 * 
+	 * @throws NodeNotFoundException when then nodeId doesn't corresponds to any node suscribed to current service
+	 * */
 	@POST
 	@Path("/unlock")
 	public void unlock(@QueryParam(value="node") String nodeId) throws NodeNotFoundException {
@@ -355,5 +381,19 @@ public class CriticalSectionService{
 		// unlock
 		node.unlock();
 	}
-
+	
+	/**
+	 * given a nodeId checks if is suscribed to current service instance.
+	 * 
+	 * @version 1.0
+	 * @author Héctor Sánchez San Blas
+	 * @author Francisco Pinto Santos
+	 * 
+	 * @param nodeId id of the node we want to check if you have subscribed to this service.
+	 * 
+	 * @return boolean indicating if node is suscribed to this broker
+	 * */
+	private boolean isSuscribed(String nodeId) {
+		return this.nodes.keySet().contains(nodeId);
+	}
 }

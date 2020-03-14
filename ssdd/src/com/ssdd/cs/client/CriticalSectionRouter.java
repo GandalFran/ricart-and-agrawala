@@ -42,10 +42,9 @@ public class CriticalSectionRouter {
 		for(String node : nodes)
 			router.put(node, null);
 	}
-	
 
 	/** 
-	 * Given a node, provides its associated service.
+	 * given a node, provides its associated service.
 	 * If the node is not found, it will request all available brokers
 	 * for the suscribed nodes, to know which service is the one associated with
 	 * the requested node.
@@ -67,7 +66,7 @@ public class CriticalSectionRouter {
 	}
 	
 	/** 
-	 * Updates the local association information with a new association between a node and a service.
+	 * updates the local association information with a new association between a node and a service.
 	 * 
 	 * @version 1.0
 	 * @author Héctor Sánchez San Blas
@@ -81,7 +80,7 @@ public class CriticalSectionRouter {
 	}
 	
 	/** 
-	 * Requests all brokers for all suscribed nodes, and updates the local association information.
+	 * requests all brokers for all suscribed nodes, and updates the local association information.
 	 * 
 	 * @version 1.0
 	 * @author Héctor Sánchez San Blas

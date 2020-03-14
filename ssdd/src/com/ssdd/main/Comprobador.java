@@ -1,4 +1,4 @@
-package com.ssdd.cs.verify;
+package com.ssdd.main;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
