@@ -18,12 +18,14 @@ public class CriticalSectionClient {
 	private String ID;
 	private List<String> nodes;
 	private CriticalSectionRouter router;
+	private SenderPool multicastSender;
 	
 	public CriticalSectionClient(String ID, CriticalSectionService selectedBroker, String [] nodes, CriticalSectionService [] services) {
 		this.ID = ID;
 		this.router = new CriticalSectionRouter(nodes, services);
 		this.router.update(ID, selectedBroker);
 		this.nodes = this.buildNodeArray(nodes);
+		this.multicastSender = new SenderPool();
 	}
 	
 	private List<String> buildNodeArray(String [] allNodes) {
@@ -82,10 +84,15 @@ public class CriticalSectionClient {
 			LamportCounter c = LamportCounter.fromJson(lamportStr);
 			
 			// send requests and unlock
-			SenderPool.send(this.ID, c, this.nodes, router);
-
-			// update lamport counter
+			this.multicastSender.send(this.ID, c, this.nodes, router);
+			
+			myservice.unlock(this.ID);
+			
+			this.multicastSender.await();
+			
 			myservice.lock(this.ID);
+			
+			// update lamport counter and critical section state
 			myservice.setCsState(this.ID, CriticalSectionState.ACQUIRED.toString());
 			myservice.updateLamport(this.ID);
 			myservice.unlock(this.ID);

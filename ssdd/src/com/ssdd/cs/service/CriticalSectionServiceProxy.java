@@ -3,17 +3,12 @@ package com.ssdd.cs.service;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
 
 import com.google.gson.Gson;
-import com.ssdd.cs.bean.LamportCounter;
 import com.ssdd.util.logging.SSDDLogFactory;
 
 /** 
@@ -106,14 +101,16 @@ public class CriticalSectionServiceProxy extends CriticalSectionService{
 	 * 
 	 * @param nodeId the id of the node trying to accces the critical section. Must be a suscribed node.
 	 * @param newstate the new state given to the critical section by the node
+	 * @throws NodeNotFoundException 
 	 * */
 	@Override
-	public void setCsState(String nodeId, String newState){
+	public void setCsState(String nodeId, String newState) throws NodeNotFoundException{
 		LOGGER.log(Level.INFO, String.format("[node: %s] /cs/set/state %s", nodeId, newState));
 		try {
 			this.service.path("set").path("state").queryParam("node", nodeId).queryParam("state", newState.toString()).request().post(null);
 		} catch (Exception e) {
 			LOGGER.log(Level.WARNING, String.format("[node: %s] /cs/set/state: error %s", nodeId, e.getMessage()), e);
+			throw new NodeNotFoundException(nodeId);
 		}
 	}
 	
@@ -127,16 +124,17 @@ public class CriticalSectionServiceProxy extends CriticalSectionService{
 	 * @param nodeId the id of the node trying to accces the critical section. Must be a suscribed node.
 	 * 
 	 * @return a JSON serialized lamport counter, correspondind to the requested node
+	 * @throws NodeNotFoundException 
 	 * 
 	 * */
 	@Override
-	public String getLamport(String nodeId){
+	public String getLamport(String nodeId) throws NodeNotFoundException{
 		LOGGER.log(Level.INFO, String.format("[node: %s] /cs/get/lamport", nodeId));
 		try {
 			return this.service.path("get").path("lamport").queryParam("node", nodeId).request(MediaType.TEXT_PLAIN).get(String.class);
 		} catch (Exception e) {
 			LOGGER.log(Level.WARNING, String.format("[node: %s] /cs/lamport: error %s", nodeId, e.getMessage()), e);
-			return null;
+			throw new NodeNotFoundException(nodeId);
 		}
 	}
 	
@@ -149,14 +147,16 @@ public class CriticalSectionServiceProxy extends CriticalSectionService{
 	 * 
 	 * @param nodeId the id of the node trying to accces the critical section. Must be a suscribed node.
 	 * @param request a JSON serialized {@link com.ssdd.cs.bean.CriticalSectionMessage} containing the request.
+	 * @throws NodeNotFoundException 
 	 * */
 	@Override
-	public void request(String nodeId, String sender, long time){
+	public void request(String nodeId, String sender, long time) throws NodeNotFoundException{
 		LOGGER.log(Level.INFO, String.format("[node: %s] /cs/request", nodeId));
 		try {
 			this.service.path("request").queryParam("node", nodeId).queryParam("sender", sender).queryParam("time", time).request().post(null);
 		} catch (Exception e) {
 			LOGGER.log(Level.WARNING, String.format("[node: %s] /cs/request: error %s", nodeId, e.getMessage()), e);
+			throw new NodeNotFoundException(nodeId);
 		}
 	}
 	
@@ -170,46 +170,51 @@ public class CriticalSectionServiceProxy extends CriticalSectionService{
 	 * 
 	 * @param nodeId the id of the node trying to accces the critical section. Must be a suscribed node.
 	 * @param request a JSON serialized {@link com.ssdd.cs.bean.CriticalSectionMessage} containing the request.
+	 * @throws NodeNotFoundException 
 	 * */
 	@Override
-	public void release(String nodeId){
+	public void release(String nodeId) throws NodeNotFoundException{
 		LOGGER.log(Level.INFO, String.format("[node: %s] /cs/release", nodeId));
 		try {
 			this.service.path("release").queryParam("node", nodeId).request().post(null);
 		} catch (Exception e) {
 			LOGGER.log(Level.WARNING, String.format("[node: %s] /cs/release: error %s", nodeId, e.getMessage()), e);
+			throw new NodeNotFoundException(nodeId);
 		}
 	}
 	
 
 	
 	@Override
-	public void lock(String nodeId){
+	public void lock(String nodeId) throws NodeNotFoundException{
 		LOGGER.log(Level.INFO, String.format("[node: %s] lock", nodeId));
 		try {
 			this.service.path("lock").queryParam("node", nodeId).request().post(null);
 		} catch (Exception e) {
 			LOGGER.log(Level.WARNING, String.format("[node: %s] lock: error %s", nodeId, e.getMessage()), e);
+			throw new NodeNotFoundException(nodeId);
 		}
 	}
 	
 	@Override
-	public void unlock(String nodeId){
+	public void unlock(String nodeId) throws NodeNotFoundException{
 		LOGGER.log(Level.INFO, String.format("[node: %s] unlock", nodeId));
 		try {
 			this.service.path("unlock").queryParam("node", nodeId).request().post(null);
 		} catch (Exception e) {
 			LOGGER.log(Level.WARNING, String.format("[node: %s] unlock: error %s", nodeId, e.getMessage()), e);
+			throw new NodeNotFoundException(nodeId);
 		}
 	}
 	
 	@Override
-	public void updateLamport(String nodeId){
+	public void updateLamport(String nodeId) throws NodeNotFoundException{
 		LOGGER.log(Level.INFO, String.format("[node: %s] /cs/update/lamport", nodeId));
 		try {
 			this.service.path("update").path("lamport").queryParam("node", nodeId).request().post(null);
 		} catch (Exception e) {
 			LOGGER.log(Level.WARNING, String.format("[node: %s] /cs/update/lamport: error %s", nodeId, e.getMessage()), e);
+			throw new NodeNotFoundException(nodeId);
 		}
 	}
 	

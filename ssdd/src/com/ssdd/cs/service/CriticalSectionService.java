@@ -2,9 +2,7 @@ package com.ssdd.cs.service;
 
 
 import java.util.Map;
-import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Semaphore;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -18,7 +16,6 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
 import com.google.gson.Gson;
-import com.ssdd.cs.bean.CriticalSectionMessage;
 import com.ssdd.cs.bean.CriticalSectionState;
 import com.ssdd.cs.bean.LamportCounter;
 import com.ssdd.util.logging.SSDDLogFactory;
@@ -235,7 +232,7 @@ public class CriticalSectionService{
 				|| (state == CriticalSectionState.REQUESTED && this.compareCounters(nodeId, sender, lamportTime.getCounter(),time))) {
 			LOGGER.log(Level.INFO, String.format("[node: %s] /cs/request node %s QUEUED", nodeId, sender));
 			// make wait for process to release the critical section
-			LOGGER.log(Level.INFO, String.format("[node: %s] /cs/request node %s ALLOWED", nodeId, sender));
+			LOGGER.log(Level.INFO, String.format("[node: %s] /cs/request node %s DEQUEUED", nodeId, sender));
 
 			this.locks.get(nodeId).release();
 			try {
@@ -331,8 +328,13 @@ public class CriticalSectionService{
 	
 	@POST
 	@Path("/lock")
-	public void lock(@QueryParam(value="node") String nodeId){
+	public void lock(@QueryParam(value="node") String nodeId) throws NodeNotFoundException {
 		LOGGER.log(Level.INFO, String.format("[node: %s] /cs/lock", nodeId));
+		// check if given nodeId corresponds to a suscribed process
+		if(! this.isSuscribed(nodeId)) {
+			LOGGER.log(Level.WARNING, String.format("[node: %s] /cs/release: ERROR the given node is not subscribed", nodeId));
+			throw new NodeNotFoundException(nodeId);
+		}
 		try {
 			this.locks.get(nodeId).acquire();
 		} catch (InterruptedException e) {
@@ -343,8 +345,14 @@ public class CriticalSectionService{
 	
 	@POST
 	@Path("/unlock")
-	public void unlock(@QueryParam(value="node") String nodeId){
+	public void unlock(@QueryParam(value="node") String nodeId) throws NodeNotFoundException {
 		LOGGER.log(Level.INFO, String.format("[node: %s] /cs/unlock", nodeId));
+		// check if given nodeId corresponds to a suscribed process
+		if(! this.isSuscribed(nodeId)) {
+			LOGGER.log(Level.WARNING, String.format("[node: %s] /cs/release: ERROR the given node is not subscribed", nodeId));
+			throw new NodeNotFoundException(nodeId);
+		}
+		
 		this.locks.get(nodeId).release();
 	}
 	

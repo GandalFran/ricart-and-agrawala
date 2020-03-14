@@ -16,12 +16,17 @@ public class SenderPool {
 
     private final static Logger LOGGER = SSDDLogFactory.logger(SenderPool.class);
     
-	public static void send(String sender, LamportCounter c, List<String> receivers, CriticalSectionRouter router) {
+    private ExecutorService pool;
+    
+    public SenderPool() {
+    }
+    
+	public void send(String sender, LamportCounter c, List<String> receivers, CriticalSectionRouter router) {
 		
-		ExecutorService pool = Executors.newFixedThreadPool(receivers.size());
+		this.pool = Executors.newFixedThreadPool(receivers.size());
 				
 		for(String receiver : receivers) {
-			pool.submit(() -> {
+			this.pool.submit(() -> {
 				CriticalSectionService service = router.route(receiver);
 				try {
 					service.request(receiver, sender, c.getCounter());
@@ -30,16 +35,15 @@ public class SenderPool {
 				}
 			});
 		}
-				
-		pool.shutdown();
-		
-		router.route(sender).unlock(sender);
-		
+		this.pool.shutdown();	
+	}
+	
+	public void await() {
 		try {
-			pool.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+			this.pool.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
 		} catch (InterruptedException e) {
-			LOGGER.log(Level.WARNING, String.format("[node: %s] send:InterruptedException: error %s", sender, e.getMessage()), e);
-		}	
+			LOGGER.log(Level.WARNING, String.format("[node: %s] send:InterruptedException: error %s", e.getMessage()), e);
+		}
 	}
 	
 }
