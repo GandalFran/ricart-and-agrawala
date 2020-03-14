@@ -7,7 +7,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.ssdd.cs.bean.LamportCounter;
 import com.ssdd.cs.service.CriticalSectionService;
 import com.ssdd.cs.service.NodeNotFoundException;
 import com.ssdd.util.logging.SSDDLogFactory;
@@ -21,7 +20,7 @@ public class SenderPool {
     public SenderPool() {
     }
     
-	public void send(String sender, LamportCounter c, List<String> receivers, CriticalSectionRouter router) {
+	public void send(String sender, long messageTimeStamp, List<String> receivers, CriticalSectionRouter router) {
 		
 		this.pool = Executors.newFixedThreadPool(receivers.size());
 				
@@ -29,7 +28,7 @@ public class SenderPool {
 			this.pool.submit(() -> {
 				CriticalSectionService service = router.route(receiver);
 				try {
-					service.request(receiver, sender, c.getCounter());
+					service.request(receiver, sender, messageTimeStamp);
 				} catch (NodeNotFoundException e) {
 					LOGGER.log(Level.WARNING, String.format("[node: %s] send:NodeNotFoundException: error %s", sender, e.getMessage()), e);
 				}

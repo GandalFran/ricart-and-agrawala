@@ -18,7 +18,7 @@ public class LamportCounter {
 	
 	public LamportCounter() {
 		super();
-		this.counter = 1;
+		this.counter = 0;
 	}
 
 	public LamportCounter(long counter) {
@@ -27,7 +27,7 @@ public class LamportCounter {
 	}
 
 	/** 
-	 * Increments the lamport counter in one unit.
+	 * Increments the lamport counter in one unit. Uses LC1 formule.
 	 * 
 	 * @version 1.0
 	 * @author Héctor Sánchez San Blas
@@ -39,7 +39,7 @@ public class LamportCounter {
 
 	/** 
 	 * Updates the lamport counter with other counter value and then increments 
-	 * the lamport counter in one unit.
+	 * the lamport counter in one unit. Uses LC2 formule.
 	 * 
 	 * @version 1.0
 	 * @author Héctor Sánchez San Blas

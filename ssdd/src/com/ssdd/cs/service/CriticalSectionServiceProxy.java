@@ -52,6 +52,16 @@ public class CriticalSectionServiceProxy extends CriticalSectionService{
 		return new Gson().fromJson(response, String[].class);
 	}
 	
+
+	@Override
+	public void restart() {
+		LOGGER.log(Level.INFO, String.format("/cs/restart"));
+		try {
+			this.service.path("restart").request().post(null);
+		} catch (Exception e) {
+			LOGGER.log(Level.WARNING, String.format("/cs/restart: error %s", e.getMessage()), e);
+		}
+	}
 	
 	/**
 	 * See {@link com.ssdd.cs.service.CriticalSectionService#suscribe(String)}
@@ -128,12 +138,25 @@ public class CriticalSectionServiceProxy extends CriticalSectionService{
 	 * 
 	 * */
 	@Override
-	public String getLamport(String nodeId) throws NodeNotFoundException{
-		LOGGER.log(Level.INFO, String.format("[node: %s] /cs/get/lamport", nodeId));
+	public long getMessageTimeStamp(String nodeId) throws NodeNotFoundException{
+		LOGGER.log(Level.INFO, String.format("[node: %s] /cs/get/messagetimestamp", nodeId));
 		try {
-			return this.service.path("get").path("lamport").queryParam("node", nodeId).request(MediaType.TEXT_PLAIN).get(String.class);
+			String data = this.service.path("get").path("messagetimestamp").queryParam("node", nodeId).request(MediaType.TEXT_PLAIN).get(String.class);
+			return Long.parseLong(data);
 		} catch (Exception e) {
-			LOGGER.log(Level.WARNING, String.format("[node: %s] /cs/lamport: error %s", nodeId, e.getMessage()), e);
+			LOGGER.log(Level.WARNING, String.format("[node: %s] /cs/messagetimestamp: error %s", nodeId, e.getMessage()), e);
+			throw new NodeNotFoundException(nodeId);
+		}
+	}
+
+	
+	@Override
+	public void updateCounter(String nodeId) throws NodeNotFoundException{
+		LOGGER.log(Level.INFO, String.format("[node: %s] /cs/update/counter", nodeId));
+		try {
+			this.service.path("update").path("counter").queryParam("node", nodeId).request().post(null);
+		} catch (Exception e) {
+			LOGGER.log(Level.WARNING, String.format("[node: %s] /cs/update/counter: error %s", nodeId, e.getMessage()), e);
 			throw new NodeNotFoundException(nodeId);
 		}
 	}
@@ -150,10 +173,10 @@ public class CriticalSectionServiceProxy extends CriticalSectionService{
 	 * @throws NodeNotFoundException 
 	 * */
 	@Override
-	public void request(String nodeId, String sender, long time) throws NodeNotFoundException{
+	public void request(String nodeId, String sender, long messageTimeStamp) throws NodeNotFoundException{
 		LOGGER.log(Level.INFO, String.format("[node: %s] /cs/request", nodeId));
 		try {
-			this.service.path("request").queryParam("node", nodeId).queryParam("sender", sender).queryParam("time", time).request().post(null);
+			this.service.path("request").queryParam("node", nodeId).queryParam("sender", sender).queryParam("messageTimeStamp", messageTimeStamp).request().post(null);
 		} catch (Exception e) {
 			LOGGER.log(Level.WARNING, String.format("[node: %s] /cs/request: error %s", nodeId, e.getMessage()), e);
 			throw new NodeNotFoundException(nodeId);
@@ -183,7 +206,6 @@ public class CriticalSectionServiceProxy extends CriticalSectionService{
 		}
 	}
 	
-
 	
 	@Override
 	public void lock(String nodeId) throws NodeNotFoundException{
@@ -206,26 +228,9 @@ public class CriticalSectionServiceProxy extends CriticalSectionService{
 			throw new NodeNotFoundException(nodeId);
 		}
 	}
-	
+
 	@Override
-	public void updateLamport(String nodeId) throws NodeNotFoundException{
-		LOGGER.log(Level.INFO, String.format("[node: %s] /cs/update/lamport", nodeId));
-		try {
-			this.service.path("update").path("lamport").queryParam("node", nodeId).request().post(null);
-		} catch (Exception e) {
-			LOGGER.log(Level.WARNING, String.format("[node: %s] /cs/update/lamport: error %s", nodeId, e.getMessage()), e);
-			throw new NodeNotFoundException(nodeId);
-		}
+	public String toString() {
+		return this.serviceUri;
 	}
-	
-	@Override
-	public void restart() {
-		LOGGER.log(Level.INFO, String.format("/cs/restart"));
-		try {
-			this.service.path("restart").request().post(null);
-		} catch (Exception e) {
-			LOGGER.log(Level.WARNING, String.format("/cs/restart: error %s", e.getMessage()), e);
-		}
-	}
-	
 }

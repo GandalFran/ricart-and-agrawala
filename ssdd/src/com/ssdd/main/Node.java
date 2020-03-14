@@ -3,19 +3,16 @@ package com.ssdd.main;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import com.ssdd.cs.client.CriticalSectionClient;
 import com.ssdd.ntp.bean.Pair;
 import com.ssdd.ntp.client.NTPClient;
-import com.ssdd.ntp.service.NTPService;
 import com.ssdd.util.Utils;
 import com.ssdd.util.constants.IConstants;
 import com.ssdd.util.logging.SSDDLogFactory;
-
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /** 
  * Behaviour of a process in critical section test simulation.

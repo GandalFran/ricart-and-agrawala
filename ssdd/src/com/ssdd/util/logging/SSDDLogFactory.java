@@ -29,7 +29,7 @@ public class SSDDLogFactory {
 	 * 
 	 * @return a {@link java.util.logging.Logger} object with the setted Formatter and Handler.
 	 * */
-	public static Logger logger(Class c) {
+	public static Logger logger(Class<?> c) {
 		// generate log name	
 		String [] classInfo = c.getCanonicalName().split("\\.");
 		String className = classInfo[classInfo.length-1];

@@ -3,7 +3,6 @@ package com.ssdd.cs.service;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Semaphore;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -16,6 +15,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
 import com.google.gson.Gson;
+import com.ssdd.cs.bean.CritialSectionServiceNode;
 import com.ssdd.cs.bean.CriticalSectionState;
 import com.ssdd.cs.bean.LamportCounter;
 import com.ssdd.util.logging.SSDDLogFactory;
@@ -25,17 +25,11 @@ import com.ssdd.util.logging.SSDDLogFactory;
 public class CriticalSectionService{
 
     private final static Logger LOGGER = SSDDLogFactory.logger(CriticalSectionService.class);
-	
-	private Map<String, LamportCounter> lamportTime;
-	private Map<String, CriticalSectionState> state;
-	private Map<String, Object> releaseNotifier;
-	private Map<String, Semaphore> locks;
+
+	private Map<String, CritialSectionServiceNode> nodes;
 	
 	public CriticalSectionService() {
-		this.lamportTime = new ConcurrentHashMap<String, LamportCounter>();
-		this.state = new ConcurrentHashMap<String, CriticalSectionState>();
-		this.releaseNotifier = new ConcurrentHashMap<String, Object>();
-		this.locks = new ConcurrentHashMap<String, Semaphore>();
+		this.nodes = new ConcurrentHashMap<String, CritialSectionServiceNode>();
 	}
 
 	/**
@@ -80,9 +74,16 @@ public class CriticalSectionService{
 	 * */
 	@GET
 	@Path("/status")
-	@Produces(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.TEXT_PLAIN)
 	public String status() {
 		return "{ \"service\": \"cs\", \"status\": \"ok\"}";
+	}
+	
+	@POST
+	@Path("/restart")
+	public void restart(){
+		LOGGER.log(Level.INFO, String.format("/cs/restart"));
+		this.nodes.clear();
 	}
 	
 	/**
@@ -98,10 +99,8 @@ public class CriticalSectionService{
 	@Path("/suscribe")
 	public void suscribe(@QueryParam(value="node") String nodeId){
 		LOGGER.log(Level.INFO, String.format("[node: %s] /cs/suscribe", nodeId));
-		this.lamportTime.put(nodeId, new LamportCounter());
-		this.state.put(nodeId, CriticalSectionState.FREE);
-		this.releaseNotifier.put(nodeId, new Object());		
-		this.locks.put(nodeId, new Semaphore(1));
+		CritialSectionServiceNode node = new CritialSectionServiceNode(nodeId, new LamportCounter(), CriticalSectionState.FREE);
+		this.nodes.put(nodeId, node);
 	}
 
 	/**
@@ -120,8 +119,8 @@ public class CriticalSectionService{
 		LOGGER.log(Level.INFO, String.format("/cs/suscribed"));
 
 		// get nodes
-		String[] suscribedNodes = new String[this.state.keySet().size()];
-		this.state.keySet().toArray(suscribedNodes);
+		String[] suscribedNodes = new String[this.nodes.keySet().size()];
+		this.nodes.keySet().toArray(suscribedNodes);
 		
 		// serialize list of nodes to JSON
 		String response = new Gson().toJson(suscribedNodes);
@@ -152,9 +151,11 @@ public class CriticalSectionService{
 			throw new NodeNotFoundException(nodeId);
 		}
 		
+		// get node
+		CritialSectionServiceNode node = this.nodes.get(nodeId);
+		
 		//set new state
-		CriticalSectionState state = CriticalSectionState.valueOf(newState);
-		this.state.put(nodeId, state);
+		node.setState(CriticalSectionState.valueOf(newState));
 	}
 	
 	/**
@@ -172,24 +173,44 @@ public class CriticalSectionService{
 	 * @throws NodeNotFoundException when then nodeId doesn't corresponds to any node suscribed to current service.
 	 * */
 	@GET
-	@Path("/get/lamport")
+	@Path("/get/messagetimestamp")
 	@Produces(MediaType.TEXT_PLAIN)
-	public String getLamport(@QueryParam(value="node") String nodeId) throws NodeNotFoundException {
-		LOGGER.log(Level.INFO, String.format("[node: %s] /cs/get/lamport", nodeId));
+	public long getMessageTimeStamp(@QueryParam(value="node") String nodeId) throws NodeNotFoundException {
+		LOGGER.log(Level.INFO, String.format("[node: %s] /cs/get/messagetimestamp", nodeId));
 		
 		// check if given nodeId corresponds to a suscribed process
 		if(! this.isSuscribed(nodeId)) {
 			LOGGER.log(Level.WARNING, String.format("[node: %s] /cs/set/state: ERROR the given node is not subscribed", nodeId));
 			throw new NodeNotFoundException(nodeId);
 		}
-
-		// get lamport counter and serialize to json
-		LamportCounter counter = this.lamportTime.get(nodeId);
-		String jsonCounter = counter.toJson();
 		
-		return jsonCounter;
+		// get node
+		CritialSectionServiceNode node = this.nodes.get(nodeId);
+		
+		// save and obtain counter value
+		long timeStamp = node.saveLastTimeStamp();
+		
+		return timeStamp;
 	}
 
+
+	@GET
+	@Path("/update/counter")
+	public void updateCounter(@QueryParam(value="node") String nodeId) throws NodeNotFoundException {
+		LOGGER.log(Level.INFO, String.format("[node: %s] /cs/update/counter", nodeId));
+		
+		// check if given nodeId corresponds to a suscribed process
+		if(! this.isSuscribed(nodeId)) {
+			LOGGER.log(Level.WARNING, String.format("[node: %s] /cs/update/counter: ERROR the given node is not subscribed", nodeId));
+			throw new NodeNotFoundException(nodeId);
+		}
+		
+		// get node
+		CritialSectionServiceNode node = this.nodes.get(nodeId);
+
+		// update counter
+		node.getCounter().update();
+	}	
 	
 	
 	/**
@@ -206,7 +227,7 @@ public class CriticalSectionService{
 	 * */
 	@POST
 	@Path("/request")
-	public void request(@QueryParam(value="node") String nodeId, @QueryParam(value="sender") String sender, @QueryParam(value="time") long time) throws NodeNotFoundException {
+	public void request(@QueryParam(value="node") String nodeId, @QueryParam(value="sender") String sender, @QueryParam(value="messageTimeStamp") long messageTimeStamp) throws NodeNotFoundException {
 		LOGGER.log(Level.INFO, String.format("[node: %s] /cs/request sender %s ", nodeId, sender));
 		
 		// check if given nodeId corresponds to a suscribed process
@@ -215,36 +236,26 @@ public class CriticalSectionService{
 			throw new NodeNotFoundException(nodeId);
 		}
 		
-		try {
-			this.locks.get(nodeId).acquire();
-		} catch (InterruptedException e) {
-			LOGGER.log(Level.WARNING, String.format("[node: %s] /cs/request: ERROR ", e.getMessage()), e);
-		}
+		// get node
+		CritialSectionServiceNode node = this.nodes.get(nodeId);
 		
-		// get node state
-		LamportCounter lamportTime = this.lamportTime.get(nodeId);
-		CriticalSectionState state = this.state.get(nodeId);
+		// lock operations
+		node.lock();
 		
 		// update local lamport time
-		lamportTime.update(time);
+		node.getCounter().update(messageTimeStamp);
 		
-		if(state == CriticalSectionState.ACQUIRED
-				|| (state == CriticalSectionState.REQUESTED && this.compareCounters(nodeId, sender, lamportTime.getCounter(),time))) {
+		if(node.getState() == CriticalSectionState.ACQUIRED
+				|| (node.getState() == CriticalSectionState.REQUESTED && this.compareCounters(nodeId, sender, node.getLastTimeStamp(), messageTimeStamp))) {
 			LOGGER.log(Level.INFO, String.format("[node: %s] /cs/request node %s QUEUED", nodeId, sender));
-			// make wait for process to release the critical section
-			LOGGER.log(Level.INFO, String.format("[node: %s] /cs/request node %s DEQUEUED", nodeId, sender));
-
-			this.locks.get(nodeId).release();
-			try {
-				Object notifier = this.releaseNotifier.get(nodeId);
-				synchronized(notifier) {
-					notifier.wait();
-				}
-			} catch (InterruptedException e) {
-				LOGGER.log(Level.WARNING, String.format("[node: %s] /cs/request: ERROR when waiting", nodeId));
-			}
+			// unlock operations
+			node.unlock();
+			// wait until the enter in CS is permited
+			node.waitToReleaseCriticalSection();
+			LOGGER.log(Level.INFO, String.format("[node: %s] /cs/request node %s DEQUEUED (ALLOWED)", nodeId, sender));
 		}else {
-			this.locks.get(nodeId).release();
+			// unlock operations
+			node.unlock();
 			LOGGER.log(Level.INFO, String.format("[node: %s] /cs/request node %s ALLOWED", nodeId, sender));
 		}
 		
@@ -276,22 +287,21 @@ public class CriticalSectionService{
 			LOGGER.log(Level.WARNING, String.format("[node: %s] /cs/release: ERROR the given node is not subscribed", nodeId));
 			throw new NodeNotFoundException(nodeId);
 		}
-
-		try {
-			this.locks.get(nodeId).acquire();
-		} catch (InterruptedException e) {
-			LOGGER.log(Level.WARNING, String.format("[node: %s] /cs/release: ERROR ", e.getMessage()), e);
-		}
 		
-		this.state.put(nodeId, CriticalSectionState.FREE);
+		// get node
+		CritialSectionServiceNode node = this.nodes.get(nodeId);
+
+		// lock operations
+		node.lock();
+
+		// set new state
+		node.setState(CriticalSectionState.FREE);
 		
 		// notify all that critical section has been released
-		Object notifier = this.releaseNotifier.get(nodeId);
-		synchronized(notifier){
-			notifier.notifyAll();
-		}
-		
-		this.locks.get(nodeId).release();
+		node.releaseCriticalSection();
+
+		// unlock operations
+		node.unlock();
 	}
 	
 	
@@ -307,63 +317,43 @@ public class CriticalSectionService{
 	 * @return boolean indicating if node is suscribed to this broker
 	 * */
 	private boolean isSuscribed(String nodeId) {
-		return this.state.keySet().contains(nodeId);
+		return this.nodes.keySet().contains(nodeId);
 	}
-	
-	@GET
-	@Path("/update/lamport")
-	public void updateLamport(@QueryParam(value="node") String nodeId) throws NodeNotFoundException {
-		LOGGER.log(Level.INFO, String.format("[node: %s] /cs/update/lamport", nodeId));
-		
-		// check if given nodeId corresponds to a suscribed process
-		if(! this.isSuscribed(nodeId)) {
-			LOGGER.log(Level.WARNING, String.format("[node: %s] /cs/set/state: ERROR the given node is not subscribed", nodeId));
-			throw new NodeNotFoundException(nodeId);
-		}
-
-		// get lamport counter and update
-		LamportCounter counter = this.lamportTime.get(nodeId);
-		counter.update();
-	}	
 	
 	@POST
 	@Path("/lock")
 	public void lock(@QueryParam(value="node") String nodeId) throws NodeNotFoundException {
 		LOGGER.log(Level.INFO, String.format("[node: %s] /cs/lock", nodeId));
+		
 		// check if given nodeId corresponds to a suscribed process
 		if(! this.isSuscribed(nodeId)) {
 			LOGGER.log(Level.WARNING, String.format("[node: %s] /cs/release: ERROR the given node is not subscribed", nodeId));
 			throw new NodeNotFoundException(nodeId);
 		}
-		try {
-			this.locks.get(nodeId).acquire();
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		
+		// get node
+		CritialSectionServiceNode node = this.nodes.get(nodeId);
+		
+		// lock
+		node.lock();
 	}
 	
 	@POST
 	@Path("/unlock")
 	public void unlock(@QueryParam(value="node") String nodeId) throws NodeNotFoundException {
 		LOGGER.log(Level.INFO, String.format("[node: %s] /cs/unlock", nodeId));
+		
 		// check if given nodeId corresponds to a suscribed process
 		if(! this.isSuscribed(nodeId)) {
 			LOGGER.log(Level.WARNING, String.format("[node: %s] /cs/release: ERROR the given node is not subscribed", nodeId));
 			throw new NodeNotFoundException(nodeId);
 		}
 		
-		this.locks.get(nodeId).release();
-	}
-	
-	@POST
-	@Path("/restart")
-	public void restart(){
-		LOGGER.log(Level.INFO, String.format("/cs/restart"));
-		this.lamportTime = new ConcurrentHashMap<String, LamportCounter>();
-		this.state = new ConcurrentHashMap<String, CriticalSectionState>();
-		this.releaseNotifier = new ConcurrentHashMap<String, Object>();
-		this.locks = new ConcurrentHashMap<String, Semaphore>();
+		// get node
+		CritialSectionServiceNode node = this.nodes.get(nodeId);
+		
+		// unlock
+		node.unlock();
 	}
 
 }

@@ -6,7 +6,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.ssdd.cs.bean.CriticalSectionState;
-import com.ssdd.cs.bean.LamportCounter;
 import com.ssdd.cs.service.CriticalSectionService;
 import com.ssdd.cs.service.NodeNotFoundException;
 import com.ssdd.util.logging.SSDDLogFactory;
@@ -79,22 +78,21 @@ public class CriticalSectionClient {
 			// set cs state
 			myservice.setCsState(this.ID, CriticalSectionState.REQUESTED.toString());
 			
-			// get my lamport counter
-			String lamportStr = myservice.getLamport(this.ID);
-			LamportCounter c = LamportCounter.fromJson(lamportStr);
+			// get message timestamp
+			long messageTimeStamp = myservice.getMessageTimeStamp(this.ID);
 			
 			// send requests and unlock
-			this.multicastSender.send(this.ID, c, this.nodes, router);
-			
+			this.multicastSender.send(this.ID, messageTimeStamp, this.nodes, router);
 			myservice.unlock(this.ID);
 			
+			// wait to requests
 			this.multicastSender.await();
 			
 			myservice.lock(this.ID);
 			
 			// update lamport counter and critical section state
 			myservice.setCsState(this.ID, CriticalSectionState.ACQUIRED.toString());
-			myservice.updateLamport(this.ID);
+			myservice.updateCounter(this.ID);
 			myservice.unlock(this.ID);
 			
 		} catch (NodeNotFoundException e) {

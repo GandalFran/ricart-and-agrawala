@@ -77,7 +77,7 @@ public class NTPService{
 	 * @return string indicating the status of the service is up.
 	 * */
 	@GET
-	@Produces(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.TEXT_PLAIN)
 	@Path("/status")
 	public String status() {
 		return "{ \"service\": \"ntp\", \"status\": \"ok\"}";
