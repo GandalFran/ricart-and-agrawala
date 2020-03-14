@@ -75,20 +75,20 @@ public class Node extends Thread{
 	*/
 	public void run() {
 		// calculate the ntp delay and offset at the begginng
-		LOGGER.log(Level.INFO, String.format("[node: %s] ntp initial", nodeId));
+		//LOGGER.log(Level.INFO, String.format("[node: %s] ntp initial", nodeId));
 		Pair [] ntpInitialResult = ntp.sample();
 		
 		// iterate N times simulating calculus and entering in the critical section
 		for(int i=0; i< IConstants.SIMULATION_NUM_ITERATIONS; i++) {
-			LOGGER.log(Level.INFO, String.format("[node: %s] iter %d", nodeId, i));
-			LOGGER.log(Level.INFO, String.format("[node: %s] iter %d simulating calculus", nodeId, i));
+			//LOGGER.log(Level.INFO, String.format("[node: %s] iter %d", nodeId, i));
+			//LOGGER.log(Level.INFO, String.format("[node: %s] iter %d simulating calculus", nodeId, i));
 			this.simulateSleep(IConstants.SIMULATION_MIN_CALULUS_TIME, IConstants.SIMULATION_MAX_CALULUS_TIME);
 			LOGGER.log(Level.INFO, String.format("[node: %s] iter %d entering critical section", nodeId, i));
 			this.enterCriticalSection();
 		}
 
 		// calculate the ntp delay and offset at the end
-		LOGGER.log(Level.INFO, String.format("[node: %s] ntp final", nodeId));
+		//LOGGER.log(Level.INFO, String.format("[node: %s] ntp final", nodeId));
 		Pair [] ntpFinalResult = ntp.sample();
 
 		// join all obtained pairs and calculate the best pair

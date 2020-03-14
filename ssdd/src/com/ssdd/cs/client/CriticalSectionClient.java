@@ -84,7 +84,7 @@ public class CriticalSectionClient {
 			LamportCounter c = LamportCounter.fromJson(lamportStr);
 			
 			// send requests and unlock
-			this.multicastSender.send(this.ID, c, this.nodes, router);
+			this.multicastSender.send(this.ID, c, this.nodes, this.router);
 			
 			myservice.unlock(this.ID);
 			

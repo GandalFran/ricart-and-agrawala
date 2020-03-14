@@ -58,6 +58,7 @@ public class CriticalSectionLog {
 	*/
 	public void logIn() {
 		try {
+			LOGGER.log(Level.INFO, String.format("P%s E %d", this.nodeId, System.currentTimeMillis()));
 			this.file.write(String.format(CriticalSectionLog.IN_FORMAT, this.nodeId, System.currentTimeMillis()));
 			this.file.flush();
 		} catch (IOException e) {
@@ -74,6 +75,7 @@ public class CriticalSectionLog {
 	*/
 	public void logOut() {
 		try {
+			LOGGER.log(Level.INFO, String.format("P%s S %d", this.nodeId, System.currentTimeMillis()));
 			this.file.write(String.format(CriticalSectionLog.OUT_FORMAT, this.nodeId, System.currentTimeMillis()));
 			this.file.flush();
 		} catch (IOException e) {

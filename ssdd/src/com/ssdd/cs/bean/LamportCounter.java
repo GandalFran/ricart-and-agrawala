@@ -18,7 +18,7 @@ public class LamportCounter {
 	
 	public LamportCounter() {
 		super();
-		this.counter = 1;
+		this.counter = 0;
 	}
 
 	public LamportCounter(long counter) {
