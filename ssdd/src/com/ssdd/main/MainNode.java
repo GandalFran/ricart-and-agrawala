@@ -8,30 +8,35 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.ssdd.cs.service.CriticalSectionService;
+import com.ssdd.main.node.Node;
+import com.ssdd.main.node.NodeBuilder;
 import com.ssdd.util.constants.IConstants;
 import com.ssdd.util.logging.SSDDLogFactory;
 
-public class main {
+public class MainNode {
 
-    private final static Logger LOGGER = SSDDLogFactory.logger(main.class);
+	/**
+	 * Class logger generated with {@link com.ssdd.util.logging.SSDDLogFactory#logger(Class)}
+	 * */
+    private final static Logger LOGGER = SSDDLogFactory.logger(MainNode.class);
     
 	public static void main(String [] args) {
 		// take arguments
 		int numberOfNodes = Integer.parseInt(args[0]);
 		int assignedNodeIdRangeStart = Integer.parseInt(args[1]);
 		int assignedNodeIdRangeEnd = Integer.parseInt(args[2]);
-		String assignedBroker = args[3];
-		String ntpService = args[4];
-		String [] servers = Arrays.copyOfRange(args, 5, args.length);
+		String [] servers = Arrays.copyOfRange(args, 4, args.length);
+		String assignedBroker = servers[Integer.parseInt(args[3])];
+		String logFile = String.format("%s_%s", args[3], IConstants.SIMULATION_LOG_FILE);
 		
 		// print information about params
 		LOGGER.log(Level.INFO, "Params:");
 		LOGGER.log(Level.INFO, "\t number of nodes: " + numberOfNodes);
 		LOGGER.log(Level.INFO, "\t assigned range start: " + assignedNodeIdRangeStart);
 		LOGGER.log(Level.INFO, "\t assigned range start: " + assignedNodeIdRangeEnd);
-		LOGGER.log(Level.INFO, "\t ntp service: " + ntpService);
 		LOGGER.log(Level.INFO, "\t asigned broker: " + assignedBroker);
 		LOGGER.log(Level.INFO, "\t services: " + Arrays.toString(servers));
+		LOGGER.log(Level.INFO, "\t log file: " + logFile);
 		
 		// restart servers
 		for(String server : servers)
@@ -45,13 +50,13 @@ public class main {
 		
 		// configure builder
 		builder.servers(servers)
-				.numNodes(numberOfNodes)
-				.ntpServer(ntpService)
-				.asignedBroker(assignedBroker)
-				.assignedIdRange(assignedNodeIdRangeStart, assignedNodeIdRangeEnd);
-			
+			.logFile(logFile)
+			.numNodes(numberOfNodes)
+			.asignedBroker(assignedBroker)
+			.assignedIdRange(assignedNodeIdRangeStart, assignedNodeIdRangeEnd);
+		
 		// delete old log file
-		 new File(IConstants.SIMULATION_LOG_FILE).delete(); 
+		 new File(logFile).delete(); 
 		
 		// build and start nodes
 		List<Node> nodes = new ArrayList<>();
@@ -71,6 +76,7 @@ public class main {
 		});	
 		
 		// pass test
-		Comprobador.main(new String [] {IConstants.SIMULATION_LOG_FILE});
+		LOGGER.log(Level.INFO, "Execution finished, checking logFile");
+		Comprobador.main(new String [] {logFile});
 	}
 }

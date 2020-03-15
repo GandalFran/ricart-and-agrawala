@@ -25,6 +25,9 @@ import com.ssdd.util.logging.SSDDLogFactory;
 @Path("/ntp")
 public class NTPService{
 
+	/**
+	 * Class logger generated with {@link com.ssdd.util.logging.SSDDLogFactory#logger(Class)}
+	 * */
     private final static Logger LOGGER = SSDDLogFactory.logger(NTPService.class);
 	
     /** 

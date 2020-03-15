@@ -1,7 +1,7 @@
 package com.ssdd.cs.bean;
 
 /** 
- * possible states for the critical section.
+ * possible states for the critical section for each node.
  * 
  * @version 1.0
  * @author Héctor Sánchez San Blas

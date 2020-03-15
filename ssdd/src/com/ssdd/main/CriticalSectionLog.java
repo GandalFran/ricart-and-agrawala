@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.ssdd.util.constants.IConstants;
 import com.ssdd.util.logging.SSDDLogFactory;
 
 /** 
@@ -17,8 +16,10 @@ import com.ssdd.util.logging.SSDDLogFactory;
  * @author Francisco Pinto Santos
 */
 public class CriticalSectionLog {
-	// src: https://www.codejava.net/java-se/file-io/how-to-read-and-write-text-file-in-java
 
+	/**
+	 * Class logger generated with {@link com.ssdd.util.logging.SSDDLogFactory#logger(Class)}
+	 * */
     private final static Logger LOGGER = SSDDLogFactory.logger(CriticalSectionLog.class);
     
     /**
@@ -40,10 +41,10 @@ public class CriticalSectionLog {
      * */
 	private FileWriter file;
 	
-	public CriticalSectionLog(String nodeId) {
+	public CriticalSectionLog(String nodeId, String logFile) {
 		this.nodeId = nodeId;
 		try {
-			this.file = new FileWriter(IConstants.SIMULATION_LOG_FILE, true);
+			this.file = new FileWriter(logFile, true);
 		} catch (IOException e) {
 			LOGGER.log(Level.WARNING, String.format("[node: %s] constructor: error %s", this.nodeId, e.getMessage()), e);
 		}

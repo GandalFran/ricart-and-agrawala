@@ -1,9 +1,14 @@
 package com.ssdd.ntp.service;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
+
+import com.ssdd.util.logging.SSDDLogFactory;
 
 /** 
  * NTP proxy, to access a NTP service in a easier way
@@ -14,6 +19,11 @@ import javax.ws.rs.core.UriBuilder;
 */
 public class NTPServiceProxy extends NTPService{
 
+	/**
+	 * Class logger generated with {@link com.ssdd.util.logging.SSDDLogFactory#logger(Class)}
+	 * */
+    private final static Logger LOGGER = SSDDLogFactory.logger(NTPServiceProxy.class);
+	
 	/**
 	 * NTP service URI.
 	 * */
@@ -38,6 +48,7 @@ public class NTPServiceProxy extends NTPService{
 	 * */
 	@Override
 	public String time() {
+		LOGGER.log(Level.INFO, "/ntp/time");
 		try {
 			return this.service.path("time").request(MediaType.TEXT_PLAIN).get(String.class);
 		} catch (Exception ex) {

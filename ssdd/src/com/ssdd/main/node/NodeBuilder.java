@@ -1,12 +1,10 @@
-package com.ssdd.main;
+package com.ssdd.main.node;
 
 import com.ssdd.cs.client.CriticalSectionClient;
 import com.ssdd.cs.service.CriticalSectionService;
-import com.ssdd.ntp.client.NTPClient;
-import com.ssdd.ntp.service.NTPService;
 
 /**
- * Builder to create {@link com.ssdd.main.Node}
+ * Builder to create {@link com.ssdd.main.node.Node}
  * 
  * @version 1.0
  * @author Héctor Sánchez San Blas
@@ -19,12 +17,13 @@ public class NodeBuilder {
 	private int nodeIdRagneStart;
 	private int nodeIdRagneEnd;
 
+	private String logFile;
+	
 	private String [] servers;
-	private String ntpServer;
 	private String asignedBroker;
 
 	/**
-	 * builds a {@link com.ssdd.main.Node} with the setted parameters 
+	 * builds a {@link com.ssdd.main.node.Node} with the setted parameters 
 	 * 
 	 * @version 1.0
 	 * @author Héctor Sánchez San Blas
@@ -33,24 +32,11 @@ public class NodeBuilder {
 	 * @return Node build with the provied data in other methods
 	 * */
 	public Node build() {
-		NTPClient ntp = this.buildNtpClient();
 		CriticalSectionClient cs = this.buildCsClient();
 		cs.suscribe();
-		return new Node(nodeId, ntp, cs);
+		return new Node(nodeId, logFile, cs);
 	}
 	
-	/**
-	 * builds a {@link com.ssdd.ntp.service.NTPService} client.
-	 * 
-	 * @version 1.0
-	 * @author Héctor Sánchez San Blas
-	 * @author Francisco Pinto Santos
-	 * 
-	 * @return {@link com.ssdd.ntp.client.NTPClient} to be used as ntp interface
-	 * */
-	private NTPClient buildNtpClient() {
-		return new NTPClient(NTPService.buildProxy(this.ntpServer));
-	}
 	
 	/**
 	 * builds a {@link com.ssdd.cs.service.CriticalSectionService} client.
@@ -91,7 +77,6 @@ public class NodeBuilder {
 			nodes[i-rangeStart] = String.format("%d", i);
 		return nodes;
 	}
-
 	
 	public NodeBuilder nodeId(String nodeId) {
 		this.setNodeId(nodeId);
@@ -119,8 +104,8 @@ public class NodeBuilder {
 		return this;
 	}
 	
-	public NodeBuilder ntpServer(String ntpServer) {
-		this.setNtpServer(ntpServer);
+	public NodeBuilder logFile(String file) {
+		this.setLogFile(file);
 		return this;
 	}
 	
@@ -172,12 +157,13 @@ public class NodeBuilder {
 		this.asignedBroker = asignedBroker;
 	}
 
-	public String getNtpServer() {
-		return ntpServer;
+	public String getLogFile() {
+		return logFile;
 	}
 
-	public void setNtpServer(String ntpServer) {
-		this.ntpServer = ntpServer;
+	public void setLogFile(String logFile) {
+		this.logFile = logFile;
 	}
 	
 }
+

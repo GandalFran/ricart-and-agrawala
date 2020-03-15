@@ -20,6 +20,9 @@ import com.ssdd.util.logging.SSDDLogFactory;
 */
 public class CriticalSectionServiceProxy extends CriticalSectionService{
 
+	/**
+	 * Class logger generated with {@link com.ssdd.util.logging.SSDDLogFactory#logger(Class)}
+	 * */
     private final static Logger LOGGER = SSDDLogFactory.logger(CriticalSectionServiceProxy.class);
     
     /**

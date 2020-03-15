@@ -1,15 +1,11 @@
-package com.ssdd.main;
+package com.ssdd.main.node;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.ssdd.cs.client.CriticalSectionClient;
-import com.ssdd.ntp.bean.Pair;
-import com.ssdd.ntp.client.NTPClient;
+import com.ssdd.main.CriticalSectionLog;
 import com.ssdd.util.Utils;
 import com.ssdd.util.constants.IConstants;
 import com.ssdd.util.logging.SSDDLogFactory;
@@ -23,6 +19,9 @@ import com.ssdd.util.logging.SSDDLogFactory;
 */
 public class Node extends Thread{
 
+	/**
+	 * Class logger generated with {@link com.ssdd.util.logging.SSDDLogFactory#logger(Class)}
+	 * */
     private final static Logger LOGGER = SSDDLogFactory.logger(Node.class);
     
     /** 
@@ -33,11 +32,6 @@ public class Node extends Thread{
      * random number generator
     */
 	private Random generator;
-    
-	/** 
-     * client to access the system's private NTP service.
-    */
-	private NTPClient ntp;	
 	/** 
      * client to access the system's private critical section service.
     */
@@ -47,53 +41,30 @@ public class Node extends Thread{
     */
     private CriticalSectionLog csLog;
 	
-	public Node(String nodeId, NTPClient ntp, CriticalSectionClient cs) {
+	public Node(String nodeId, String logFile, CriticalSectionClient cs) {
 		super();
 		this.cs = cs;
-		this.ntp = ntp;
 		this.nodeId = nodeId;
 		this.generator = new Random();
-		this.csLog = new CriticalSectionLog(nodeId);
+		this.csLog = new CriticalSectionLog(nodeId, logFile);
 	}
 	
 	/** 
 	 * Behaviour to be executed as a independient Thread.
-	 * Run steps:
-	 * 	+ runs NTP algorithm to obtain {@link com.ssdd.util.constants.IConstants#NTP_NUM_ITERATIONS} {@link com.ssdd.ntp.bean.Pair} 
-	 *  + iterates {@link com.ssdd.util.constants.IConstants#SIMULATION_NUM_ITERATIONS} times doing the following:
-	 *  	- sleep during a random interval of time simulating a calulation
-	 *  	- try acces to critical section
-	 * 	+ runs NTP algorithm to obtain {@link com.ssdd.util.constants.IConstants#NTP_NUM_ITERATIONS} {@link com.ssdd.ntp.bean.Pair}
-	 *  + calculates the delay and offset with the 2*{@link com.ssdd.util.constants.IConstants#NTP_NUM_ITERATIONS} obtained {@link com.ssdd.ntp.bean.Pair}
+	 * For {@link com.ssdd.util.constants.IConstants#SIMULATION_NUM_ITERATIONS} times sleep during a random 
+	 * interval of time simulating a calulation. Then try acces to critical section.
 	 * 
 	 * @version 1.0
 	 * @author Héctor Sánchez San Blas
 	 * @author Francisco Pinto Santos
 	*/
 	public void run() {
-		// calculate the ntp delay and offset at the begginng
-		LOGGER.log(Level.INFO, String.format("[node: %s] ntp initial", nodeId));
-		Pair [] ntpInitialResult = ntp.sample();
-		
 		// iterate N times simulating calculus and entering in the critical section
 		for(int i=0; i< IConstants.SIMULATION_NUM_ITERATIONS; i++) {
 			LOGGER.log(Level.INFO, String.format("[node: %s] iter %d", nodeId, i));
-			LOGGER.log(Level.INFO, String.format("[node: %s] iter %d simulating calculus", nodeId, i));
 			this.simulateSleep(IConstants.SIMULATION_MIN_CALULUS_TIME, IConstants.SIMULATION_MAX_CALULUS_TIME);
-			LOGGER.log(Level.INFO, String.format("[node: %s] iter %d entering critical section", nodeId, i));
 			this.enterCriticalSection();
 		}
-
-		// calculate the ntp delay and offset at the end
-		LOGGER.log(Level.INFO, String.format("[node: %s] ntp final", nodeId));
-		Pair [] ntpFinalResult = ntp.sample();
-
-		// join all obtained pairs and calculate the best pair
-		List <Pair> allPairs = new ArrayList<>(Arrays.asList(ntpInitialResult));
-		allPairs.addAll(Arrays.asList(ntpFinalResult));
-		Pair pair = this.ntp.selectBestPair(allPairs);
-		LOGGER.log(Level.INFO, String.format("[node: %s] ntp result: %s", nodeId, pair.toString()));
-		
 		LOGGER.log(Level.INFO, String.format("[node: %s] finished", nodeId));
 	}
 	

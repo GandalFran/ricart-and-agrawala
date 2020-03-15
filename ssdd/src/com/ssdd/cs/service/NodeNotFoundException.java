@@ -21,6 +21,11 @@ import javax.ws.rs.ext.Provider;
 public class NodeNotFoundException extends Exception implements ExceptionMapper<NodeNotFoundException>{
 
 	/**
+	 * version uid neccesary to stop the eclipse warnings
+	 */
+	private static final long serialVersionUID = 3787743999715223635L;
+	
+	/**
 	 * The requested node's id.
 	 * */
 	private String nodeId;

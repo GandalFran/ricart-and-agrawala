@@ -15,6 +15,9 @@ import com.ssdd.util.logging.SSDDLogFactory;
  */
 public class CritialSectionServiceNode {
 
+	/**
+	 * Class logger generated with {@link com.ssdd.util.logging.SSDDLogFactory#logger(Class)}
+	 * */
     private final static Logger LOGGER = SSDDLogFactory.logger(CritialSectionServiceNode.class);
     
     /**

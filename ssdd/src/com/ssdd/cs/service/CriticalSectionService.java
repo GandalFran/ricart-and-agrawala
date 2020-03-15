@@ -24,6 +24,9 @@ import com.ssdd.util.logging.SSDDLogFactory;
 @Path("/cs")
 public class CriticalSectionService{
 
+	/**
+	 * Class logger generated with {@link com.ssdd.util.logging.SSDDLogFactory#logger(Class)}
+	 * */
     private final static Logger LOGGER = SSDDLogFactory.logger(CriticalSectionService.class);
 
     /**

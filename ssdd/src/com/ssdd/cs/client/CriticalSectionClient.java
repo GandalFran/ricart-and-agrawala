@@ -10,8 +10,18 @@ import com.ssdd.cs.service.CriticalSectionService;
 import com.ssdd.cs.service.NodeNotFoundException;
 import com.ssdd.util.logging.SSDDLogFactory;
 
+/**
+ * Client for the {@link com.ssdd.cs.service.CriticalSectionService} service
+ * 
+ * @version 1.0
+ * @author Héctor Sánchez San Blas
+ * @author Francisco Pinto Santos
+ * */
 public class CriticalSectionClient {
 	
+	/**
+	 * Class logger generated with {@link com.ssdd.util.logging.SSDDLogFactory#logger(Class)}
+	 * */
 	private final static Logger LOGGER = SSDDLogFactory.logger(CriticalSectionClient.class);
     
 	/**
@@ -36,7 +46,7 @@ public class CriticalSectionClient {
 		this.router = new CriticalSectionRouter(nodes, services);
 		this.router.update(ID, selectedBroker);
 		this.nodes = this.buildNodeArray(nodes);
-		this.multicastSender = new SenderPool();
+		this.multicastSender = new CriticalSectionRequestSenderPool();
 	}
 	
 	/** 
@@ -97,7 +107,7 @@ public class CriticalSectionClient {
 			long messageTimeStamp = myservice.getMessageTimeStamp(this.ID);
 			
 			// send requests and unlock
-			this.multicastSender.send(this.ID, messageTimeStamp, this.nodes, router);
+			this.multicastSender.multicastSend(this.ID, this.nodes, router, messageTimeStamp, null);
 			myservice.unlock(this.ID);
 			
 			// wait to requests
