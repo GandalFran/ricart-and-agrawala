@@ -53,13 +53,13 @@ public interface IConstants {
 	/**
 	 * Error code given when an error related to HTTP request occurs.
 	 * */
-	public static final int EXIT_CODE_HTTP_REQUEST_ERROR = 400;
+	public static final int EXIT_CODE_HTTP_REQUEST_ERROR = 100;
 	/**
 	 * Error code given when an error related to Thread behaviour (block, sleep, wait, ...) occurs.
 	 * */
-	public static final int EXIT_CODE_THREAD_ERROR = 0;
+	public static final int EXIT_CODE_THREAD_ERROR = 200;
 	/**
 	 * Error code given when an error related to the node behaviour (linke a NodeNotFoundException) occurs.
 	 * */
-	public static final int EXIT_CODE_NODE_ERROR = 0;
+	public static final int EXIT_CODE_NODE_ERROR = 300;
 }

@@ -27,7 +27,7 @@ public class CriticalSectionRequestSenderPool{
     /** 
      * creates a threadpool with receivers.size() threads, to send receivers.size() messages in a concurrent way.
      * Then stops the threadpool to forbid the send of more messages in current poool.
-     * To send messages uses the {@link CriticalSectionRequestSenderPool#send(String, String, CriticalSectionRouter, long, Object)} method
+     * To send messages uses the {@link com.ssdd.cs.client.CriticalSectionRequestSenderPool#send(String, String, CriticalSectionRouter, long)} method
      * 
      * @version 1.0
      * @author Héctor Sánchez San Blas

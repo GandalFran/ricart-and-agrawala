@@ -57,7 +57,7 @@ public class CriticalSectionServiceProxy extends CriticalSectionService{
 	}
 	
 	/**
-	 * See {@link com.ssdd.cs.service.CriticalSectionService#restart()}
+	 * See {@link com.ssdd.cs.service.CriticalSectionService#restart(int)}
 	 * 
 	 * @version 1.0
 	 * @author Héctor Sánchez San Blas
