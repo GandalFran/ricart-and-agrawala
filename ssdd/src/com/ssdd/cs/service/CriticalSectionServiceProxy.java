@@ -9,6 +9,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
 
 import com.google.gson.Gson;
+import com.ssdd.util.constants.IConstants;
 import com.ssdd.util.logging.SSDDLogFactory;
 
 /** 
@@ -61,14 +62,35 @@ public class CriticalSectionServiceProxy extends CriticalSectionService{
 	 * @version 1.0
 	 * @author Héctor Sánchez San Blas
 	 * @author Francisco Pinto Santos
+	 * 
+	 * @param numNodes the number of nodes that will try to access to critial section
 	 * */
 	@Override
-	public void restart() {
-		LOGGER.log(Level.INFO, String.format("/cs/restart"));
+	public void restart(int numNodes) {
+		LOGGER.log(Level.INFO, String.format("/cs/restart numNodes:%d", numNodes));
 		try {
-			this.service.path("restart").request().post(null);
+			this.service.path("restart").queryParam("numNodes", numNodes).request().post(null);
 		} catch (Exception e) {
 			LOGGER.log(Level.WARNING, String.format("/cs/restart: error %s", e.getMessage()), e);
+			System.exit(IConstants.EXIT_CODE_HTTP_REQUEST_ERROR);
+		}
+	}
+	
+	/**
+	 * See {@link com.ssdd.cs.service.CriticalSectionService#ready()}
+	 * 
+	 * @version 1.0
+	 * @author Héctor Sánchez San Blas
+	 * @author Francisco Pinto Santos
+	 * */
+	@Override
+	public void ready() {
+		LOGGER.log(Level.INFO, String.format("/cs/ready"));
+		try {
+			this.service.path("ready").request().post(null);
+		} catch (Exception e) {
+			LOGGER.log(Level.WARNING, String.format("/cs/ready: error %s", e.getMessage()), e);
+			System.exit(IConstants.EXIT_CODE_HTTP_REQUEST_ERROR);
 		}
 	}
 	
@@ -88,6 +110,7 @@ public class CriticalSectionServiceProxy extends CriticalSectionService{
 			this.service.path("suscribe").queryParam("node", nodeId).request().post(null);
 		} catch (Exception e) {
 			LOGGER.log(Level.WARNING, String.format("[node: %s] suscribe: error %s", nodeId, e.getMessage()), e);
+			System.exit(IConstants.EXIT_CODE_HTTP_REQUEST_ERROR);
 		}
 	}
 
@@ -107,6 +130,7 @@ public class CriticalSectionServiceProxy extends CriticalSectionService{
 			return this.service.path("suscribed").request(MediaType.APPLICATION_JSON).get(String.class);
 		} catch (Exception e) {
 			LOGGER.log(Level.WARNING, String.format("suscribed: error %s", e.getMessage()), e);
+			System.exit(IConstants.EXIT_CODE_HTTP_REQUEST_ERROR);
 			return null;
 		}
 	}

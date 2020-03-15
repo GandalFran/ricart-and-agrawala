@@ -2,7 +2,9 @@ package com.ssdd.cs.service;
 
 
 import java.util.Map;
+import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CyclicBarrier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -28,7 +30,11 @@ public class CriticalSectionService{
 	 * Class logger generated with {@link com.ssdd.util.logging.SSDDLogFactory#logger(Class)}
 	 * */
     private final static Logger LOGGER = SSDDLogFactory.logger(CriticalSectionService.class);
-
+ 
+	/**
+     * barrier to wait all nodes to be suscribed
+     * */
+	private CyclicBarrier startBarrier;
     /**
      * associates the state of a subscribed node to it's id, and stores the state relative to
      * the node's critical section state
@@ -87,17 +93,39 @@ public class CriticalSectionService{
 	}
 	
 	/**
-	 * restarts the service cleaning all node's state structures
+	 * restarts the service cleaning all node's state structures and
+	 * receives the number of nodes that will try to access the critical section.
+	 * 
+	 * @version 1.0
+	 * @author Héctor Sánchez San Blas
+	 * @author Francisco Pinto Santos
+	 * 
+	 * @param numNodes the number of nodes that will try to access to critial section
+	 * */
+	@POST
+	@Path("/restart")
+	public void restart(@QueryParam(value="numNodes") int numNodes){
+		LOGGER.log(Level.INFO, String.format("/cs/restart"));
+		this.nodes.clear();
+		this.startBarrier = new CyclicBarrier(numNodes);
+	}
+
+	/**
+	 * waits untill all nodes are ready
 	 * 
 	 * @version 1.0
 	 * @author Héctor Sánchez San Blas
 	 * @author Francisco Pinto Santos
 	 * */
 	@POST
-	@Path("/restart")
-	public void restart(){
-		LOGGER.log(Level.INFO, String.format("/cs/restart"));
-		this.nodes.clear();
+	@Path("/ready")
+	public void ready(){
+		LOGGER.log(Level.INFO, String.format("/cs/ready"));
+		try {
+			this.startBarrier.await();
+		} catch (InterruptedException | BrokenBarrierException e) {
+			LOGGER.log(Level.WARNING, String.format("/cs/ready ERROR: %s", e.getMessage()), e);
+		}
 	}
 	
 	/**

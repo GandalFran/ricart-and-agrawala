@@ -60,7 +60,7 @@ public class MainNode {
 		// if is supervisor restart critical section in servers 
 		if(isSupervisor) {
 			for(String server : servers)
-				CriticalSectionService.buildProxy(server).restart();
+				CriticalSectionService.buildProxy(server).restart(numberOfNodes);
 		}
 
 		// if is supervisor instance ntp client
@@ -81,7 +81,7 @@ public class MainNode {
 		// build nodes
 		List<Node> nodes = new ArrayList<>();
 		for(String node : assignedNodes) {
-			nodes.add( builder.nodeId(node).build());
+			nodes.add(builder.nodeId(node).build());
 		}
 		
 		// start nodes
@@ -93,6 +93,7 @@ public class MainNode {
 				n.join();
 			} catch (InterruptedException e) {
 				LOGGER.log(Level.WARNING, String.format("ERROR when waiting for nodes to finish: %s", e.getMessage()), e);
+				System.exit(IConstants.EXIT_CODE_THREAD_ERROR);
 			}
 		});	
 		

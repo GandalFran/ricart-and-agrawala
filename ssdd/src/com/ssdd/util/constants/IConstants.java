@@ -8,7 +8,7 @@ package com.ssdd.util.constants;
  * @author Francisco Pinto Santos
 */
 public interface IConstants {
-
+	
 	// ntp service constants
 	/** 
 	 * Number of iterations of sampling time in the client and server on NTP algorithm.
@@ -48,4 +48,18 @@ public interface IConstants {
 	 * Maximum time (in milliseconds) of critical section wait in application.
 	 */
 	public static final long SIMULATION_MAX_CRITICAL_SECTION_TIME = 300;	
+	
+	// error codes
+	/**
+	 * Error code given when an error related to HTTP request occurs.
+	 * */
+	public static final int EXIT_CODE_HTTP_REQUEST_ERROR = 400;
+	/**
+	 * Error code given when an error related to Thread behaviour (block, sleep, wait, ...) occurs.
+	 * */
+	public static final int EXIT_CODE_THREAD_ERROR = 0;
+	/**
+	 * Error code given when an error related to the node behaviour (linke a NodeNotFoundException) occurs.
+	 * */
+	public static final int EXIT_CODE_NODE_ERROR = 0;
 }

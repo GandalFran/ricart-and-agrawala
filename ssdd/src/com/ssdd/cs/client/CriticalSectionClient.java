@@ -8,6 +8,7 @@ import java.util.logging.Logger;
 import com.ssdd.cs.bean.CriticalSectionState;
 import com.ssdd.cs.service.CriticalSectionService;
 import com.ssdd.cs.service.NodeNotFoundException;
+import com.ssdd.util.constants.IConstants;
 import com.ssdd.util.logging.SSDDLogFactory;
 
 /**
@@ -36,17 +37,12 @@ public class CriticalSectionClient {
 	 * router to access other nodes
 	 * */
 	private CriticalSectionRouter router;
-	/**
-	 * threadpool to send a multicast access request
-	 * */
-	private SenderPool multicastSender;
 	
 	public CriticalSectionClient(String ID, CriticalSectionService selectedBroker, String [] nodes, CriticalSectionService [] services) {
 		this.ID = ID;
 		this.router = new CriticalSectionRouter(nodes, services);
 		this.router.update(ID, selectedBroker);
 		this.nodes = this.buildNodeArray(nodes);
-		this.multicastSender = new CriticalSectionRequestSenderPool();
 	}
 	
 	/** 
@@ -85,6 +81,21 @@ public class CriticalSectionClient {
 	}
 	
 	/** 
+	 * indicates the brokers that the current node is ready and waits until all nodes are ready
+	 * 
+	 * @version 1.0
+	 * @author Héctor Sánchez San Blas
+	 * @author Francisco Pinto Santos
+	*/
+	public void ready() {
+		LOGGER.log(Level.INFO, String.format("[node %s] started ready", this.ID));
+		CritialSectionReadySenderPool multicastSender = new CritialSectionReadySenderPool();
+		multicastSender.multicastSend(this.router.getBrokers());
+		multicastSender.await();
+		LOGGER.log(Level.INFO, String.format("[node %s] finished ready", this.ID));
+	}
+	
+	/** 
 	 * acquires the critical section with the Ricart and Argawala algorithm.
 	 * 
 	 * @version 1.0
@@ -107,11 +118,12 @@ public class CriticalSectionClient {
 			long messageTimeStamp = myservice.getMessageTimeStamp(this.ID);
 			
 			// send requests and unlock
-			this.multicastSender.multicastSend(this.ID, this.nodes, router, messageTimeStamp, null);
+			CriticalSectionRequestSenderPool multicastSender = new CriticalSectionRequestSenderPool();
+			multicastSender.multicastSend(this.ID, this.nodes, router, messageTimeStamp);
 			myservice.unlock(this.ID);
 			
 			// wait to requests
-			this.multicastSender.await();
+			multicastSender.await();
 			
 			myservice.lock(this.ID);
 			
@@ -122,6 +134,7 @@ public class CriticalSectionClient {
 			
 		} catch (NodeNotFoundException e) {
 			LOGGER.log(Level.WARNING, String.format("[node: %s] acquire: error %s", this.ID, e.getMessage()), e);
+			System.exit(IConstants.EXIT_CODE_NODE_ERROR);
 		}
 	}
 	
@@ -139,6 +152,7 @@ public class CriticalSectionClient {
 			myservice.release(this.ID);
 		} catch (NodeNotFoundException e) {
 			LOGGER.log(Level.WARNING, String.format("[node: %s] release: error %s", this.ID, e.getMessage()), e);
+			System.exit(IConstants.EXIT_CODE_NODE_ERROR);
 		}
 	}
 	

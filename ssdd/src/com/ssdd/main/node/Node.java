@@ -59,6 +59,8 @@ public class Node extends Thread{
 	 * @author Francisco Pinto Santos
 	*/
 	public void run() {
+		// wait until the other nodes are ready
+		this.cs.ready();
 		// iterate N times simulating calculus and entering in the critical section
 		for(int i=0; i< IConstants.SIMULATION_NUM_ITERATIONS; i++) {
 			LOGGER.log(Level.INFO, String.format("[node: %s] iter %d", nodeId, i));
@@ -113,6 +115,7 @@ public class Node extends Thread{
 			Thread.sleep(sleepIntervalMs);
 		} catch (InterruptedException e) {
 			LOGGER.log(Level.INFO, String.format("[node: %s] simulateSleep: error %s", nodeId, e.getMessage()), e);
+			System.exit(IConstants.EXIT_CODE_THREAD_ERROR);
 		}
 	}
 	

@@ -8,6 +8,7 @@ import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
 
+import com.ssdd.util.constants.IConstants;
 import com.ssdd.util.logging.SSDDLogFactory;
 
 /** 
@@ -53,6 +54,7 @@ public class NTPServiceProxy extends NTPService{
 			return this.service.path("time").request(MediaType.TEXT_PLAIN).get(String.class);
 		} catch (Exception ex) {
 			System.err.println("["+ Thread.currentThread().getId()+"] An error occurred in " + ex.toString());
+			System.exit(IConstants.EXIT_CODE_HTTP_REQUEST_ERROR);
 			return null;
 		}
 	}
