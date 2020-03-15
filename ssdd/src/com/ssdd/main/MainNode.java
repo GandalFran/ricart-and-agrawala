@@ -31,7 +31,7 @@ public class MainNode {
 		int assignedNodeIdRangeStart = Integer.parseInt(args[2]);
 		int assignedNodeIdRangeEnd = Integer.parseInt(args[3]);
 		int assignedBrokerPosition = Integer.parseInt(args[4]);
-		String [] servers = Arrays.copyOfRange(args, 4, args.length);
+		String [] servers = Arrays.copyOfRange(args, 5, args.length);
 		
 		// calculate assigned broker from parameters
 		String assignedBroker = servers[assignedBrokerPosition];
@@ -118,6 +118,10 @@ public class MainNode {
 				LOGGER.log(Level.INFO, String.format("%s | %s", service.toString(), results.get(service).toString() ));
 		}
 		
+		// TODO: remove when finished
+		LOGGER.log(Level.INFO, String.format("TODO: BORRAR cuando acabado : resultados prueba"));
+		Comprobador.main(new String [] { logFile });
+		
 	}
 	
 	private static Map<NTPService, List<Pair>> joinMaps(Map<NTPService, Pair []> m1, Map<NTPService, Pair []> m2){
@@ -126,6 +130,7 @@ public class MainNode {
 			List<Pair> p = new ArrayList<>();
 			p.addAll(Arrays.asList(m1.get(service)));
 			p.addAll(Arrays.asList(m2.get(service)));
+			result.put(service, p);
 		}
 		return result;
 	}
