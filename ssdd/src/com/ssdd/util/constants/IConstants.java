@@ -27,7 +27,7 @@ public interface IConstants {
 	/** 
 	 * Path to the application critical secion in and out registration log.
 	 */
-	public static final String SIMULATION_LOG_FILE = "simulation.txt";
+	public static final String SIMULATION_LOG_FILE_SUFIX = "simulation.log";
 	/** 
 	 * Number of iterations of calculus and critical section wait in simulation.
 	 */

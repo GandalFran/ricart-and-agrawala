@@ -35,7 +35,7 @@ public class MainNode {
 		
 		// calculate assigned broker from parameters
 		String assignedBroker = servers[assignedBrokerPosition];
-		String logFile = String.format("%d_%s", assignedBrokerPosition, IConstants.SIMULATION_LOG_FILE);
+		String logFile = String.format("%d_%s", assignedBrokerPosition, IConstants.SIMULATION_LOG_FILE_SUFIX);
 		
 		// print information about params
 		LOGGER.log(Level.INFO, "Params:");
