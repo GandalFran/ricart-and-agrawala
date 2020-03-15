@@ -2,6 +2,8 @@ package com.ssdd.main.node;
 
 import com.ssdd.cs.client.CriticalSectionClient;
 import com.ssdd.cs.service.CriticalSectionService;
+import com.ssdd.ntp.client.NTPClient;
+import com.ssdd.ntp.service.NTPService;
 
 /**
  * Builder to create {@link com.ssdd.main.node.Node}
@@ -49,14 +51,17 @@ public class NodeBuilder {
 	 * */
 	private CriticalSectionClient buildCsClient() {
 		CriticalSectionService [] services = new CriticalSectionService [this.servers.length];
-		
-		for(int i=0; i<services.length; i++) {
+		for(int i=0; i<services.length; i++) 
 			services[i] = CriticalSectionService.buildProxy(servers[i]);
-		}
-		
 		String [] nodes = this.buildNodeIds(1, this.numNodes);
-		
 		return new CriticalSectionClient(nodeId, CriticalSectionService.buildProxy(this.asignedBroker), nodes, services);
+	}
+
+	public NTPClient buildNtpClient() {
+		NTPService [] services = new NTPService [this.servers.length];
+		for(int i=0; i<services.length; i++) 
+			services[i] = NTPService.buildProxy(servers[i]);
+		return new NTPClient(services);
 	}
 	
 	/**

@@ -1,6 +1,8 @@
 package com.ssdd.ntp.client;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.ssdd.ntp.bean.Pair;
 import com.ssdd.ntp.service.NTPService;
@@ -20,15 +22,15 @@ public class NTPClient {
 	/**
 	 * list of services to request the time samples.
 	 * */
-	private NTPService service;
+	private NTPService [] services;
 		
-	public NTPClient(NTPService service) {
+	public NTPClient(NTPService [] services) {
 		super();
-		this.service = service;
+		this.services = services;
 	}
 
 	/**
-	 * samples time in host and serer and calculates the delay and offset for {@link com.ssdd.util.constants.IConstants#NTP_NUM_ITERATIONS} times
+	 * for each service, samples time in host and server and calculates the delay and offset for {@link com.ssdd.util.constants.IConstants#NTP_NUM_ITERATIONS} times
 	 * 
 	 * @see com.ssdd.ntp.service.NTPService#time()
 	 * 
@@ -36,23 +38,27 @@ public class NTPClient {
 	 * @author Héctor Sánchez San Blas
 	 * @author Francisco Pinto Santos
 	 * 
-	 * @return array with calculated {@link com.ssdd.ntp.bean.Pair}
+	 * @return map with an association between {@link com.ssdd.ntp.service.NTPService} and an array with calculated {@link com.ssdd.ntp.bean.Pair} from servers
 	 * */
-	public Pair [] sample() {
+	public Map<NTPService, Pair []> sample() {
 		long time0, time1, time2, time3;
-		Pair [] pairs = new Pair [IConstants.NTP_NUM_ITERATIONS];
+		Map<NTPService, Pair []> samples = new HashMap<>();
 		
-		for(int currIteration=0; currIteration<IConstants.NTP_NUM_ITERATIONS; currIteration++) {
-			// get times
-			time0 = System.currentTimeMillis();
-			long [] response = NTPServiceProxy.parseTimeResponse(this.service.time());
-			time1 = response[0]; 
-			time2 = response[1]; 
-			time3 = System.currentTimeMillis();
-			pairs[currIteration] = new Pair(this.calculateDelay(time0, time1, time2, time3), this.calculateOffset(time0, time1, time2, time3));
+		for(NTPService service : services) {
+			Pair [] pairs = new Pair [IConstants.NTP_NUM_ITERATIONS];
+			for(int currIteration=0; currIteration<IConstants.NTP_NUM_ITERATIONS; currIteration++) {
+				// get times
+				time0 = System.currentTimeMillis();
+				long [] response = NTPServiceProxy.parseTimeResponse(service.time());
+				time1 = response[0]; 
+				time2 = response[1]; 
+				time3 = System.currentTimeMillis();
+				pairs[currIteration] = new Pair(this.calculateDelay(time0, time1, time2, time3), this.calculateOffset(time0, time1, time2, time3));
+			}
+			samples.put(service, pairs);
 		}
 		
-		return pairs;
+		return samples;
 	} 
 	
 	/**
@@ -112,13 +118,5 @@ public class NTPClient {
 			}
 		}
 		return bestPair;
-	}
-
-	public NTPService getService() {
-		return service;
-	}
-
-	public void setService(NTPService service) {
-		this.service = service;
 	}
 }
