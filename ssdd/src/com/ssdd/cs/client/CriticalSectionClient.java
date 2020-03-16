@@ -88,11 +88,26 @@ public class CriticalSectionClient {
 	 * @author Francisco Pinto Santos
 	*/
 	public void ready() {
-		LOGGER.log(Level.INFO, String.format("[node %s] started ready", this.ID));
+		LOGGER.log(Level.INFO, String.format("[node %s] ready start", this.ID));
 		CritialSectionReadySenderPool multicastSender = new CritialSectionReadySenderPool();
 		multicastSender.multicastSend(this.router.getBrokers());
 		multicastSender.await();
-		LOGGER.log(Level.INFO, String.format("[node %s] finished ready", this.ID));
+		LOGGER.log(Level.INFO, String.format("[node %s] ready end", this.ID));
+	}
+	
+	/** 
+	 * indicates the brokers that the current node has finished and waits untill all nodes has finished
+	 * 
+	 * @version 1.0
+	 * @author Héctor Sánchez San Blas
+	 * @author Francisco Pinto Santos
+	*/
+	public void finished() {
+		LOGGER.log(Level.INFO, String.format("[node %s] finished start", this.ID));
+		CritialSectionReadySenderPool multicastSender = new CritialSectionFinishedSenderPool();
+		multicastSender.multicastSend(this.router.getBrokers());
+		multicastSender.await();
+		LOGGER.log(Level.INFO, String.format("[node %s] finished end", this.ID));
 	}
 	
 	/** 
@@ -134,7 +149,7 @@ public class CriticalSectionClient {
 			
 		} catch (NodeNotFoundException e) {
 			LOGGER.log(Level.WARNING, String.format("[node: %s] acquire: error %s", this.ID, e.getMessage()), e);
-			System.exit(IConstants.EXIT_CODE_NODE_ERROR);
+			System.exit(IConstants.EXIT_CODE_SIMULATION_ERROR);
 		}
 	}
 	
@@ -152,7 +167,7 @@ public class CriticalSectionClient {
 			myservice.release(this.ID);
 		} catch (NodeNotFoundException e) {
 			LOGGER.log(Level.WARNING, String.format("[node: %s] release: error %s", this.ID, e.getMessage()), e);
-			System.exit(IConstants.EXIT_CODE_NODE_ERROR);
+			System.exit(IConstants.EXIT_CODE_SIMULATION_ERROR);
 		}
 	}
 	

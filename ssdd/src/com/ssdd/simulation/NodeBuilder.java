@@ -1,12 +1,10 @@
-package com.ssdd.main.node;
+package com.ssdd.simulation;
 
 import com.ssdd.cs.client.CriticalSectionClient;
 import com.ssdd.cs.service.CriticalSectionService;
-import com.ssdd.ntp.client.NTPClient;
-import com.ssdd.ntp.service.NTPService;
 
 /**
- * Builder to create {@link com.ssdd.main.node.Node}
+ * Builder to create {@link com.ssdd.simulation.Node}
  * 
  * @version 1.0
  * @author Héctor Sánchez San Blas
@@ -25,7 +23,7 @@ public class NodeBuilder {
 	private String asignedBroker;
 
 	/**
-	 * builds a {@link com.ssdd.main.node.Node} with the setted parameters 
+	 * builds a {@link com.ssdd.simulation.Node} with the setted parameters 
 	 * 
 	 * @version 1.0
 	 * @author Héctor Sánchez San Blas
@@ -55,13 +53,6 @@ public class NodeBuilder {
 			services[i] = CriticalSectionService.buildProxy(servers[i]);
 		String [] nodes = this.buildNodeIds(1, this.numNodes);
 		return new CriticalSectionClient(nodeId, CriticalSectionService.buildProxy(this.asignedBroker), nodes, services);
-	}
-
-	public NTPClient buildNtpClient() {
-		NTPService [] services = new NTPService [this.servers.length];
-		for(int i=0; i<services.length; i++) 
-			services[i] = NTPService.buildProxy(servers[i]);
-		return new NTPClient(services);
 	}
 	
 	/**

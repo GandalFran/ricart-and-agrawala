@@ -25,6 +25,10 @@ public class NTPServiceProxy extends NTPService{
 	 * */
     private final static Logger LOGGER = SSDDLogFactory.logger(NTPServiceProxy.class);
 	
+    /**
+     * server's ip
+     * */
+    private String serverIp;
 	/**
 	 * NTP service URI.
 	 * */
@@ -34,7 +38,8 @@ public class NTPServiceProxy extends NTPService{
 	 * */
 	private WebTarget service;
 	
-	public NTPServiceProxy(String serviceUri) {
+	public NTPServiceProxy(String serverIp, String serviceUri) {
+		this.serverIp = serverIp;
 		this.serviceUri = serviceUri;
 		this.service = ClientBuilder.newClient().target(UriBuilder.fromUri(serviceUri).build());
 	}
@@ -52,8 +57,8 @@ public class NTPServiceProxy extends NTPService{
 		LOGGER.log(Level.INFO, "/ntp/time");
 		try {
 			return this.service.path("time").request(MediaType.TEXT_PLAIN).get(String.class);
-		} catch (Exception ex) {
-			System.err.println("["+ Thread.currentThread().getId()+"] An error occurred in " + ex.toString());
+		} catch (Exception e) {
+			LOGGER.log(Level.WARNING, String.format("time: ERROR %s", e.getMessage()), e);
 			System.exit(IConstants.EXIT_CODE_HTTP_REQUEST_ERROR);
 			return null;
 		}
@@ -86,6 +91,14 @@ public class NTPServiceProxy extends NTPService{
 
 	public void setServiceUri(String serviceUri) {
 		this.serviceUri = serviceUri;
+	}
+
+	public String getServerIp() {
+		return serverIp;
+	}
+
+	public void setServerIp(String serverIp) {
+		this.serverIp = serverIp;
 	}
 	
 }

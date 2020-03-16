@@ -1,7 +1,6 @@
 package com.ssdd.ntp.client;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import com.ssdd.ntp.bean.Pair;
@@ -24,6 +23,11 @@ public class NTPClient {
 	 * */
 	private NTPService [] services;
 		
+	public NTPClient() {
+		super();
+		this.services = null;
+	}
+	
 	public NTPClient(NTPService [] services) {
 		super();
 		this.services = services;
@@ -109,7 +113,7 @@ public class NTPClient {
 	 * 
 	 * @return the Pair selected as Best.
 	 * */
-	public Pair selectBestPair(List<Pair> allPairs) {
+	public Pair selectBestPair(Pair [] allPairs) {
 		Pair bestPair = new Pair(Long.MAX_VALUE, 0);
 		
 		for(Pair p: allPairs) {

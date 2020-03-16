@@ -1,5 +1,6 @@
 package com.ssdd.util;
 
+import java.util.List;
 import java.util.Random;
 
 public class Utils {
@@ -22,5 +23,14 @@ public class Utils {
 		 long number = (min + (r.nextLong() % (max - min + 1)));
 		 number *= (number > 0) ? 1 : -1;
 		 return number;
+	 }
+	 
+	 
+	 public static String listToString(List<String> lines) {
+		 StringBuilder sb = new StringBuilder();
+		 for(String line : lines) {
+			 sb.append(line);
+		 }
+		 return sb.toString();
 	 }
 }

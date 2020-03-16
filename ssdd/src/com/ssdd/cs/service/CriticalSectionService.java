@@ -35,6 +35,11 @@ public class CriticalSectionService{
      * barrier to wait all nodes to be suscribed
      * */
 	private CyclicBarrier startBarrier;
+
+	/**
+     * barrier to wait all nodes to finish
+     * */
+	private CyclicBarrier finishBarrier;
     /**
      * associates the state of a subscribed node to it's id, and stores the state relative to
      * the node's critical section state
@@ -108,6 +113,7 @@ public class CriticalSectionService{
 		LOGGER.log(Level.INFO, String.format("/cs/restart"));
 		this.nodes.clear();
 		this.startBarrier = new CyclicBarrier(numNodes);
+		this.finishBarrier = new CyclicBarrier(numNodes);
 	}
 
 	/**
@@ -125,6 +131,24 @@ public class CriticalSectionService{
 			this.startBarrier.await();
 		} catch (InterruptedException | BrokenBarrierException e) {
 			LOGGER.log(Level.WARNING, String.format("/cs/ready ERROR: %s", e.getMessage()), e);
+		}
+	}
+	
+	/**
+	 * waits untill all nodes has finished
+	 * 
+	 * @version 1.0
+	 * @author Héctor Sánchez San Blas
+	 * @author Francisco Pinto Santos
+	 * */
+	@POST
+	@Path("/finished")
+	public void finished(){
+		LOGGER.log(Level.INFO, String.format("/cs/finished"));
+		try {
+			this.finishBarrier.await();
+		} catch (InterruptedException | BrokenBarrierException e) {
+			LOGGER.log(Level.WARNING, String.format("/cs/finished ERROR: %s", e.getMessage()), e);
 		}
 	}
 	

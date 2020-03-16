@@ -89,7 +89,7 @@ public class CriticalSectionRequestSenderPool{
 			service.request(receiver, sender, messageTimeStamp);
 		} catch (NodeNotFoundException e) {
 			LOGGER.log(Level.WARNING, String.format("[node: %s] send:NodeNotFoundException: error %s", sender, e.getMessage()), e);
-			System.exit(IConstants.EXIT_CODE_NODE_ERROR);
+			System.exit(IConstants.EXIT_CODE_SIMULATION_ERROR);
 		}
 	}
 

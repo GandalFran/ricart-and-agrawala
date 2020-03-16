@@ -8,10 +8,10 @@
 service=/ntp
 project_name=s3
 service_path=/$project_name$service
+
+# build project
 project_folder=/home/gandalfran/repos/ssdd-ejercicios/$project_name
 build_folder=/tmp/build
-log_file=/tmp/simulation.txt
-local_log_folder=/tmp
 
 # tomcat
 tomcat_tar=/tmp/tomcat.tar.gz
@@ -26,6 +26,11 @@ client_jar_final=/tmp/$project_name.jar
 # server files location
 server_war_initial=/tmp/$project_name.war
 server_war_final=$tomcat_folder_final/webapps/$project_name.war
+
+# tmp files
+ntp_tmp_file=/tmp/ntp.tmp
+log_folder=/tmp
+log_file_sufix=simulation.log
 
 # ================================================== #
 # 					  utils							 #
@@ -62,6 +67,14 @@ copy_file_from_remote(){
 	initial=$2
 	final=$3
 	scp -rq $user_host:$initial $final
+}
+
+copy_file_between_remotes(){
+	user_host_initial=$1
+	user_host_final=$2
+	initial=$3
+	final=$4
+	scp -rq $user_host_initial:$initial $user_host_final:$final
 }
 
 clean_file(){
@@ -138,46 +151,77 @@ clean_server(){
 
 # client utils
 
-run_all_clients(){
-	user=$1
-	client1=$2
-	client2=$3
-	client3=$4
-
-	user_client1="$user@$client1"
-	user_client2="$user@$client2"
-	user_client3="$user@$client3"
-
-	service1="$client1:8080"
-	service2="$client2:8080"
-	service3="$client3:8080"
-
-	remote_exec $client1 6 1 2 $service1 $service1 $service2 $service3
-	remote_exec $client2 6 3 4 $service2 $service1 $service2 $service3
- 	remote_exec $client3 6 5 6 $service3 $service1 $service2 $service3
+get_log_name(){
+	hostid=$1
+	echo "$log_folder/$hostid$log_file_sufix"
 }
 
-verify_logs(){
-	user=$1
-	client1=$2
-	client2=$3
-	client3=$4
-
-	user_client1="$user@$client1"
-	user_client2="$user@$client2"
-	user_client3="$user@$client3"
-
-	client1_log="$local_log_folder/$client1_log.txt"
-	client2_log="$local_log_folder/$client2_log.txt"
-	client3_log="$local_log_folder/$client3_log.txt"
-
-	copy_file_from_remote $user_client1 $log_file 
-	copy_file_from_remote $user_client2 $log_file 
-	copy_file_from_remote $user_client3 $log_file 
-
-	java -jar $verifier_jar_final $client1_log $client2_log $client3_log
+remote_exec_app(){
+	$user_host=$1
+	$args=$2
+	remote_exec "java -jar $client_jar_final $args"
 }
 
+run_application(){
+	user=$1
+	host1=$2
+	host2=$3
+	host3=$4
+
+	user_host1="$user@$host1"
+	user_host2="$user@$host2"
+	user_host3="$user@$host3"
+
+	# log files names
+	log_file_host1=$(get_log_name $host1)
+	log_file_host2=$(get_log_name $host2)
+	log_file_host3=$(get_log_name $host3)
+	log_file_total=$(get_log_name total_)
+
+	# run supervisor ntp
+	echo "running supervisor ntp ..."
+	remote_exec_app $user_host1 "supervisor ntp $ntp_tmp_file $host1 $host2 $host3"
+
+	# restart critical section and run simulation
+	echo "running simulation ..."
+	remote_exec_app $user_host1 "supervisor restartCs $host1 $host2 $host3"
+	remote_exec_app $user_host1 "simulation $log_file_host1 6 1 2 0 $host1 $host2 $host3 > /dev/null" &
+	remote_exec_app $user_host2 "simulation $log_file_host2 6 3 4 1 $host1 $host2 $host3 > /dev/null" &
+	remote_exec_app $user_host3 "simulation $log_file_host3 6 5 6 2 $host1 $host2 $host3 > /dev/null"
+
+	# calculate ntp in supervisor
+	echo "running supervisor ntp ..."
+	remote_exec_app $user_host1 "supervisor ntp $ntp_tmp_file $host1 $host2 $host3"
+
+	# copy logs to machine where supervisor is allocated
+	echo "copying logs to supervisor..."
+	copy_file_between_remotes $user_host2 $user_host1 $log_file_host2 $log_file_host2
+	copy_file_between_remotes $user_host3 $user_host1 $log_file_host3 $log_file_host3
+
+	# calculate ntp in supervisor
+	echo "running supervisor ntp ..."
+	remote_exec_app $user_host1 "supervisor ntp $ntp_tmp_file $host1 $host2 $host3"
+
+	# correct time in logs
+	echo "correcting time in logs ..."
+	remote_exec_app $user_host1 "supervisor final $log_file_total $ntp_tmp_file $host1 $host2 $host3"
+
+	# join and sort logs
+	echo "joining and sorting logs ..."
+	remote_exec $user_host1 "cat $log_file_host1 $log_file_host2 $log_file_host3 | sort -k 3 > $log_file_total"
+
+	# run supervisor log comprobation
+	echo "run log comprobation ..."
+	remote_exec_app $user_host1 "verify $log_file_total"
+
+	# clean temporary files in remotes
+	echo "cleaning temporary files in remotes ..."
+	clean_file $user_host1 $ntp_tmp_file
+	clean_file $user_host1 $log_file_total
+	clean_file $user_host1 $log_file_host1
+	clean_file $user_host2 $log_file_host2
+	clean_file $user_host3 $log_file_host3
+}
 
 # ================================================== #
 # 					application						 #
@@ -199,22 +243,22 @@ do
         	echo -e "SSDD deployer"
         	echo -e "\t-genkey: generates ssh key"
         	echo -e "\t-newsession <user>@<host>: copy ssh key in host"
-        	echo -e "\t-cleanclient <user>@<host>: clean client files in host"
-        	echo -e "\t-cleanserver <user>@<host>: clean server files in host"
-        	echo -e "\t-copyclient <user>@<host>: copy client files in host"
-        	echo -e "\t-copyserver <user>@<host>: copy server files in host"
-        	echo -e "\t-runclient <user>@<host> <execution args>: run client in host"
-        	echo -e "\t-deployall <user> <server1> <server2> <server3> <execution args>: deploy all in indicated client and servers"
-        	echo -e "\t-redeployall <user> <server1> <server2> <server3> <execution args>: redeploy all in indicated client and servers"
-        	echo -e "\t-cleanall <user> <server1> <server2> <server3> <execution args>: clean all server and client files (tomcat included)"
+        	echo -e "\t-run <user> <host1> <host2> <host3> : runs application in the given hosts"
+        	echo -e "\t-deploy <user> <host1> <host2> <host3> : deploys and runs application in the given hosts"
+        	echo -e "\t-redeploy <user> <host1> <host2> <host3> : cleans current deploy, then deploys and runs application in the given hosts"
+        	echo -e "\t-clean <user> <host1> <host2> <host3> : cleans current deploy"
         	echo -e "\t-h help"
         	echo -e "EXAMPLES"
+        	echo -e "\t- generate SSH key and export sessions"
+        	echo -e "\t\tbash deployer.bash -genkey -newsession user@172.20.1.0"
         	echo -e "\t- deploy all"
-        	echo -e "\t\tbash deployer.bash -deployall user 172.20.1.0 172.20.1.1 172.20.1.2"
+        	echo -e "\t\tbash deployer.bash -deploy user 172.20.1.0 172.20.1.1 172.20.1.2"
         	echo -e "\t- redeploy all"
-        	echo -e "\t\tbash deployer.bash -redeployall user 172.20.1.0 172.20.1.1 172.20.1.2"
-        	echo -e "\t- clean all"
-        	echo -e "\t\tbash deployer.bash -cleanall user 172.20.1.0 172.20.1.1 172.20.1.2"
+        	echo -e "\t\tbash deployer.bash -redeploy user 172.20.1.0 172.20.1.1 172.20.1.2"
+        	echo -e "\t- run application"
+        	echo -e "\t\tbash deployer.bash -run user 172.20.1.0 172.20.1.1 172.20.1.2"
+        	echo -e "\t- clean current deploy"
+        	echo -e "\t\tbash deployer.bash -clean user 172.20.1.0 172.20.1.1 172.20.1.2"
       ;;
       "-genkey")
 			gen_key
@@ -224,51 +268,18 @@ do
 			user_host=${args[$i]}
 			share_key $user_host
       ;;
-      "-cleanclient")
+      "-run")
 			i=$((i+1))
-			user_host=${args[$i]}
-			clean_file $user_host $client_jar_final
+			user=${args[$i]}
+			i=$((i+1))
+			host1=${args[$i]}
+			i=$((i+1))
+			host2=${args[$i]}
+			i=$((i+1))
+			host3=${args[$i]}
+			run_application $user $host1 $host2 $host3
       ;;
-      "-cleanserver")
-			i=$((i+1))
-			user_host=${args[$i]}
-			clean_server $user_host $server_war_final
-      ;;
-      "-copyclient")
-			i=$((i+1))
-			user_host=${args[$i]}
-			copy_file $user_host $client_jar_initial $client_jar_final
-      ;;
-      "-copyserver")
-			i=$((i+1))
-			user_host=${args[$i]}
-			copy_file $user_host $server_war_initial $server_war_final
-			remote_exec $user_host "$tomcat_folder_final/bin/shutdown.sh"
-			remote_exec $user_host "$tomcat_folder_final/bin/startup.sh"
-			echo "wait 5 seconds for server to deploy copied .war file properly..."
-			sleep 5
-      ;;
-      "-runclient")
-			i=$((i+1))
-			user_host=${args[$i]}
-			i=$((i+1))
-			num_iterations=${args[$i]}
-			i=$((i+1))
-			is_marzullo=${args[$i]}
-			i=$((i+1))
-			server_ip_1=${args[$i]}
-			i=$((i+1))
-			server_ip_2=${args[$i]}
-			i=$((i+1))
-			server_ip_3=${args[$i]}
-
-			service_uri_1="http://$server_ip_1$service_path"
-			service_uri_2="http://$server_ip_2$service_path"
-			service_uri_3="http://$server_ip_3$service_path"
-
-			remote_exec $user_host "java -jar $client_jar_final $num_iterations $is_marzullo $service_uri_1 $service_uri_2 $service_uri_3"
-      ;;
-      "-deployall")
+      "-deploy")
 			i=$((i+1))
 			user=${args[$i]}
 			i=$((i+1))
@@ -321,15 +332,11 @@ do
 			echo "waiting 5 seconds to allow servers to complete the deploy ..."
 			sleep 5
 
-			# run clients
+			# run application
 			echo "running clients ..."
-			run_all_clients $user $host1 $host2 $host3
-
-			# run log verifier
-			echo "running log verifier ..."
-			verify_logs $user $host1 $host2 $host3
+			run_application $user $host1 $host2 $host3
       ;;
-      "-redeployall")
+      "-redeploy")
 			i=$((i+1))
 			user=${args[$i]}
 			i=$((i+1))
@@ -384,15 +391,11 @@ do
 			echo "waiting 5 seconds to allow servers to complete the deploy ..."
 			sleep 5
 
-			# run clients
+			# run application
 			echo "running clients ..."
-			run_all_clients $user $host1 $host2 $host3
-
-			# run log verifier
-			echo "running log verifier ..."
-			verify_logs $user $host1 $host2 $host3
+			run_application $user $host1 $host2 $host3
       ;;
-      "-cleanall")
+      "-clean")
 			i=$((i+1))
 			user=${args[$i]}
 			i=$((i+1))

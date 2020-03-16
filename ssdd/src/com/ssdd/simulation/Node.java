@@ -1,11 +1,10 @@
-package com.ssdd.main.node;
+package com.ssdd.simulation;
 
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.ssdd.cs.client.CriticalSectionClient;
-import com.ssdd.main.CriticalSectionLog;
 import com.ssdd.util.Utils;
 import com.ssdd.util.constants.IConstants;
 import com.ssdd.util.logging.SSDDLogFactory;
@@ -39,14 +38,14 @@ public class Node extends Thread{
 	/** 
      * critical section log, to register the events and its respectives timestamp.
     */
-    private CriticalSectionLog csLog;
+    private SimulationLog csLog;
 	
 	public Node(String nodeId, String logFile, CriticalSectionClient cs) {
 		super();
 		this.cs = cs;
 		this.nodeId = nodeId;
 		this.generator = new Random();
-		this.csLog = new CriticalSectionLog(nodeId, logFile);
+		this.csLog = new SimulationLog(nodeId, logFile);
 	}
 	
 	/** 
@@ -67,11 +66,12 @@ public class Node extends Thread{
 			this.simulateSleep(IConstants.SIMULATION_MIN_CALULUS_TIME, IConstants.SIMULATION_MAX_CALULUS_TIME);
 			this.enterCriticalSection();
 		}
-		LOGGER.log(Level.INFO, String.format("[node: %s] finished", nodeId));
+		// wait untill all nodes has finished
+		this.cs.finished();
 	}
 	
 	/** 
-	 * Enteres in critical section, logs it with a {@link com.ssdd.main.CriticalSectionLog}, sleeps during a random interval
+	 * Enteres in critical section, logs it with a {@link com.ssdd.simulation.SimulationLog}, sleeps during a random interval
 	 * of time, and then logs the out of critical section again. At last, releases the critical section.
 	 * 
 	 * @version 1.0

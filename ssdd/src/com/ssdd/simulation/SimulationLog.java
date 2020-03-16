@@ -1,4 +1,4 @@
-package com.ssdd.main;
+package com.ssdd.simulation;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -15,12 +15,12 @@ import com.ssdd.util.logging.SSDDLogFactory;
  * @author Héctor Sánchez San Blas
  * @author Francisco Pinto Santos
 */
-public class CriticalSectionLog {
+public class SimulationLog {
 
 	/**
 	 * Class logger generated with {@link com.ssdd.util.logging.SSDDLogFactory#logger(Class)}
 	 * */
-    private final static Logger LOGGER = SSDDLogFactory.logger(CriticalSectionLog.class);
+    private final static Logger LOGGER = SSDDLogFactory.logger(SimulationLog.class);
     
     /**
      * Format to log the ins to critical section
@@ -41,7 +41,7 @@ public class CriticalSectionLog {
      * */
 	private FileWriter file;
 	
-	public CriticalSectionLog(String nodeId, String logFile) {
+	public SimulationLog(String nodeId, String logFile) {
 		this.nodeId = nodeId;
 		try {
 			this.file = new FileWriter(logFile, true);
@@ -59,7 +59,7 @@ public class CriticalSectionLog {
 	*/
 	public void logIn() {
 		try {
-			this.file.write(String.format(CriticalSectionLog.IN_FORMAT, this.nodeId, System.currentTimeMillis()));
+			this.file.write(String.format(SimulationLog.IN_FORMAT, this.nodeId, System.currentTimeMillis()));
 			this.file.flush();
 		} catch (IOException e) {
 			LOGGER.log(Level.WARNING, String.format("[node: %s] logIn: error %s", this.nodeId, e.getMessage()), e);
@@ -75,7 +75,7 @@ public class CriticalSectionLog {
 	*/
 	public void logOut() {
 		try {
-			this.file.write(String.format(CriticalSectionLog.OUT_FORMAT, this.nodeId, System.currentTimeMillis()));
+			this.file.write(String.format(SimulationLog.OUT_FORMAT, this.nodeId, System.currentTimeMillis()));
 			this.file.flush();
 		} catch (IOException e) {
 			LOGGER.log(Level.WARNING, String.format("[node: %s] logOut: error %s", this.nodeId, e.getMessage()), e);

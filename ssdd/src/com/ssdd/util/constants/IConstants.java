@@ -59,7 +59,11 @@ public interface IConstants {
 	 * */
 	public static final int EXIT_CODE_THREAD_ERROR = 200;
 	/**
-	 * Error code given when an error related to the node behaviour (linke a NodeNotFoundException) occurs.
+	 * Error code given when an error related to the simulation behaviour (linke a NodeNotFoundException) occurs.
 	 * */
-	public static final int EXIT_CODE_NODE_ERROR = 300;
+	public static final int EXIT_CODE_SIMULATION_ERROR = 300;
+	/**
+	 * Error code given when an error related to I/O occurs.
+	 * */
+	public static final int EXIT_CODE_IO_ERROR =400;
 }

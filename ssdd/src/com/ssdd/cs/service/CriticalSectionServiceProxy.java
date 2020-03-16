@@ -95,6 +95,24 @@ public class CriticalSectionServiceProxy extends CriticalSectionService{
 	}
 	
 	/**
+	 * See {@link com.ssdd.cs.service.CriticalSectionService#finished()}
+	 * 
+	 * @version 1.0
+	 * @author Héctor Sánchez San Blas
+	 * @author Francisco Pinto Santos
+	 * */
+	@Override
+	public void finished() {
+		LOGGER.log(Level.INFO, String.format("/cs/finished"));
+		try {
+			this.service.path("finished").request().post(null);
+		} catch (Exception e) {
+			LOGGER.log(Level.WARNING, String.format("/cs/finished: error %s", e.getMessage()), e);
+			System.exit(IConstants.EXIT_CODE_HTTP_REQUEST_ERROR);
+		}
+	}
+	
+	/**
 	 * See {@link com.ssdd.cs.service.CriticalSectionService#suscribe(String)}
 	 * 
 	 * @version 1.0

@@ -52,7 +52,7 @@ public class NTPService{
 	 * */
 	public static NTPService buildProxy(String host) {
 		String serviceUri = NTPService.buildServiceUri(host);
-		return new NTPServiceProxy(serviceUri);
+		return new NTPServiceProxy(host, serviceUri);
 	}
 	
 	/**
