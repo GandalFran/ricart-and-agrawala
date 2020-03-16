@@ -173,9 +173,9 @@ run_application(){
 	user_host3="$user@$host3"
 
 	# log files names
-	log_file_host1=$(get_log_name $host1)
-	log_file_host2=$(get_log_name $host2)
-	log_file_host3=$(get_log_name $host3)
+	log_file_host1=$(get_log_name 0)
+	log_file_host2=$(get_log_name 1)
+	log_file_host3=$(get_log_name 2)
 	log_file_total=$(get_log_name total_)
 
 	# run supervisor ntp
@@ -203,8 +203,8 @@ run_application(){
 	remote_exec_app $user_host1 "supervisor ntp $ntp_tmp_file $host1 $host2 $host3"
 
 	# correct time in logs
-	echo "correcting time in logs ..."
-	remote_exec_app $user_host1 "supervisor final $log_file_total $ntp_tmp_file $host1 $host2 $host3"
+	echo "adjusting time in logs ..."
+	remote_exec_app $user_host1 "supervisor correctLog $ntp_tmp_file 0 $log_file_host1 $host1 1 $log_file_host2 $host2 2 $log_file_host3 $host3"
 
 	# join and sort logs
 	echo "joining and sorting logs ..."
@@ -212,7 +212,7 @@ run_application(){
 
 	# run supervisor log comprobation
 	echo "run log comprobation ..."
-	remote_exec_app $user_host1 "verify $log_file_total"
+	remote_exec_app $user_host1 "verification $ntp_tmp_file $log_file_total"
 
 	# clean temporary files in remotes
 	echo "cleaning temporary files in remotes ..."

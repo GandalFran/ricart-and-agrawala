@@ -53,13 +53,15 @@ public class MainSupervisor {
 				// take arguments
 				String ntpFile = args[1];
 				String [] restOfArgs = Arrays.copyOfRange(args, 2, args.length);
-				// associate logfile with ip
-				Map<String, String> logFiles = new HashMap<>();
-				for(int i =0; i<restOfArgs.length; i+=2) {
-					logFiles.put(restOfArgs[i], restOfArgs[i+1]);
+				// associate id with logfile and server
+				Map<String, String> idAndLogFile = new HashMap<>();
+				Map<String, String> serverAndId = new HashMap<>();
+				for(int i =0; i<restOfArgs.length; i+=3) {
+					idAndLogFile.put(restOfArgs[i], restOfArgs[i+1]);
+					serverAndId.put(restOfArgs[i+2], restOfArgs[i]);
 				}
 				// correct logs
-				MainSupervisor.correctLogs(ntpFile, logFiles);
+				MainSupervisor.correctLogs(ntpFile, idAndLogFile, serverAndId);
 				break;
 			default:
 				System.out.println("ERROR: selected service (" + service + ") not found.");
@@ -86,6 +88,8 @@ public class MainSupervisor {
 			Map<NTPService, Pair []> oldSample = MainSupervisor.loadNtpSamples(file);
 			// join old and new samples
 			samples = MainSupervisor.joinMaps(samples, oldSample);
+			// delete old sample file before write new samples
+			f.delete();
 		}
 		
 		// serialize results to store into file
@@ -101,30 +105,43 @@ public class MainSupervisor {
 		}
 	}
 	
-	private static void correctLogs(String ntpFile, Map<String, String> logFiles) {
-
-		Map<String, Pair> logsToCorrect = new HashMap<>();
-		
+	private static void correctLogs(String ntpFile, Map<String, String> idAndLogFile, Map<String, String> serverAndId ) {
 		// load ntp samples
 		Map<NTPService, Pair []> samples = MainSupervisor.loadNtpSamples(ntpFile);
 		
 		// calculate best pairs for each
 		NTPClient ntp = new NTPClient();
+		Map<String, Pair> logsAndPairs = new HashMap<>();
 		for(NTPService s : samples.keySet()) {
 			String serverIp = ((NTPServiceProxy) s).getServerIp();
 			// get the log file with the server ip
-			String logFile = logFiles.get(serverIp);
+			String logFile = idAndLogFile.get(serverAndId.get(serverIp));
 			// add to logsToCorrect
-			logsToCorrect.put(logFile, ntp.selectBestPair(samples.get(s)));
+			logsAndPairs.put(logFile, ntp.selectBestPair(samples.get(s)));
 		}	
 		
 		// adjust logs
 		SimulationLogAdjuster adjuster = new SimulationLogAdjuster();
-		for(String log : logsToCorrect.keySet()) {
-			Pair p = logsToCorrect.get(log);
+		for(String log : logsAndPairs.keySet()) {
+			Pair p = logsAndPairs.get(log);
 			long offset = (long) Math.ceil(p.getOffset());
 			adjuster.adjustTime(log, offset);
 		}
+		
+		// store into ntp file
+		new File(ntpFile).delete();
+		
+		// serialize results to store into file
+		String logsAndPairsJson = new Gson().toJson(logsAndPairs);
+		
+		// store into file
+		try {
+			FileWriter writer = new FileWriter(ntpFile, true);
+			writer.write(logsAndPairsJson);
+			writer.close();
+		} catch (IOException e) {
+			LOGGER.log(Level.WARNING, String.format("correctLogs: ERROR: %s", e.getMessage()), e);
+		}	
 	}
 
 	public static NTPClient buildNtpClient(String [] servers) {
@@ -139,9 +156,9 @@ public class MainSupervisor {
 		try {
 			// read file
 			List<String> lines = Files.readAllLines(new File(file).toPath());
-			String oldSamplesJson = Utils.listToString(lines);
+			String samplesJson = Utils.listToString(lines);
 			// deserialize file content
-			samples = new Gson().fromJson(oldSamplesJson, new TypeToken<Map<NTPServiceProxy, Pair []>>(){}.getType());
+			samples = new Gson().fromJson(samplesJson, new TypeToken<Map<NTPServiceProxy, Pair []>>(){}.getType());
 		} catch (IOException e) {
 			LOGGER.log(Level.WARNING, String.format("loadNtpSamples: ERROR: %s", e.getMessage()), e);
 		}
