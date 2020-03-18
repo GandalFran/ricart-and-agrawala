@@ -21,10 +21,18 @@ public class SimulationLogAdjuster{
 	 * */
     private final static Logger LOGGER = SSDDLogFactory.logger(SimulationLogAdjuster.class);
 	
-	private final static String LOG_PATTERN = "\"P[0-9]+ [E|S] [0-9]+";
-	
-	public void adjustTime(String file, long offset) {
+	public void adjustTime(String file, double offset) {
 		List<String> log = null;
+		
+		// determine offset
+		long finalOffset = 0;
+		int intPart = (int) offset;
+		double decimalPart = offset - intPart;
+		if(decimalPart >= 0.5) {
+			finalOffset = (long) Math.ceil(offset);
+		}else {
+			finalOffset = (long) (offset);
+		}
 		
 		// read log
 		try {
@@ -45,19 +53,16 @@ public class SimulationLogAdjuster{
 			System.exit(IConstants.EXIT_CODE_IO_ERROR);
 		}
 		
-		// pattern to read the formatted log
-		Pattern p = Pattern.compile(LOG_PATTERN);
-		
 		for(String line : log) {
-			// extract elements from string
-			Matcher m = p.matcher(line);
 			
-			String pid = m.group(0);
-			String operation = m.group(1);
-			long time = Long.parseLong(m.group(2));
+			String [] lineArray = line.split(" ");
+			
+			String pid = lineArray[0];
+			String operation = lineArray[1];
+			long time = Long.parseLong(lineArray[2]);
 			
 			// increment time
-			time += offset;
+			time += finalOffset;
 			
 			// write new line
 			try {

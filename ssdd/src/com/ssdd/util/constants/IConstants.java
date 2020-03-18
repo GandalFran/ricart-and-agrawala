@@ -17,11 +17,11 @@ public interface IConstants {
 	/** 
 	 * Minimum time (in milliseconds) between time samples in NTP service.
 	 */
-	public static final long NTP_MIN_SLEEP_MS = 100;
+	public static final long NTP_MIN_SLEEP_MS = 1500;
 	/** 
 	 * Maximum time (in milliseconds) between time samples in NTP service.
 	 */
-	public static final long NTP_MAX_SLEEP_MS = 500;
+	public static final long NTP_MAX_SLEEP_MS = 2000;
 	
 	// simulation constants	
 	/** 
@@ -31,7 +31,7 @@ public interface IConstants {
 	/** 
 	 * Number of iterations of calculus and critical section wait in simulation.
 	 */
-	public static final int SIMULATION_NUM_ITERATIONS = 100;
+	public static final int SIMULATION_NUM_ITERATIONS = 1000;
 	/** 
 	 * Minimum time (in milliseconds) of calclus simulation in application.
 	 */

@@ -46,7 +46,7 @@ public class SimulationLog {
 		try {
 			this.file = new FileWriter(logFile, true);
 		} catch (IOException e) {
-			LOGGER.log(Level.WARNING, String.format("[node: %s] constructor: error %s", this.nodeId, e.getMessage()), e);
+			LOGGER.log(Level.WARNING, String.format("constructor: error %s", e.getMessage()), e);
 		}
 	}
 	
@@ -62,7 +62,7 @@ public class SimulationLog {
 			this.file.write(String.format(SimulationLog.IN_FORMAT, this.nodeId, System.currentTimeMillis()));
 			this.file.flush();
 		} catch (IOException e) {
-			LOGGER.log(Level.WARNING, String.format("[node: %s] logIn: error %s", this.nodeId, e.getMessage()), e);
+			LOGGER.log(Level.WARNING, String.format("logIn: error %s", e.getMessage()), e);
 		}
 	}
 	
@@ -78,7 +78,7 @@ public class SimulationLog {
 			this.file.write(String.format(SimulationLog.OUT_FORMAT, this.nodeId, System.currentTimeMillis()));
 			this.file.flush();
 		} catch (IOException e) {
-			LOGGER.log(Level.WARNING, String.format("[node: %s] logOut: error %s", this.nodeId, e.getMessage()), e);
+			LOGGER.log(Level.WARNING, String.format("logOut: error %s", e.getMessage()), e);
 		}
 	}
 	

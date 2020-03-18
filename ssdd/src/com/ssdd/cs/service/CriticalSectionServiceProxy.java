@@ -85,7 +85,7 @@ public class CriticalSectionServiceProxy extends CriticalSectionService{
 	 * */
 	@Override
 	public void ready() {
-		LOGGER.log(Level.INFO, String.format("/cs/ready"));
+		LOGGER.log(Level.INFO, "/cs/ready");
 		try {
 			this.service.path("ready").request().post(null);
 		} catch (Exception e) {
@@ -103,7 +103,7 @@ public class CriticalSectionServiceProxy extends CriticalSectionService{
 	 * */
 	@Override
 	public void finished() {
-		LOGGER.log(Level.INFO, String.format("/cs/finished"));
+		LOGGER.log(Level.INFO, "/cs/finished");
 		try {
 			this.service.path("finished").request().post(null);
 		} catch (Exception e) {
@@ -123,11 +123,11 @@ public class CriticalSectionServiceProxy extends CriticalSectionService{
 	 * */
 	@Override
 	public void suscribe(String nodeId){
-		LOGGER.log(Level.INFO, String.format("[node: %s] suscribe", nodeId));
+		LOGGER.log(Level.INFO, "/cs/suscribe");
 		try {
 			this.service.path("suscribe").queryParam("node", nodeId).request().post(null);
 		} catch (Exception e) {
-			LOGGER.log(Level.WARNING, String.format("[node: %s] suscribe: error %s", nodeId, e.getMessage()), e);
+			LOGGER.log(Level.WARNING, String.format("/cs/suscribe: error %s", e.getMessage()), e);
 			System.exit(IConstants.EXIT_CODE_HTTP_REQUEST_ERROR);
 		}
 	}
@@ -143,11 +143,11 @@ public class CriticalSectionServiceProxy extends CriticalSectionService{
 	 * */
 	@Override
 	public String suscribed(){
-		LOGGER.log(Level.INFO, String.format("suscribed"));
+		LOGGER.log(Level.INFO, "/cs/suscribed");
 		try {
 			return this.service.path("suscribed").request(MediaType.APPLICATION_JSON).get(String.class);
 		} catch (Exception e) {
-			LOGGER.log(Level.WARNING, String.format("suscribed: error %s", e.getMessage()), e);
+			LOGGER.log(Level.WARNING, String.format("/cs/suscribed: error %s", e.getMessage()), e);
 			System.exit(IConstants.EXIT_CODE_HTTP_REQUEST_ERROR);
 			return null;
 		}
@@ -167,12 +167,12 @@ public class CriticalSectionServiceProxy extends CriticalSectionService{
 	 * */
 	@Override
 	public void setCsState(String nodeId, String newState) throws NodeNotFoundException{
-		LOGGER.log(Level.INFO, String.format("[node: %s] /cs/set/state %s", nodeId, newState));
+		LOGGER.log(Level.INFO, String.format("/cs/set/state %s", newState));
 		try {
 			this.service.path("set").path("state").queryParam("node", nodeId).queryParam("state", newState.toString()).request().post(null);
 		} catch (Exception e) {
-			LOGGER.log(Level.WARNING, String.format("[node: %s] /cs/set/state: error %s", nodeId, e.getMessage()), e);
-			throw new NodeNotFoundException(nodeId);
+			LOGGER.log(Level.WARNING, String.format("/cs/set/state: error %s", e.getMessage()), e);
+			System.exit(IConstants.EXIT_CODE_HTTP_REQUEST_ERROR);
 		}
 	}
 	
@@ -191,13 +191,14 @@ public class CriticalSectionServiceProxy extends CriticalSectionService{
 	 * */
 	@Override
 	public long getMessageTimeStamp(String nodeId) throws NodeNotFoundException{
-		LOGGER.log(Level.INFO, String.format("[node: %s] /cs/get/messagetimestamp", nodeId));
+		LOGGER.log(Level.INFO, "/cs/get/messagetimestamp");
 		try {
 			String data = this.service.path("get").path("messagetimestamp").queryParam("node", nodeId).request(MediaType.TEXT_PLAIN).get(String.class);
 			return Long.parseLong(data);
 		} catch (Exception e) {
-			LOGGER.log(Level.WARNING, String.format("[node: %s] /cs/messagetimestamp: error %s", nodeId, e.getMessage()), e);
-			throw new NodeNotFoundException(nodeId);
+			LOGGER.log(Level.WARNING, String.format("/cs/messagetimestamp: error %s", e.getMessage()), e);
+			System.exit(IConstants.EXIT_CODE_HTTP_REQUEST_ERROR);
+			return 0;
 		}
 	}
 
@@ -214,12 +215,12 @@ public class CriticalSectionServiceProxy extends CriticalSectionService{
 	 * */
 	@Override
 	public void updateCounter(String nodeId) throws NodeNotFoundException{
-		LOGGER.log(Level.INFO, String.format("[node: %s] /cs/update/counter", nodeId));
+		LOGGER.log(Level.INFO, "/cs/update/counter");
 		try {
 			this.service.path("update").path("counter").queryParam("node", nodeId).request().post(null);
 		} catch (Exception e) {
-			LOGGER.log(Level.WARNING, String.format("[node: %s] /cs/update/counter: error %s", nodeId, e.getMessage()), e);
-			throw new NodeNotFoundException(nodeId);
+			LOGGER.log(Level.WARNING, String.format("/cs/update/counter: error %s", e.getMessage()), e);
+			System.exit(IConstants.EXIT_CODE_HTTP_REQUEST_ERROR);
 		}
 	}
 	
@@ -238,12 +239,12 @@ public class CriticalSectionServiceProxy extends CriticalSectionService{
 	 * */
 	@Override
 	public void request(String nodeId, String sender, long messageTimeStamp) throws NodeNotFoundException{
-		LOGGER.log(Level.INFO, String.format("[node: %s] /cs/request", nodeId));
+		LOGGER.log(Level.INFO, "/cs/request");
 		try {
 			this.service.path("request").queryParam("node", nodeId).queryParam("sender", sender).queryParam("messageTimeStamp", messageTimeStamp).request().post(null);
 		} catch (Exception e) {
-			LOGGER.log(Level.WARNING, String.format("[node: %s] /cs/request: error %s", nodeId, e.getMessage()), e);
-			throw new NodeNotFoundException(nodeId);
+			LOGGER.log(Level.WARNING, String.format("/cs/request: error %s", e.getMessage()), e);
+			System.exit(IConstants.EXIT_CODE_HTTP_REQUEST_ERROR);
 		}
 	}
 	
@@ -261,12 +262,12 @@ public class CriticalSectionServiceProxy extends CriticalSectionService{
 	 * */
 	@Override
 	public void release(String nodeId) throws NodeNotFoundException{
-		LOGGER.log(Level.INFO, String.format("[node: %s] /cs/release", nodeId));
+		LOGGER.log(Level.INFO, "/cs/release");
 		try {
 			this.service.path("release").queryParam("node", nodeId).request().post(null);
 		} catch (Exception e) {
-			LOGGER.log(Level.WARNING, String.format("[node: %s] /cs/release: error %s", nodeId, e.getMessage()), e);
-			throw new NodeNotFoundException(nodeId);
+			LOGGER.log(Level.WARNING, String.format("/cs/release: error %s", e.getMessage()), e);
+			System.exit(IConstants.EXIT_CODE_HTTP_REQUEST_ERROR);
 		}
 	}
 	
@@ -283,12 +284,12 @@ public class CriticalSectionServiceProxy extends CriticalSectionService{
 	 * */
 	@Override
 	public void lock(String nodeId) throws NodeNotFoundException{
-		LOGGER.log(Level.INFO, String.format("[node: %s] lock", nodeId));
+		LOGGER.log(Level.INFO, "/cs/lock");
 		try {
 			this.service.path("lock").queryParam("node", nodeId).request().post(null);
 		} catch (Exception e) {
-			LOGGER.log(Level.WARNING, String.format("[node: %s] lock: error %s", nodeId, e.getMessage()), e);
-			throw new NodeNotFoundException(nodeId);
+			LOGGER.log(Level.WARNING, String.format("/cs/lock: error %s", e.getMessage()), e);
+			System.exit(IConstants.EXIT_CODE_HTTP_REQUEST_ERROR);
 		}
 	}
 	
@@ -305,12 +306,12 @@ public class CriticalSectionServiceProxy extends CriticalSectionService{
 	 * */
 	@Override
 	public void unlock(String nodeId) throws NodeNotFoundException{
-		LOGGER.log(Level.INFO, String.format("[node: %s] unlock", nodeId));
+		LOGGER.log(Level.INFO, "/cs/unlock");
 		try {
 			this.service.path("unlock").queryParam("node", nodeId).request().post(null);
 		} catch (Exception e) {
-			LOGGER.log(Level.WARNING, String.format("[node: %s] unlock: error %s", nodeId, e.getMessage()), e);
-			throw new NodeNotFoundException(nodeId);
+			LOGGER.log(Level.WARNING, String.format("/cs/unlock: error %s", e.getMessage()), e);
+			System.exit(IConstants.EXIT_CODE_HTTP_REQUEST_ERROR);
 		}
 	}
 

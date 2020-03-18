@@ -1,9 +1,11 @@
 package com.ssdd.main;
 
 import java.io.File;
-import java.io.FileWriter;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.file.Files;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -12,15 +14,13 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 import com.ssdd.cs.service.CriticalSectionService;
 import com.ssdd.ntp.bean.Pair;
 import com.ssdd.ntp.client.NTPClient;
 import com.ssdd.ntp.service.NTPService;
 import com.ssdd.ntp.service.NTPServiceProxy;
 import com.ssdd.simulation.SimulationLogAdjuster;
-import com.ssdd.util.Utils;
+import com.ssdd.util.constants.IConstants;
 import com.ssdd.util.logging.SSDDLogFactory;
 
 public class MainSupervisor {
@@ -30,7 +30,7 @@ public class MainSupervisor {
 	 * */
     private final static Logger LOGGER = SSDDLogFactory.logger(MainSupervisor.class);
     
-	public static void main(String [] args) {
+	public static void main(String [] args)  throws Exception{
 		// take service type argument
 		String service = args[0];
 
@@ -74,7 +74,7 @@ public class MainSupervisor {
 			CriticalSectionService.buildProxy(server).restart(numNodes);
 	}
 	
-	private static void sampleNtp(String file, String [] servers) {
+	private static void sampleNtp(String file, String [] servers)  throws Exception{
 		// build client
 		NTPClient ntp = MainSupervisor.buildNtpClient(servers);
 		
@@ -92,17 +92,9 @@ public class MainSupervisor {
 			f.delete();
 		}
 		
-		// serialize results to store into file
-		String jsonPairs = new Gson().toJson(samples);
-		
 		// store into file
-		try {
-			FileWriter writer = new FileWriter(file, true);
-			writer.write(jsonPairs);
-			writer.close();
-		} catch (IOException e) {
-			LOGGER.log(Level.WARNING, String.format("sampleNtp: ERROR: %s", e.getMessage()), e);
-		}
+		MainSupervisor.storeNtpSamples(file, samples);
+		
 	}
 	
 	private static void correctLogs(String ntpFile, Map<String, String> idAndLogFile, Map<String, String> serverAndId ) {
@@ -124,24 +116,18 @@ public class MainSupervisor {
 		SimulationLogAdjuster adjuster = new SimulationLogAdjuster();
 		for(String log : logsAndPairs.keySet()) {
 			Pair p = logsAndPairs.get(log);
-			long offset = (long) Math.ceil(p.getOffset());
-			adjuster.adjustTime(log, offset);
+			adjuster.adjustTime(log, p.getOffset());
 		}
+		
+		// generate maps with ids and pairs
+		Map<String, Pair> idsAndPairs = new HashMap<>();
+		for(String id : idAndLogFile.keySet()) {
+			idsAndPairs.put(id, logsAndPairs.get(idAndLogFile.get(id)));
+		}	
 		
 		// store into ntp file
 		new File(ntpFile).delete();
-		
-		// serialize results to store into file
-		String logsAndPairsJson = new Gson().toJson(logsAndPairs);
-		
-		// store into file
-		try {
-			FileWriter writer = new FileWriter(ntpFile, true);
-			writer.write(logsAndPairsJson);
-			writer.close();
-		} catch (IOException e) {
-			LOGGER.log(Level.WARNING, String.format("correctLogs: ERROR: %s", e.getMessage()), e);
-		}	
+		MainSupervisor.storePairs(ntpFile, idsAndPairs);
 	}
 
 	public static NTPClient buildNtpClient(String [] servers) {
@@ -152,18 +138,55 @@ public class MainSupervisor {
 	}
 	
 	private static Map<NTPService, Pair[]> loadNtpSamples(String file) {
-		Map<NTPService, Pair []> samples = null;
+		Map<String, Pair[]> loadMap = null;
 		try {
-			// read file
-			List<String> lines = Files.readAllLines(new File(file).toPath());
-			String samplesJson = Utils.listToString(lines);
-			// deserialize file content
-			samples = new Gson().fromJson(samplesJson, new TypeToken<Map<NTPServiceProxy, Pair []>>(){}.getType());
-		} catch (IOException e) {
+	         FileInputStream fis = new FileInputStream(file);
+	         ObjectInputStream ois = new ObjectInputStream(fis);
+	         loadMap = (Map<String, Pair[]>) ois.readObject();
+	         ois.close();
+	         fis.close();
+	    } catch (IOException | ClassNotFoundException e) {
 			LOGGER.log(Level.WARNING, String.format("loadNtpSamples: ERROR: %s", e.getMessage()), e);
+			System.exit(IConstants.EXIT_CODE_IO_ERROR);
+	    }
+
+		Map<NTPService, Pair []> samples = new HashMap<>();
+		for(String host : loadMap.keySet()) {
+			samples.put(NTPService.buildProxy(host), loadMap.get(host));
 		}
 		
 		return samples;
+	}
+	
+	private static void storeNtpSamples(String file, Map<NTPService, Pair[]> samples) throws Exception{
+		Map<String, Pair[]> storeMap = new HashMap<>();
+		for(NTPService service : samples.keySet()) {
+			storeMap.put(((NTPServiceProxy)service).getServerIp(), samples.get(service));
+		}
+		try {
+			FileOutputStream fos = new FileOutputStream(file);
+			ObjectOutputStream out = new ObjectOutputStream(fos);
+	        out.writeObject(storeMap);
+	        out.close();
+	        fos.close();
+		} catch (IOException e) {
+			LOGGER.log(Level.WARNING, String.format("storeNtpSamples: ERROR: %s", e.getMessage()), e);
+			throw e;
+			// System.exit(IConstants.EXIT_CODE_IO_ERROR);
+		}
+	}
+	
+	private static void storePairs(String file, Map<String, Pair> result) {
+		try {
+			FileOutputStream fos = new FileOutputStream(file);
+			ObjectOutputStream out = new ObjectOutputStream(fos);
+	        out.writeObject(result);
+	        out.close();
+	        fos.close();
+		} catch (IOException e) {
+			LOGGER.log(Level.WARNING, String.format("storePairs: ERROR: %s", e.getMessage()), e);
+			System.exit(IConstants.EXIT_CODE_IO_ERROR);
+		}
 	}
 	
 	private static Map<NTPService, Pair []> joinMaps(Map<NTPService, Pair []> m1, Map<NTPService, Pair []> m2){
@@ -173,8 +196,13 @@ public class MainSupervisor {
 			// join pairs into list
 			List<Pair> pairList = new ArrayList<>();
 			pairList.addAll(Arrays.asList(m1.get(service)));
-			pairList.addAll(Arrays.asList(m2.get(service)));
-
+			
+			// search the service equal to m1 in the m2 key list
+			for(NTPService serviceM2 : m2.keySet()) {
+				if(serviceM2.equals(service))
+					pairList.addAll(Arrays.asList(m2.get(serviceM2)));
+			}
+			
 			// generate array from list
 			Pair [] pairArray = new Pair[pairList.size()];
 			pairList.toArray(pairArray);

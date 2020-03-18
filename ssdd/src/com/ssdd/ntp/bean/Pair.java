@@ -1,5 +1,7 @@
 package com.ssdd.ntp.bean;
 
+import java.io.Serializable;
+
 /** 
  * Represents a pair of (delay,offset) for NTP bussines logic.
  * 
@@ -7,7 +9,7 @@ package com.ssdd.ntp.bean;
  * @author Héctor Sánchez San Blas
  * @author Francisco Pinto Santos
 */
-public class Pair implements Comparable<Pair>{
+public class Pair implements Comparable<Pair>, Serializable{
 	
 	/**
 	 * Delay calculated with the server and client samples in NTP algorithm.
@@ -20,8 +22,8 @@ public class Pair implements Comparable<Pair>{
 	
 	public Pair(double delay, double offset) {
 		super();
-		this.offset = offset;
 		this.delay = delay;
+		this.offset = offset;
 	}
 
 	@Override

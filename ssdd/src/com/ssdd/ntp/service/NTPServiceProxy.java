@@ -1,5 +1,6 @@
 package com.ssdd.ntp.service;
 
+import java.io.Serializable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -18,7 +19,7 @@ import com.ssdd.util.logging.SSDDLogFactory;
  * @author Héctor Sánchez San Blas
  * @author Francisco Pinto Santos
 */
-public class NTPServiceProxy extends NTPService{
+public class NTPServiceProxy extends NTPService implements Serializable{
 
 	/**
 	 * Class logger generated with {@link com.ssdd.util.logging.SSDDLogFactory#logger(Class)}
@@ -81,8 +82,18 @@ public class NTPServiceProxy extends NTPService{
 	}
 	
 	@Override
+	public boolean equals(Object obj) {
+		if(obj == null)
+			return false;
+		else {
+			NTPServiceProxy n = (NTPServiceProxy) obj;
+			return this.serverIp.equals(n.serverIp) && this.serviceUri.equals(n.serviceUri);
+		}
+	}
+
+	@Override
 	public String toString() {
-		return this.serviceUri;
+		return this.serverIp;
 	}
 
 	public String getServiceUri() {

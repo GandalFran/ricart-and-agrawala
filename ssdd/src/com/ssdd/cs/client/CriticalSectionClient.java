@@ -75,9 +75,9 @@ public class CriticalSectionClient {
 	*/
 	public void suscribe() {
 		CriticalSectionService myService = this.router.route(this.ID);
-		LOGGER.log(Level.INFO, String.format("[node %s] suscribing to %s", this.ID, myService.toString()));
+		LOGGER.log(Level.INFO, String.format("suscribing to %s", myService.toString()));
 		myService.suscribe(this.ID);
-		LOGGER.log(Level.INFO, String.format("[node %s] suscribed to %s", this.ID, myService.toString()));
+		LOGGER.log(Level.INFO, String.format("suscribed to %s", myService.toString()));
 	}
 	
 	/** 
@@ -88,11 +88,11 @@ public class CriticalSectionClient {
 	 * @author Francisco Pinto Santos
 	*/
 	public void ready() {
-		LOGGER.log(Level.INFO, String.format("[node %s] ready start", this.ID));
+		LOGGER.log(Level.INFO, "ready start");
 		CritialSectionReadySenderPool multicastSender = new CritialSectionReadySenderPool();
 		multicastSender.multicastSend(this.router.getBrokers());
 		multicastSender.await();
-		LOGGER.log(Level.INFO, String.format("[node %s] ready end", this.ID));
+		LOGGER.log(Level.INFO, "ready end");
 	}
 	
 	/** 
@@ -103,11 +103,11 @@ public class CriticalSectionClient {
 	 * @author Francisco Pinto Santos
 	*/
 	public void finished() {
-		LOGGER.log(Level.INFO, String.format("[node %s] finished start", this.ID));
+		LOGGER.log(Level.INFO, " finished start");
 		CritialSectionReadySenderPool multicastSender = new CritialSectionFinishedSenderPool();
 		multicastSender.multicastSend(this.router.getBrokers());
 		multicastSender.await();
-		LOGGER.log(Level.INFO, String.format("[node %s] finished end", this.ID));
+		LOGGER.log(Level.INFO, "finished end");
 	}
 	
 	/** 
@@ -118,7 +118,7 @@ public class CriticalSectionClient {
 	 * @author Francisco Pinto Santos
 	*/
 	public void acquire() {
-		LOGGER.log(Level.INFO, String.format("[node %s] acquire", this.ID));
+		LOGGER.log(Level.INFO, "acquire");
 		try {
 
 			CriticalSectionService myservice = this.router.route(this.ID);
@@ -148,7 +148,7 @@ public class CriticalSectionClient {
 			myservice.unlock(this.ID);
 			
 		} catch (NodeNotFoundException e) {
-			LOGGER.log(Level.WARNING, String.format("[node: %s] acquire: error %s", this.ID, e.getMessage()), e);
+			LOGGER.log(Level.WARNING, String.format("acquire: error %s", e.getMessage()), e);
 			System.exit(IConstants.EXIT_CODE_SIMULATION_ERROR);
 		}
 	}
@@ -161,12 +161,12 @@ public class CriticalSectionClient {
 	 * @author Francisco Pinto Santos
 	*/
 	public void release() {
-		LOGGER.log(Level.INFO, String.format("[node %s] release", this.ID));
+		LOGGER.log(Level.INFO, "release");
 		try {
 			CriticalSectionService myservice = this.router.route(this.ID);
 			myservice.release(this.ID);
 		} catch (NodeNotFoundException e) {
-			LOGGER.log(Level.WARNING, String.format("[node: %s] release: error %s", this.ID, e.getMessage()), e);
+			LOGGER.log(Level.WARNING, String.format("release: error %s", e.getMessage()), e);
 			System.exit(IConstants.EXIT_CODE_SIMULATION_ERROR);
 		}
 	}

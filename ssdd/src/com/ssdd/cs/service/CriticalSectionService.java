@@ -78,7 +78,7 @@ public class CriticalSectionService{
 	 * @return String containing the URI to the service, served in the given host
 	 * */
 	public static String buildServiceUri(String host) {
-		return String.format("http://%s/ssdd/cs", host);
+		return String.format("http://%s:8080/ssdd/cs", host);
 	}
 	
 	/**

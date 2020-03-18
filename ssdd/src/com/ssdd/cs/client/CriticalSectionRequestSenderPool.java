@@ -3,6 +3,7 @@ package com.ssdd.cs.client;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -11,6 +12,8 @@ import com.ssdd.cs.service.CriticalSectionService;
 import com.ssdd.cs.service.NodeNotFoundException;
 import com.ssdd.util.constants.IConstants;
 import com.ssdd.util.logging.SSDDLogFactory;
+
+import jersey.repackaged.com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 public class CriticalSectionRequestSenderPool{
 
@@ -41,7 +44,8 @@ public class CriticalSectionRequestSenderPool{
 	public void multicastSend(String sender, List<String> receivers, CriticalSectionRouter router, long messageTimeStamp) {
 
 		// create new thread pool
-		this.pool = Executors.newFixedThreadPool(receivers.size());
+		ThreadFactory nameThreadFactory = new ThreadFactoryBuilder().setNameFormat(Thread.currentThread().getName() + "-pool-%d").build();
+		this.pool = Executors.newFixedThreadPool(receivers.size(), nameThreadFactory);
 		
 		// send receivers.size() messages	
 		receivers.forEach(receiver -> 
@@ -65,7 +69,7 @@ public class CriticalSectionRequestSenderPool{
 		try {
 			this.pool.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
 		} catch (InterruptedException e) {
-			LOGGER.log(Level.WARNING, String.format("[node: %s] send:InterruptedException: error %s", e.getMessage()), e);
+			LOGGER.log(Level.WARNING, String.format("send: InterruptedException: error %s", e.getMessage()), e);
 			System.exit(IConstants.EXIT_CODE_THREAD_ERROR);
 		}
 	}
@@ -88,7 +92,7 @@ public class CriticalSectionRequestSenderPool{
 		try {
 			service.request(receiver, sender, messageTimeStamp);
 		} catch (NodeNotFoundException e) {
-			LOGGER.log(Level.WARNING, String.format("[node: %s] send:NodeNotFoundException: error %s", sender, e.getMessage()), e);
+			LOGGER.log(Level.WARNING, String.format("send: NodeNotFoundException: error %s", e.getMessage()), e);
 			System.exit(IConstants.EXIT_CODE_SIMULATION_ERROR);
 		}
 	}

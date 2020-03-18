@@ -1,17 +1,14 @@
 package com.ssdd.main;
 
-import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.util.List;
+import java.io.ObjectInputStream;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 import com.ssdd.ntp.bean.Pair;
-import com.ssdd.util.Utils;
+import com.ssdd.util.constants.IConstants;
 import com.ssdd.util.logging.SSDDLogFactory;
 
 public class MainLogVerification {
@@ -26,26 +23,31 @@ public class MainLogVerification {
 		String pairsFile = args[0];
 		String logFile = args[1];
 		
-		Map<String, Pair> pairs = loadPairs(pairsFile);
+		System.err.println(args[0]);
+		System.err.println(args[1]);
+		
+		Map<String, Pair> idsAndPairs = MainLogVerification.loadPairs(pairsFile);
 		
 		Comprobador.main(new String [] {
 				logFile,
-				new Double(pairs.get("1").getDelay()).toString(),
-				new Double(pairs.get("2").getDelay()).toString()
+				new Double(idsAndPairs.get("1").getDelay()).toString(),
+				new Double(idsAndPairs.get("2").getDelay()).toString()
 		});
 	}
 	
 	private static Map<String, Pair> loadPairs(String file) {
-		Map<String, Pair> pairs = null;
+		Map<String, Pair> idsAndPairs = null;
 		try {
-			// read file
-			List<String> lines = Files.readAllLines(new File(file).toPath());
-			String pairsJson = Utils.listToString(lines);
-			// deserialize file content
-			pairs = new Gson().fromJson(pairsJson, new TypeToken<Map<String, Pair>>(){}.getType());
-		} catch (IOException e) {
-			LOGGER.log(Level.WARNING, String.format("loadNtpSamples: ERROR: %s", e.getMessage()), e);
-		}
-		return pairs;
+	         FileInputStream fis = new FileInputStream(file);
+	         ObjectInputStream ois = new ObjectInputStream(fis);
+	         idsAndPairs = (Map<String, Pair>) ois.readObject();
+	         ois.close();
+	         fis.close();
+	    } catch (IOException | ClassNotFoundException e) {
+			LOGGER.log(Level.WARNING, String.format("loadPairs: ERROR: %s", e.getMessage()), e);
+			System.exit(IConstants.EXIT_CODE_IO_ERROR);
+	    }
+
+		return idsAndPairs;
 	}
 }

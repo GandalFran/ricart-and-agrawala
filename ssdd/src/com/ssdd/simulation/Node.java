@@ -46,6 +46,8 @@ public class Node extends Thread{
 		this.nodeId = nodeId;
 		this.generator = new Random();
 		this.csLog = new SimulationLog(nodeId, logFile);
+		// set thread name
+		this.setName("node " + nodeId);
 	}
 	
 	/** 
@@ -62,7 +64,7 @@ public class Node extends Thread{
 		this.cs.ready();
 		// iterate N times simulating calculus and entering in the critical section
 		for(int i=0; i< IConstants.SIMULATION_NUM_ITERATIONS; i++) {
-			LOGGER.log(Level.INFO, String.format("[node: %s] iter %d", nodeId, i));
+			LOGGER.log(Level.INFO, String.format("iter %d", i));
 			this.simulateSleep(IConstants.SIMULATION_MIN_CALULUS_TIME, IConstants.SIMULATION_MAX_CALULUS_TIME);
 			this.enterCriticalSection();
 		}
@@ -85,7 +87,7 @@ public class Node extends Thread{
 		// log to file when entered in critical section
 		csLog.logIn();
 		
-		LOGGER.log(Level.INFO, String.format("[node: %s] simulating calculus in critical section", nodeId));
+		LOGGER.log(Level.INFO, "simulating calculus in critical section");
 		this.simulateSleep(IConstants.SIMULATION_MIN_CRITICAL_SECTION_TIME, IConstants.SIMULATION_MAX_CRITICAL_SECTION_TIME);
 
 		// log to file when exited from critical section
@@ -110,11 +112,11 @@ public class Node extends Thread{
 		long sleepIntervalMs = Utils.randomBetweenInterval(this.generator, min, max);
 		
 		// sleep to simulate calculus
-		LOGGER.log(Level.INFO, String.format("[node: %s] simulating sleep of %d ms", nodeId, sleepIntervalMs));
+		LOGGER.log(Level.INFO, String.format("simulating sleep of %d ms", sleepIntervalMs));
 		try {
 			Thread.sleep(sleepIntervalMs);
 		} catch (InterruptedException e) {
-			LOGGER.log(Level.INFO, String.format("[node: %s] simulateSleep: error %s", nodeId, e.getMessage()), e);
+			LOGGER.log(Level.INFO, String.format("simulateSleep: error %s", nodeId, e.getMessage()), e);
 			System.exit(IConstants.EXIT_CODE_THREAD_ERROR);
 		}
 	}

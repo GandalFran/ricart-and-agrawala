@@ -1,23 +1,10 @@
 package com.ssdd.main;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
 import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.logging.Level;
-
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-import com.ssdd.ntp.bean.Pair;
-import com.ssdd.ntp.service.NTPService;
-import com.ssdd.ntp.service.NTPServiceProxy;
-import com.ssdd.util.Utils;
 
 public class Main {
 	
-	public static void main(String [] args) {
+	public static void main(String [] args) throws Exception{
 		String selectedApplication = args[0];
 		args = Arrays.copyOfRange(args, 1, args.length);
 		
@@ -29,7 +16,7 @@ public class Main {
 				MainSimulation.main(args);
 				break;
 			case "verification":
-				Comprobador.main(args);
+				MainLogVerification.main(args);
 				break;
 			default:
 				System.out.println("ERROR: selected application (" + selectedApplication + ") not found.");

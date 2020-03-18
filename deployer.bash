@@ -5,8 +5,7 @@
 # ================================================== #
 
 # project
-service=/ntp
-project_name=s3
+project_name=ssdd
 service_path=/$project_name$service
 
 # build project
@@ -16,15 +15,15 @@ build_folder=/tmp/build
 # tomcat
 tomcat_tar=/tmp/tomcat.tar.gz
 tomcat_download_folder=/tmp/tomcat
-tomcat_folder_final=/home/i0901148/Escritorio/tomcat
+tomcat_folder_final=/tmp/tomcat
 tomcat_uri=https://apache.brunneis.com/tomcat/tomcat-7/v7.0.100/bin/apache-tomcat-7.0.100.tar.gz
 
 # client files location
-client_jar_initial=/tmp/$project_name.jar
+client_jar_initial=$project_name.jar
 client_jar_final=/tmp/$project_name.jar
 
 # server files location
-server_war_initial=/tmp/$project_name.war
+server_war_initial=$project_name.war
 server_war_final=$tomcat_folder_final/webapps/$project_name.war
 
 # tmp files
@@ -74,7 +73,8 @@ copy_file_between_remotes(){
 	user_host_final=$2
 	initial=$3
 	final=$4
-	scp -rq $user_host_initial:$initial $user_host_final:$final
+	scp -rq $user_host_initial:$initial /tmp/transfer.tmp
+	scp -rq /tmp/transfer.tmp $user_host_final:$final 
 }
 
 clean_file(){
@@ -124,7 +124,8 @@ clean_project(){
 
 download_tomcat(){
 	wget -q $tomcat_uri -O $tomcat_tar
-	tar -zxf $tomcat_tar -C $tomcat_download_folder
+	tar -zxf $tomcat_tar --directory /tmp
+	mv /tmp/apache-tomcat-7.0.100 $tomcat_download_folder
 	rm $tomcat_tar
 }
 
@@ -157,9 +158,9 @@ get_log_name(){
 }
 
 remote_exec_app(){
-	$user_host=$1
-	$args=$2
-	remote_exec "java -jar $client_jar_final $args"
+	user_host=$1
+	appargs=$2
+	remote_exec $user_host "java -jar $client_jar_final $appargs"
 }
 
 run_application(){
@@ -178,37 +179,41 @@ run_application(){
 	log_file_host3=$(get_log_name 2)
 	log_file_total=$(get_log_name total_)
 
+	# clean temporary files from other executions in remotes
+	echo "cleaning temporary files in remotes ..."
+	clean_file $user_host1 $ntp_tmp_file
+	clean_file $user_host1 $log_file_total
+	clean_file $user_host1 $log_file_host1
+	clean_file $user_host2 $log_file_host2
+	clean_file $user_host3 $log_file_host3
+
 	# run supervisor ntp
 	echo "running supervisor ntp ..."
-	remote_exec_app $user_host1 "supervisor ntp $ntp_tmp_file $host1 $host2 $host3"
+	remote_exec_app $user_host1 "supervisor ntp $ntp_tmp_file $host2 $host3"
 
 	# restart critical section and run simulation
 	echo "running simulation ..."
-	remote_exec_app $user_host1 "supervisor restartCs $host1 $host2 $host3"
-	remote_exec_app $user_host1 "simulation $log_file_host1 6 1 2 0 $host1 $host2 $host3 > /dev/null" &
-	remote_exec_app $user_host2 "simulation $log_file_host2 6 3 4 1 $host1 $host2 $host3 > /dev/null" &
-	remote_exec_app $user_host3 "simulation $log_file_host3 6 5 6 2 $host1 $host2 $host3 > /dev/null"
+	remote_exec_app $user_host1 "supervisor restartCs 6 $host1 $host2 $host3"
+	remote_exec_app $user_host1 "simulation $log_file_host1 6 1 2 0 $host1 $host2 $host3" &
+	remote_exec_app $user_host2 "simulation $log_file_host2 6 3 4 1 $host1 $host2 $host3" &
+	remote_exec_app $user_host3 "simulation $log_file_host3 6 5 6 2 $host1 $host2 $host3"
 
 	# calculate ntp in supervisor
 	echo "running supervisor ntp ..."
-	remote_exec_app $user_host1 "supervisor ntp $ntp_tmp_file $host1 $host2 $host3"
+	remote_exec_app $user_host1 "supervisor ntp $ntp_tmp_file $host2 $host3"
 
 	# copy logs to machine where supervisor is allocated
 	echo "copying logs to supervisor..."
 	copy_file_between_remotes $user_host2 $user_host1 $log_file_host2 $log_file_host2
 	copy_file_between_remotes $user_host3 $user_host1 $log_file_host3 $log_file_host3
 
-	# calculate ntp in supervisor
-	echo "running supervisor ntp ..."
-	remote_exec_app $user_host1 "supervisor ntp $ntp_tmp_file $host1 $host2 $host3"
-
 	# correct time in logs
 	echo "adjusting time in logs ..."
-	remote_exec_app $user_host1 "supervisor correctLog $ntp_tmp_file 0 $log_file_host1 $host1 1 $log_file_host2 $host2 2 $log_file_host3 $host3"
+	remote_exec_app $user_host1 "supervisor correctLog $ntp_tmp_file 1 $log_file_host2 $host2 2 $log_file_host3 $host3"
 
 	# join and sort logs
 	echo "joining and sorting logs ..."
-	remote_exec $user_host1 "cat $log_file_host1 $log_file_host2 $log_file_host3 | sort -k 3 > $log_file_total"
+	remote_exec $user_host1 "cat $log_file_host1 $log_file_host2 $log_file_host3 | sort -k 3 | awk NF > $log_file_total"
 
 	# run supervisor log comprobation
 	echo "run log comprobation ..."
@@ -312,9 +317,9 @@ do
 			deploy_tomcat $user_host3
 
 			# generate client and server files
-			echo "generating project .jar and .war files ..."
-			generate_project_jar
-			generate_project_war
+			# echo "generating project .jar and .war files ..."
+			# generate_project_jar
+			# generate_project_war
 
 			# copy client files
 			echo "copying new client files ..."
@@ -333,7 +338,7 @@ do
 			sleep 5
 
 			# run application
-			echo "running clients ..."
+			echo "running application ..."
 			run_application $user $host1 $host2 $host3
       ;;
       "-redeploy")
@@ -363,7 +368,7 @@ do
 			clean_server $user_host2
 			clean_server $user_host3
 			# wait for server to detect that files has been deleted
-			sleep 2
+			sleep 5
 
 			# restart tomcat in each server
 			echo "restarting tomcat ..."
@@ -372,8 +377,8 @@ do
 			restart_tomcat  $user_host3
 
 			# regenerate client and server files
-			echo "generating project .jar and .war files ..."
-			regenerate_project_files
+			# echo "generating project .jar and .war files ..."
+			# regenerate_project_files
 
 			# copy client files
 			echo "copying new client files ..."
@@ -418,11 +423,11 @@ do
 
 			# clean tomcat download folder
 			echo "cleaning tomcat download files ..."
-			rm $tomcat_download_folder
+			rm -rf $tomcat_download_folder
 
 			# cleaning local project build folder, .jar and .war files
 			echo "cleaning local project files ..."
-			clean_project
+			# clean_project
 
 			# clean client files in remotes
 			echo "cleaning client files ..."
@@ -435,6 +440,12 @@ do
 			clean_file $user_host1 $tomcat_folder_final
 			clean_file $user_host2 $tomcat_folder_final
 			clean_file $user_host3 $tomcat_folder_final
+
+			# clean tmp folder where temporary files are located
+			remote_exec $user_host1 "rm -rf /tmp/*"
+			remote_exec $user_host2 "rm -rf /tmp/*"
+			remote_exec $user_host3 "rm -rf /tmp/*"
+			
       ;;
       *)
         	echo "ERROR: unknown command: $selected_command, run deployer.bash -h for help"

@@ -80,7 +80,7 @@ public class CritialSectionServiceNode {
 		try {
 			this.lock.acquire();
 		} catch (InterruptedException e) {
-			LOGGER.log(Level.WARNING, String.format("[node: %s] lock: ERROR when waiting", this.id));
+			LOGGER.log(Level.WARNING, "lock: ERROR when waiting");
 		}
 	}
 	
@@ -108,7 +108,7 @@ public class CritialSectionServiceNode {
 			try {
 				this.releaseNotifier.wait();
 			} catch (Exception e) {
-				LOGGER.log(Level.WARNING, String.format("[node: %s] waitToReleaseCriticalSection: ERROR when waiting %s", this.id, e.toString()), e);
+				LOGGER.log(Level.WARNING, String.format("waitToReleaseCriticalSection: ERROR when waiting %s", e.toString()), e);
 			}
 		}
 	}
