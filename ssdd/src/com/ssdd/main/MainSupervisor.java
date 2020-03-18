@@ -104,12 +104,17 @@ public class MainSupervisor {
 		// calculate best pairs for each
 		NTPClient ntp = new NTPClient();
 		Map<String, Pair> logsAndPairs = new HashMap<>();
+		Map<String, Pair> idsAndPairs = new HashMap<>();
 		for(NTPService s : samples.keySet()) {
 			String serverIp = ((NTPServiceProxy) s).getServerIp();
-			// get the log file with the server ip
-			String logFile = idAndLogFile.get(serverAndId.get(serverIp));
-			// add to logsToCorrect
-			logsAndPairs.put(logFile, ntp.selectBestPair(samples.get(s)));
+			// get the log file and id
+			String id = serverAndId.get(serverIp);
+			String logFile = idAndLogFile.get(id);
+			// select best pair
+			Pair bestPair = ntp.selectBestPair(samples.get(s));
+			// add to logsToCorrect and idsAndPairs
+			idsAndPairs.put(id, bestPair);
+			logsAndPairs.put(logFile, bestPair);
 		}	
 		
 		// adjust logs
@@ -119,13 +124,7 @@ public class MainSupervisor {
 			adjuster.adjustTime(log, p.getOffset());
 		}
 		
-		// generate maps with ids and pairs
-		Map<String, Pair> idsAndPairs = new HashMap<>();
-		for(String id : idAndLogFile.keySet()) {
-			idsAndPairs.put(id, logsAndPairs.get(idAndLogFile.get(id)));
-		}	
-		
-		// store into ntp file
+		// store association between id and pair into ntp file
 		new File(ntpFile).delete();
 		MainSupervisor.storePairs(ntpFile, idsAndPairs);
 	}
