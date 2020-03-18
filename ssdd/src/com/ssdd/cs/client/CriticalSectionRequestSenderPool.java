@@ -3,12 +3,17 @@ package com.ssdd.cs.client;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.ws.rs.client.InvocationCallback;
+import javax.ws.rs.core.Response;
+
 import com.ssdd.cs.service.CriticalSectionService;
+import com.ssdd.cs.service.CriticalSectionServiceProxy;
 import com.ssdd.cs.service.NodeNotFoundException;
 import com.ssdd.util.constants.IConstants;
 import com.ssdd.util.logging.SSDDLogFactory;
@@ -44,7 +49,7 @@ public class CriticalSectionRequestSenderPool{
 	public void multicastSend(String sender, List<String> receivers, CriticalSectionRouter router, long messageTimeStamp) {
 
 		// create new thread pool
-		ThreadFactory nameThreadFactory = new ThreadFactoryBuilder().setNameFormat(Thread.currentThread().getName() + "-pool-%d").build();
+		ThreadFactory nameThreadFactory = new ThreadFactoryBuilder().setNameFormat(Thread.currentThread().getName() + " pool %d").build();
 		this.pool = Executors.newFixedThreadPool(receivers.size(), nameThreadFactory);
 		
 		// send receivers.size() messages	
@@ -89,12 +94,41 @@ public class CriticalSectionRequestSenderPool{
     */
 	public void send(String sender, String receiver, CriticalSectionRouter router, long messageTimeStamp) {
 		CriticalSectionService service = router.route(receiver);
+		
 		try {
 			service.request(receiver, sender, messageTimeStamp);
 		} catch (NodeNotFoundException e) {
 			LOGGER.log(Level.WARNING, String.format("send: NodeNotFoundException: error %s", e.getMessage()), e);
 			System.exit(IConstants.EXIT_CODE_SIMULATION_ERROR);
 		}
+		
+		/*CriticalSectionServiceProxy service = (CriticalSectionServiceProxy) router.route(receiver);
+		Semaphore s = new Semaphore(0);
+		try {
+			service.request(receiver, sender, messageTimeStamp, 
+				new InvocationCallback<Response>(){
+					@Override
+					public void completed(Response response){
+						s.release();
+					}
+					@Override
+					public void failed(Throwable throwable){
+						System.out.println("Invocation failed.");
+						throwable.printStackTrace();
+					}
+				}
+			);
+		} catch (NodeNotFoundException e) {
+			LOGGER.log(Level.WARNING, String.format("send: NodeNotFoundException: error %s", e.getMessage()), e);
+			System.exit(IConstants.EXIT_CODE_SIMULATION_ERROR);
+		}
+		
+		try {
+			s.acquire();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}*/
 	}
 
 }

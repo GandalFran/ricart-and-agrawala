@@ -107,7 +107,7 @@ public class CriticalSectionService{
 	 * 
 	 * @param numNodes the number of nodes that will try to access to critial section
 	 * */
-	@POST
+	@GET
 	@Path("/restart")
 	public void restart(@QueryParam(value="numNodes") int numNodes){
 		LOGGER.log(Level.INFO, String.format("/cs/restart"));
@@ -123,7 +123,7 @@ public class CriticalSectionService{
 	 * @author Héctor Sánchez San Blas
 	 * @author Francisco Pinto Santos
 	 * */
-	@POST
+	@GET
 	@Path("/ready")
 	public void ready(){
 		LOGGER.log(Level.INFO, String.format("/cs/ready"));
@@ -141,7 +141,7 @@ public class CriticalSectionService{
 	 * @author Héctor Sánchez San Blas
 	 * @author Francisco Pinto Santos
 	 * */
-	@POST
+	@GET
 	@Path("/finished")
 	public void finished(){
 		LOGGER.log(Level.INFO, String.format("/cs/finished"));
@@ -161,7 +161,7 @@ public class CriticalSectionService{
 	 * 
 	 * @param nodeId the id of the node who wants to suscribe to current service.
 	 * */
-	@POST
+	@GET
 	@Path("/suscribe")
 	public void suscribe(@QueryParam(value="node") String nodeId){
 		LOGGER.log(Level.INFO, String.format("[node: %s] /cs/suscribe", nodeId));
@@ -206,7 +206,7 @@ public class CriticalSectionService{
 	 * 
 	 * @throws NodeNotFoundException when then nodeId doesn't corresponds to any node suscribed to current service.
 	 * */
-	@POST
+	@GET
 	@Path("/set/state")
 	public void setCsState(@QueryParam(value="node") String nodeId, @QueryParam(value="state") String newState) throws NodeNotFoundException {
 		LOGGER.log(Level.INFO, String.format("[node: %s] /cs/set/state %s", nodeId, newState));
@@ -301,7 +301,7 @@ public class CriticalSectionService{
 	 * 
 	 * @throws NodeNotFoundException when then nodeId doesn't corresponds to any node suscribed to current service
 	 * */
-	@POST
+	@GET
 	@Path("/request")
 	public void request(@QueryParam(value="node") String nodeId, @QueryParam(value="sender") String sender, @QueryParam(value="messageTimeStamp") long messageTimeStamp) throws NodeNotFoundException {
 		LOGGER.log(Level.INFO, String.format("[node: %s] /cs/request sender %s ", nodeId, sender));
@@ -352,7 +352,7 @@ public class CriticalSectionService{
 	 * 
 	 * @throws NodeNotFoundException when then nodeId doesn't corresponds to any node suscribed to current service
 	 * */
-	@POST
+	@GET
 	@Path("/release")
 	public void release(@QueryParam(value="node") String nodeId) throws NodeNotFoundException {
 		LOGGER.log(Level.INFO, String.format("[node: %s] /cs/release", nodeId));
@@ -390,7 +390,7 @@ public class CriticalSectionService{
 	 * 
 	 * @throws NodeNotFoundException when then nodeId doesn't corresponds to any node suscribed to current service
 	 * */
-	@POST
+	@GET
 	@Path("/lock")
 	public void lock(@QueryParam(value="node") String nodeId) throws NodeNotFoundException {
 		LOGGER.log(Level.INFO, String.format("[node: %s] /cs/lock", nodeId));
@@ -419,7 +419,7 @@ public class CriticalSectionService{
 	 * 
 	 * @throws NodeNotFoundException when then nodeId doesn't corresponds to any node suscribed to current service
 	 * */
-	@POST
+	@GET
 	@Path("/unlock")
 	public void unlock(@QueryParam(value="node") String nodeId) throws NodeNotFoundException {
 		LOGGER.log(Level.INFO, String.format("[node: %s] /cs/unlock", nodeId));

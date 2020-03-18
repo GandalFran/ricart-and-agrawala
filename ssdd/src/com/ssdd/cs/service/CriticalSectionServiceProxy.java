@@ -4,8 +4,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.InvocationCallback;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 
 import com.google.gson.Gson;
@@ -69,7 +71,7 @@ public class CriticalSectionServiceProxy extends CriticalSectionService{
 	public void restart(int numNodes) {
 		LOGGER.log(Level.INFO, String.format("/cs/restart numNodes:%d", numNodes));
 		try {
-			this.service.path("restart").queryParam("numNodes", numNodes).request().post(null);
+			this.service.path("restart").queryParam("numNodes", numNodes).request().get();
 		} catch (Exception e) {
 			LOGGER.log(Level.WARNING, String.format("/cs/restart: error %s", e.getMessage()), e);
 			System.exit(IConstants.EXIT_CODE_HTTP_REQUEST_ERROR);
@@ -87,7 +89,7 @@ public class CriticalSectionServiceProxy extends CriticalSectionService{
 	public void ready() {
 		LOGGER.log(Level.INFO, "/cs/ready");
 		try {
-			this.service.path("ready").request().post(null);
+			this.service.path("ready").request().get();
 		} catch (Exception e) {
 			LOGGER.log(Level.WARNING, String.format("/cs/ready: error %s", e.getMessage()), e);
 			System.exit(IConstants.EXIT_CODE_HTTP_REQUEST_ERROR);
@@ -105,7 +107,7 @@ public class CriticalSectionServiceProxy extends CriticalSectionService{
 	public void finished() {
 		LOGGER.log(Level.INFO, "/cs/finished");
 		try {
-			this.service.path("finished").request().post(null);
+			this.service.path("finished").request().get();
 		} catch (Exception e) {
 			LOGGER.log(Level.WARNING, String.format("/cs/finished: error %s", e.getMessage()), e);
 			System.exit(IConstants.EXIT_CODE_HTTP_REQUEST_ERROR);
@@ -125,7 +127,7 @@ public class CriticalSectionServiceProxy extends CriticalSectionService{
 	public void suscribe(String nodeId){
 		LOGGER.log(Level.INFO, "/cs/suscribe");
 		try {
-			this.service.path("suscribe").queryParam("node", nodeId).request().post(null);
+			this.service.path("suscribe").queryParam("node", nodeId).request().get();
 		} catch (Exception e) {
 			LOGGER.log(Level.WARNING, String.format("/cs/suscribe: error %s", e.getMessage()), e);
 			System.exit(IConstants.EXIT_CODE_HTTP_REQUEST_ERROR);
@@ -169,7 +171,7 @@ public class CriticalSectionServiceProxy extends CriticalSectionService{
 	public void setCsState(String nodeId, String newState) throws NodeNotFoundException{
 		LOGGER.log(Level.INFO, String.format("/cs/set/state %s", newState));
 		try {
-			this.service.path("set").path("state").queryParam("node", nodeId).queryParam("state", newState.toString()).request().post(null);
+			this.service.path("set").path("state").queryParam("node", nodeId).queryParam("state", newState.toString()).request().get();
 		} catch (Exception e) {
 			LOGGER.log(Level.WARNING, String.format("/cs/set/state: error %s", e.getMessage()), e);
 			System.exit(IConstants.EXIT_CODE_HTTP_REQUEST_ERROR);
@@ -217,7 +219,7 @@ public class CriticalSectionServiceProxy extends CriticalSectionService{
 	public void updateCounter(String nodeId) throws NodeNotFoundException{
 		LOGGER.log(Level.INFO, "/cs/update/counter");
 		try {
-			this.service.path("update").path("counter").queryParam("node", nodeId).request().post(null);
+			this.service.path("update").path("counter").queryParam("node", nodeId).request().get();
 		} catch (Exception e) {
 			LOGGER.log(Level.WARNING, String.format("/cs/update/counter: error %s", e.getMessage()), e);
 			System.exit(IConstants.EXIT_CODE_HTTP_REQUEST_ERROR);
@@ -241,7 +243,17 @@ public class CriticalSectionServiceProxy extends CriticalSectionService{
 	public void request(String nodeId, String sender, long messageTimeStamp) throws NodeNotFoundException{
 		LOGGER.log(Level.INFO, "/cs/request");
 		try {
-			this.service.path("request").queryParam("node", nodeId).queryParam("sender", sender).queryParam("messageTimeStamp", messageTimeStamp).request().post(null);
+			this.service.path("request").queryParam("node", nodeId).queryParam("sender", sender).queryParam("messageTimeStamp", messageTimeStamp).request().get();
+		} catch (Exception e) {
+			LOGGER.log(Level.WARNING, String.format("/cs/request: error %s", e.getMessage()), e);
+			System.exit(IConstants.EXIT_CODE_HTTP_REQUEST_ERROR);
+		}
+	}
+	
+	public void request(String nodeId, String sender, long messageTimeStamp,  InvocationCallback<Response> callback) throws NodeNotFoundException{
+		LOGGER.log(Level.INFO, "/cs/request");
+		try {
+			this.service.path("request").queryParam("node", nodeId).queryParam("sender", sender).queryParam("messageTimeStamp", messageTimeStamp).request().async().get(callback);
 		} catch (Exception e) {
 			LOGGER.log(Level.WARNING, String.format("/cs/request: error %s", e.getMessage()), e);
 			System.exit(IConstants.EXIT_CODE_HTTP_REQUEST_ERROR);
@@ -264,7 +276,7 @@ public class CriticalSectionServiceProxy extends CriticalSectionService{
 	public void release(String nodeId) throws NodeNotFoundException{
 		LOGGER.log(Level.INFO, "/cs/release");
 		try {
-			this.service.path("release").queryParam("node", nodeId).request().post(null);
+			this.service.path("release").queryParam("node", nodeId).request().get();
 		} catch (Exception e) {
 			LOGGER.log(Level.WARNING, String.format("/cs/release: error %s", e.getMessage()), e);
 			System.exit(IConstants.EXIT_CODE_HTTP_REQUEST_ERROR);
@@ -286,7 +298,7 @@ public class CriticalSectionServiceProxy extends CriticalSectionService{
 	public void lock(String nodeId) throws NodeNotFoundException{
 		LOGGER.log(Level.INFO, "/cs/lock");
 		try {
-			this.service.path("lock").queryParam("node", nodeId).request().post(null);
+			this.service.path("lock").queryParam("node", nodeId).request().get();
 		} catch (Exception e) {
 			LOGGER.log(Level.WARNING, String.format("/cs/lock: error %s", e.getMessage()), e);
 			System.exit(IConstants.EXIT_CODE_HTTP_REQUEST_ERROR);
@@ -308,7 +320,7 @@ public class CriticalSectionServiceProxy extends CriticalSectionService{
 	public void unlock(String nodeId) throws NodeNotFoundException{
 		LOGGER.log(Level.INFO, "/cs/unlock");
 		try {
-			this.service.path("unlock").queryParam("node", nodeId).request().post(null);
+			this.service.path("unlock").queryParam("node", nodeId).request().get();
 		} catch (Exception e) {
 			LOGGER.log(Level.WARNING, String.format("/cs/unlock: error %s", e.getMessage()), e);
 			System.exit(IConstants.EXIT_CODE_HTTP_REQUEST_ERROR);

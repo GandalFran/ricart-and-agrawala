@@ -30,8 +30,8 @@ public class MainLogVerification {
 		
 		Comprobador.main(new String [] {
 				logFile,
-				new Double(idsAndPairs.get("1").getDelay()).toString(),
-				new Double(idsAndPairs.get("2").getDelay()).toString()
+				new Double(idsAndPairs.get("1").getDelay()).toString()
+				// , new Double(idsAndPairs.get("2").getDelay()).toString()
 		});
 	}
 	

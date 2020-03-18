@@ -40,7 +40,7 @@ public class CritialSectionReadySenderPool {
 	public void multicastSend(List<CriticalSectionService> services) {
 
 		// create new thread pool
-		ThreadFactory nameThreadFactory = new ThreadFactoryBuilder().setNameFormat(Thread.currentThread().getName() + "-pool-%d").build();
+		ThreadFactory nameThreadFactory = new ThreadFactoryBuilder().setNameFormat(Thread.currentThread().getName() + " pool %d").build();
 		this.pool = Executors.newFixedThreadPool(services.size(), nameThreadFactory);
 		
 		// send services.size() messages	

@@ -23,16 +23,8 @@ public class SimulationLogAdjuster{
 	
 	public void adjustTime(String file, double offset) {
 		List<String> log = null;
-		
-		// determine offset
-		long finalOffset = 0;
-		int intPart = (int) offset;
-		double decimalPart = offset - intPart;
-		if(decimalPart >= 0.5) {
-			finalOffset = (long) Math.ceil(offset);
-		}else {
-			finalOffset = (long) (offset);
-		}
+
+		LOGGER.log(Level.WARNING, String.format("given offset: %f", offset));
 		
 		// read log
 		try {
@@ -62,11 +54,11 @@ public class SimulationLogAdjuster{
 			long time = Long.parseLong(lineArray[2]);
 			
 			// increment time
-			time += finalOffset;
+			double finalTime = time + offset;
 			
 			// write new line
 			try {
-				writer.write(String.format("%s %s %d\n", pid, operation, time));
+				writer.write(String.format("%s %s %f\n", pid, operation, finalTime));
 				writer.flush();
 			} catch (IOException e) {
 				LOGGER.log(Level.WARNING, String.format("adjustTime: ERROR %s", e.getMessage()), e);

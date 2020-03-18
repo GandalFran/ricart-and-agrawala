@@ -60,9 +60,9 @@ public class NTPClient {
 				// get times
 				time0 = System.currentTimeMillis();
 				long [] response = NTPServiceProxy.parseTimeResponse(service.time());
+				time3 = System.currentTimeMillis();
 				time1 = response[0]; 
 				time2 = response[1]; 
-				time3 = System.currentTimeMillis();
 				pairs[currIteration] = new Pair(this.calculateDelay(time0, time1, time2, time3), this.calculateOffset(time0, time1, time2, time3));
 			}
 			samples.put(service, pairs);
@@ -86,7 +86,7 @@ public class NTPClient {
 	 * @return the calculated offset with the NTP algorithm.
 	 * */
 	private double calculateOffset(long time0, long time1, long time2, long time3) {
-		return ((double)(time1-time0+time2-time3))/2;
+		return (((double)(time1-time0+time2-time3))/2);
 	}
 	
 	/**
@@ -104,7 +104,7 @@ public class NTPClient {
 	 * @return the calculated delay with the NTP algorithm.
 	 * */
 	private double calculateDelay(long time0, long time1, long time2, long time3) {
-		return ((double)(time1-time0+time3-time2));
+		return ((double)((time1-time0)+(time3-time2)));
 	}
 	
 	/**
@@ -119,7 +119,6 @@ public class NTPClient {
 	 * 
 	 * @return the Pair selected as Best.
 	 * */
-	/*
 	public Pair selectBestPair(Pair [] allPairs) {
 		Pair bestPair = new Pair(Long.MAX_VALUE, 0);
 		
@@ -129,8 +128,8 @@ public class NTPClient {
 			}
 		}
 		return bestPair;
-	}*/
-	
+	}
+	/*
 	public Pair selectBestPair(Pair [] pairs) {
 		MarzulloInterval [] table = this.generateMarzulloTable(pairs);
 		
@@ -162,6 +161,6 @@ public class NTPClient {
 		double delay = bestEnd - bestStart;
 		double offset = (bestStart + bestEnd)/2;
 		return new Pair(delay, offset);
-	}
+	}*/
 	
 }

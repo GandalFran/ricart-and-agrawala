@@ -17,21 +17,17 @@ public interface IConstants {
 	/** 
 	 * Minimum time (in milliseconds) between time samples in NTP service.
 	 */
-	public static final long NTP_MIN_SLEEP_MS = 1500;
+	public static final long NTP_MIN_SLEEP_MS = 100;
 	/** 
 	 * Maximum time (in milliseconds) between time samples in NTP service.
 	 */
-	public static final long NTP_MAX_SLEEP_MS = 2000;
+	public static final long NTP_MAX_SLEEP_MS = 1000;
 	
-	// simulation constants	
-	/** 
-	 * Path to the application critical secion in and out registration log.
-	 */
-	public static final String SIMULATION_LOG_FILE_SUFIX = "simulation.log";
+	// simulation constants
 	/** 
 	 * Number of iterations of calculus and critical section wait in simulation.
 	 */
-	public static final int SIMULATION_NUM_ITERATIONS = 1000;
+	public static final int SIMULATION_NUM_ITERATIONS = 100;
 	/** 
 	 * Minimum time (in milliseconds) of calclus simulation in application.
 	 */
