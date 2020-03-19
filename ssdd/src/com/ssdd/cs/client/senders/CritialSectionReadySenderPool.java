@@ -1,4 +1,4 @@
-package com.ssdd.cs.client;
+package com.ssdd.cs.client.senders;
 
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -14,6 +14,9 @@ import com.ssdd.util.logging.SSDDLogFactory;
 
 import jersey.repackaged.com.google.common.util.concurrent.ThreadFactoryBuilder;
 
+/**
+ * sends in a concurrent way messages to all servers to indicate that client is ready
+ * */
 public class CritialSectionReadySenderPool {
 
 	/**

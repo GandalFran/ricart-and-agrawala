@@ -2,9 +2,12 @@ package com.ssdd.main;
 
 import java.util.Arrays;
 
+/**
+ * main class
+ * */
 public class Main {
 	
-	public static void main(String [] args) throws Exception{
+	public static void main(String [] args){
 		String selectedApplication = args[0];
 		args = Arrays.copyOfRange(args, 1, args.length);
 		

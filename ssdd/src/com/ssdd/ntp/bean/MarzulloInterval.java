@@ -14,11 +14,17 @@ public class MarzulloInterval implements Comparable<MarzulloInterval>{
 
 	public static MarzulloInterval[] buildMarzulloInterval(Pair p) {
 		return new MarzulloInterval [] {
-				new MarzulloInterval(p.getOffset()-(p.getDelay()/2),-1),
-				new MarzulloInterval(p.getOffset()+(p.getDelay()/2),+1)
+				new MarzulloInterval(p.getOffset(),-1),
+				new MarzulloInterval(p.getDelay(),+1)
 		};
 	}
-
+	
+	public static Pair toPair(double start, double end) {
+		double delay = end - start;
+		double offset = (start + end)/2;
+		return new Pair(delay, offset);
+	}
+	
 	public double getIntervalEnd() {
 		return intervalEnd;
 	}
@@ -37,7 +43,9 @@ public class MarzulloInterval implements Comparable<MarzulloInterval>{
 
 	@Override
 	public int compareTo(MarzulloInterval o) {
-		return Double.compare(this.intervalStart, o.intervalStart);		
+		//int foo = Double.compare(this.intervalStart, o.intervalStart);	
+		//return (foo != 0) ? foo : Double.compare(this.intervalEnd, o.intervalEnd);
+		return Double.compare(this.intervalStart, o.intervalStart);
 	}
 	
 }

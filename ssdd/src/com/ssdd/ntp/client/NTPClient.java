@@ -109,13 +109,13 @@ public class NTPClient {
 	
 	/**
 	 * Given a list of Pairs (delay, offset), selects the best pair. Currently, the pair selected as best
-	 * is the one with smallest delay.
+	 * is the one selected with the Marzullo's algorithm.
 	 * 
 	 * @version 1.0
 	 * @author Héctor Sánchez San Blas
 	 * @author Francisco Pinto Santos
 	 * 
-	 * @param allPairs list from which pair will be selected
+	 * @param pairs list from which pair will be selected
 	 * 
 	 * @return the Pair selected as Best.
 	 * */
@@ -131,7 +131,7 @@ public class NTPClient {
 		return bestPair;
 	}*/
 	public Pair selectBestPair(Pair [] pairs) {
-		MarzulloInterval [] table = this.generateMarzulloTable(pairs);
+		MarzulloInterval [] table = this.populateMarzulloTable(pairs);
 		
 		double best=0, cnt=0, bestStart=0, bestEnd=0;
 		for(int i = 0; i< table.length; i++) {
@@ -144,23 +144,28 @@ public class NTPClient {
 			}
 		}
 		
-		Pair pair = this.calculatePair(bestStart, bestEnd);
+		Pair pair = MarzulloInterval.toPair(bestStart, bestEnd);
 		return pair;
 	}
 	
-	private MarzulloInterval[] generateMarzulloTable(Pair [] pairs) {
+	/**
+	 * Facility to populate the marzullo's algorithm table.
+	 * 
+	 * @version 1.0
+	 * @author Héctor Sánchez San Blas
+	 * @author Francisco Pinto Santos
+	 * 
+	 * @param pairs list of pairs to populate the table.
+	 * 
+	 * @return the table
+	 * */
+	private MarzulloInterval[] populateMarzulloTable(Pair [] pairs) {
 		List <MarzulloInterval> table = new ArrayList<>();
 		for(Pair p: pairs) {
 			table.addAll(Arrays.asList(MarzulloInterval.buildMarzulloInterval(p)));
 		}
 		Collections.sort(table);
 		return Arrays.copyOf(table.toArray(), table.size(), MarzulloInterval[].class);
-	}
-	
-	private Pair calculatePair(double bestStart, double bestEnd) {
-		double delay = bestEnd - bestStart;
-		double offset = (bestStart + bestEnd)/2;
-		return new Pair(delay, offset);
 	}
 	
 }

@@ -6,6 +6,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.ssdd.cs.bean.CriticalSectionState;
+import com.ssdd.cs.client.senders.CritialSectionFinishedSenderPool;
+import com.ssdd.cs.client.senders.CritialSectionReadySenderPool;
+import com.ssdd.cs.client.senders.CriticalSectionRequestSenderPool;
 import com.ssdd.cs.service.CriticalSectionService;
 import com.ssdd.cs.service.NodeNotFoundException;
 import com.ssdd.util.constants.IConstants;
@@ -120,18 +123,15 @@ public class CriticalSectionClient {
 	public void acquire() {
 		LOGGER.log(Level.INFO, "acquire");
 		try {
-
+			// get my associated service to send messages
 			CriticalSectionService myservice = this.router.route(this.ID);
 
 			// lock
 			myservice.lock(this.ID);
-			
 			// set cs state
 			myservice.setCsState(this.ID, CriticalSectionState.REQUESTED.toString());
-			
 			// get message timestamp
 			long messageTimeStamp = myservice.getMessageTimeStamp(this.ID);
-			
 			// send requests and unlock
 			CriticalSectionRequestSenderPool multicastSender = new CriticalSectionRequestSenderPool();
 			multicastSender.multicastSend(this.ID, this.nodes, router, messageTimeStamp);
@@ -140,13 +140,14 @@ public class CriticalSectionClient {
 			// wait to requests
 			multicastSender.await();
 			
+			// lock operations
 			myservice.lock(this.ID);
-			
-			// update lamport counter and critical section state
+			// update node's critical section state
 			myservice.setCsState(this.ID, CriticalSectionState.ACQUIRED.toString());
+			// update lamport counter
 			myservice.updateCounter(this.ID);
+			// unlock operations over the node
 			myservice.unlock(this.ID);
-			
 		} catch (NodeNotFoundException e) {
 			LOGGER.log(Level.WARNING, String.format("acquire: error %s", e.getMessage()), e);
 			System.exit(IConstants.EXIT_CODE_SIMULATION_ERROR);
@@ -163,7 +164,9 @@ public class CriticalSectionClient {
 	public void release() {
 		LOGGER.log(Level.INFO, "release");
 		try {
+			// get my associated service to send messages
 			CriticalSectionService myservice = this.router.route(this.ID);
+			// release the critical section
 			myservice.release(this.ID);
 		} catch (NodeNotFoundException e) {
 			LOGGER.log(Level.WARNING, String.format("release: error %s", e.getMessage()), e);

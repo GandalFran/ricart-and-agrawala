@@ -209,16 +209,9 @@ public class CriticalSectionService{
 	@Path("/set/state")
 	public void setCsState(@QueryParam(value="node") String nodeId, @QueryParam(value="state") String newState) throws NodeNotFoundException {
 		LOGGER.log(Level.INFO, String.format("[node: %s] /cs/set/state %s", nodeId, newState));
-		
-		// check if given nodeId corresponds to a suscribed process
-		if(! this.isSuscribed(nodeId)) {
-			LOGGER.log(Level.WARNING, String.format("[node: %s] /cs/set/state: ERROR the given node is not subscribed", nodeId));
-			throw new NodeNotFoundException(nodeId);
-		}
-		
+
 		// get node
-		CritialSectionServiceNode node = this.nodes.get(nodeId);
-		
+		CritialSectionServiceNode node = this.getNode(nodeId);
 		//set new state
 		node.setState(CriticalSectionState.valueOf(newState));
 	}
@@ -241,16 +234,9 @@ public class CriticalSectionService{
 	@Produces(MediaType.TEXT_PLAIN)
 	public long getMessageTimeStamp(@QueryParam(value="node") String nodeId) throws NodeNotFoundException {
 		LOGGER.log(Level.INFO, String.format("[node: %s] /cs/get/messagetimestamp", nodeId));
-		
-		// check if given nodeId corresponds to a suscribed process
-		if(! this.isSuscribed(nodeId)) {
-			LOGGER.log(Level.WARNING, String.format("[node: %s] /cs/set/messagetimestamp: ERROR the given node is not subscribed", nodeId));
-			throw new NodeNotFoundException(nodeId);
-		}
-		
+
 		// get node
-		CritialSectionServiceNode node = this.nodes.get(nodeId);
-		
+		CritialSectionServiceNode node = this.getNode(nodeId);
 		// save and obtain counter value
 		long timeStamp = node.saveLastTimeStamp();
 		
@@ -272,16 +258,9 @@ public class CriticalSectionService{
 	@Path("/update/counter")
 	public void updateCounter(@QueryParam(value="node") String nodeId) throws NodeNotFoundException {
 		LOGGER.log(Level.INFO, String.format("[node: %s] /cs/update/counter", nodeId));
-		
-		// check if given nodeId corresponds to a suscribed process
-		if(! this.isSuscribed(nodeId)) {
-			LOGGER.log(Level.WARNING, String.format("[node: %s] /cs/update/counter: ERROR the given node is not subscribed", nodeId));
-			throw new NodeNotFoundException(nodeId);
-		}
-		
-		// get node
-		CritialSectionServiceNode node = this.nodes.get(nodeId);
 
+		// get node
+		CritialSectionServiceNode node = this.getNode(nodeId);
 		// update counter
 		node.getCounter().update();
 	}	
@@ -304,35 +283,27 @@ public class CriticalSectionService{
 	@Path("/request")
 	public void request(@QueryParam(value="node") String nodeId, @QueryParam(value="sender") String sender, @QueryParam(value="messageTimeStamp") long messageTimeStamp) throws NodeNotFoundException {
 		LOGGER.log(Level.INFO, String.format("[node: %s] /cs/request sender %s ", nodeId, sender));
-		
-		// check if given nodeId corresponds to a suscribed process
-		if(! this.isSuscribed(nodeId)) {
-			LOGGER.log(Level.WARNING, String.format("[node: %s] /cs/request: ERROR the given node is not subscribed", nodeId));
-			throw new NodeNotFoundException(nodeId);
-		}
-		
+
 		// get node
-		CritialSectionServiceNode node = this.nodes.get(nodeId);
-		
+		CritialSectionServiceNode node = this.getNode(nodeId);
 		// lock operations
 		node.lock();
-		
 		// update local lamport time
 		node.getCounter().update(messageTimeStamp);
-		
-		if(! node.allowNode(sender, messageTimeStamp)) {
+	
+		// check if the enter of node is permited or not
+		if(node.permitEnter(sender, messageTimeStamp)){
+			// unlock operations
+			node.unlock();
+			LOGGER.log(Level.INFO, String.format("[node: %s] /cs/request node %s ALLOWED", nodeId, sender));
+		}else{
 			LOGGER.log(Level.INFO, String.format("[node: %s] /cs/request node %s QUEUED", nodeId, sender));
 			// unlock operations
 			node.unlock();
 			// wait until the enter in CS is permited
 			node.queueAccessRequest();
 			LOGGER.log(Level.INFO, String.format("[node: %s] /cs/request node %s DEQUEUED (ALLOWED)", nodeId, sender));
-		}else {
-			// unlock operations
-			node.unlock();
-			LOGGER.log(Level.INFO, String.format("[node: %s] /cs/request node %s ALLOWED", nodeId, sender));
 		}
-		
 	}
 	
 
@@ -352,24 +323,14 @@ public class CriticalSectionService{
 	public void release(@QueryParam(value="node") String nodeId) throws NodeNotFoundException {
 		LOGGER.log(Level.INFO, String.format("[node: %s] /cs/release", nodeId));
 		
-		// check if given nodeId corresponds to a suscribed process
-		if(! this.isSuscribed(nodeId)) {
-			LOGGER.log(Level.WARNING, String.format("[node: %s] /cs/release: ERROR the given node is not subscribed", nodeId));
-			throw new NodeNotFoundException(nodeId);
-		}
-		
 		// get node
-		CritialSectionServiceNode node = this.nodes.get(nodeId);
-
+		CritialSectionServiceNode node = this.getNode(nodeId);
 		// lock operations
 		node.lock();
-
 		// set new state
 		node.setState(CriticalSectionState.FREE);
-		
 		// notify all that critical section has been released
 		node.dequeueAcessRequest();
-
 		// unlock operations
 		node.unlock();
 	}
@@ -389,17 +350,10 @@ public class CriticalSectionService{
 	@Path("/lock")
 	public void lock(@QueryParam(value="node") String nodeId) throws NodeNotFoundException {
 		LOGGER.log(Level.INFO, String.format("[node: %s] /cs/lock", nodeId));
-		
-		// check if given nodeId corresponds to a suscribed process
-		if(! this.isSuscribed(nodeId)) {
-			LOGGER.log(Level.WARNING, String.format("[node: %s] /cs/release: ERROR the given node is not subscribed", nodeId));
-			throw new NodeNotFoundException(nodeId);
-		}
-		
+
 		// get node
-		CritialSectionServiceNode node = this.nodes.get(nodeId);
-		
-		// lock
+		CritialSectionServiceNode node = this.getNode(nodeId);
+		// lock operations on this node
 		node.lock();
 	}
 	
@@ -419,21 +373,15 @@ public class CriticalSectionService{
 	public void unlock(@QueryParam(value="node") String nodeId) throws NodeNotFoundException {
 		LOGGER.log(Level.INFO, String.format("[node: %s] /cs/unlock", nodeId));
 		
-		// check if given nodeId corresponds to a suscribed process
-		if(! this.isSuscribed(nodeId)) {
-			LOGGER.log(Level.WARNING, String.format("[node: %s] /cs/release: ERROR the given node is not subscribed", nodeId));
-			throw new NodeNotFoundException(nodeId);
-		}
-		
 		// get node
-		CritialSectionServiceNode node = this.nodes.get(nodeId);
-		
-		// unlock
+		CritialSectionServiceNode node = this.getNode(nodeId);
+		// unlock operations on this node
 		node.unlock();
 	}
 	
 	/**
-	 * given a nodeId checks if is suscribed to current service instance.
+	 * given a nodeId checks if is suscribed to current service instance and returns the
+	 * status of the node in the critical section
 	 * 
 	 * @version 1.0
 	 * @author Héctor Sánchez San Blas
@@ -441,9 +389,17 @@ public class CriticalSectionService{
 	 * 
 	 * @param nodeId id of the node we want to check if you have subscribed to this service.
 	 * 
-	 * @return boolean indicating if node is suscribed to this broker
+	 * @return the status of the node in the system
+	 * 
+	 * @throws NodeNotFoundException when then nodeId doesn't corresponds to any node suscribed to current service
 	 * */
-	private boolean isSuscribed(String nodeId) {
-		return this.nodes.keySet().contains(nodeId);
+	private CritialSectionServiceNode getNode(String nodeId) throws NodeNotFoundException{
+		// check if given nodeId corresponds to a suscribed process
+		if(! this.nodes.keySet().contains(nodeId)) {
+			LOGGER.log(Level.WARNING, String.format(": ERROR the given node is not subscribed", nodeId));
+			throw new NodeNotFoundException(nodeId);
+		}
+		return this.nodes.get(nodeId);
 	}
+	
 }

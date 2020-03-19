@@ -11,6 +11,13 @@ import com.ssdd.ntp.bean.Pair;
 import com.ssdd.util.constants.IConstants;
 import com.ssdd.util.logging.SSDDLogFactory;
 
+/**
+ * Main class to verify that consistency is fullfilmed in critical section during all simulation
+ * 
+ * @version 1.0
+ * @author Héctor Sánchez San Blas
+ * @author Francisco Pinto Santos
+ * */
 public class MainLogVerification {
 
 	/**
@@ -65,6 +72,18 @@ public class MainLogVerification {
 		Comprobador.main(comprobationArgs);
 	}
 	
+	/**
+	 * Load a map with the association of logfile and associated NTP Pair (delay, offset).
+	 * 
+	 * 
+	 * @version 1.0
+	 * @author Héctor Sánchez San Blas
+	 * @author Francisco Pinto Santos
+	 * 
+	 * @param file where the map is stored in the java native serialization format
+	 * 
+	 * @return the described map
+	 * */
 	private static Map<String, Pair> loadPairs(String file) {
 		Map<String, Pair> idsAndPairs = null;
 		try {

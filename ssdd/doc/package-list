@@ -1,11 +1,12 @@
 com.ssdd.cs.bean
 com.ssdd.cs.client
+com.ssdd.cs.client.senders
 com.ssdd.cs.service
 com.ssdd.main
-com.ssdd.main.node
 com.ssdd.ntp.bean
 com.ssdd.ntp.client
 com.ssdd.ntp.service
+com.ssdd.simulation
 com.ssdd.util
 com.ssdd.util.constants
 com.ssdd.util.logging

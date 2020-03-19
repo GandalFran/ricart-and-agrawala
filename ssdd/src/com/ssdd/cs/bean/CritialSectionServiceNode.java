@@ -56,18 +56,35 @@ public class CritialSectionServiceNode {
 		this.lock = new Semaphore(1);
 	}
 
-	public boolean allowNode(String nodeId, long nodeCounter) {
-		return ( this.state == CriticalSectionState.ACQUIRED 
-				|| ( this.state == CriticalSectionState.REQUESTED 
-					&& this.compareCounters(nodeId, nodeCounter)
-					)
-				); 
-	}
-		
-	private boolean compareCounters(String nodeId, long nodeCounter) {
-		return ((this.lastTimeStamp== nodeCounter) ? 
-					(this.id.compareTo(nodeId) < 0) : (this.lastTimeStamp < nodeCounter)
-				);
+	/** 
+	 * when a request is received, decides if the node has access to critical section with the 
+	 * criteria set on the Ricart and Argawala's algorithm.
+	 * 
+	 * @version 1.0
+	 * @author Héctor Sánchez San Blas
+	 * @author Francisco Pinto Santos
+	 * 
+	 * @param senderId the node's id of the request's sender
+	 * @param senderTimeStamp the lamport counter value of the request's sender at the moment of the build of request
+	 * 
+	 * @return true if the request is accepted and false if the request should be queued
+	 */
+	public boolean permitEnter(String senderId, long senderTimeStamp) {
+		switch(this.state) {
+			case FREE:
+				return true;
+			case ACQUIRED:
+				return false;
+			case REQUESTED:
+				if(this.lastTimeStamp == senderTimeStamp) {
+					return (this.id.compareTo(senderId) > 0);
+				}else {
+					return (this.lastTimeStamp > senderTimeStamp);
+				}
+			default:
+				// NOTE: this won't never be reached by the program, but is neccesary to shut up the eclipse warnings
+				return false;
+		}
 	}
 	
 	/** 

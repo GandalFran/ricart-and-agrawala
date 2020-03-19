@@ -11,6 +11,9 @@ import com.ssdd.simulation.NodeBuilder;
 import com.ssdd.util.constants.IConstants;
 import com.ssdd.util.logging.SSDDLogFactory;
 
+/**
+ * main class to manage the simulation of the critical section enter
+ * */
 public class MainSimulation {
 
 	/**

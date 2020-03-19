@@ -23,6 +23,9 @@ import com.ssdd.simulation.SimulationLogAdjuster;
 import com.ssdd.util.constants.IConstants;
 import com.ssdd.util.logging.SSDDLogFactory;
 
+/**
+ * main class to manage critical sections supervisor tasks (restart, ntp, log time adjustement, ...)
+ * */
 public class MainSupervisor {
 
 	/**
@@ -30,7 +33,7 @@ public class MainSupervisor {
 	 * */
     private final static Logger LOGGER = SSDDLogFactory.logger(MainSupervisor.class);
     
-	public static void main(String [] args)  throws Exception{
+	public static void main(String [] args){
 		// take service type argument
 		String service = args[0];
 
@@ -67,12 +70,33 @@ public class MainSupervisor {
 		
 	}
 	
+	/**
+	 * restarts the critical section service in each server
+	 * 
+	 * @version 1.0
+	 * @author Héctor Sánchez San Blas
+	 * @author Francisco Pinto Santos
+	 * 
+	 * @param numNodes number of processes tath will handle the critical section
+	 * @param servers where the critical section service is deployed
+	 * */
 	private static void restartCs(int numNodes, String [] servers) {
 		for(String server : servers)
 			CriticalSectionService.buildProxy(server).restart(numNodes);
 	}
 	
-	private static void sampleNtp(String file, String [] servers)  throws Exception{
+	/**
+	 * obtains a number of pairs for the NTP algorithm for each given server and stores it into the given file.
+	 * If the file exists, merges the obtained pairs with the ones stored in the file.
+	 * 
+	 * @version 1.0
+	 * @author Héctor Sánchez San Blas
+	 * @author Francisco Pinto Santos
+	 * 
+	 * @param file empty or containing the association between list of ntp calculated pairs and server's ip.
+	 * @param servers to sample the NTP t1 and t2 times from
+	 * */
+	private static void sampleNtp(String file, String [] servers){
 		// build client
 		NTPClient ntp = MainSupervisor.buildNtpClient(servers);
 		
@@ -95,6 +119,17 @@ public class MainSupervisor {
 		
 	}
 	
+	/**
+	 * adds the offset to the time column in given logs.
+	 * 
+	 * @version 1.0
+	 * @author Héctor Sánchez San Blas
+	 * @author Francisco Pinto Santos
+	 * 
+	 * @param logAndServer map with the association of log file and server (ip)
+	 * @param ntpFile file containing the association between list of ntp calculated pairs and server's ip.
+	 * 
+	 * */
 	private static void correctLogs(String ntpFile, Map<String, String> logAndServer) {
 		// load ntp samples
 		Map<NTPService, Pair []> samples = MainSupervisor.loadNtpSamples(ntpFile);
@@ -134,6 +169,17 @@ public class MainSupervisor {
 		MainSupervisor.storePairs(ntpFile, logsAndPairs);
 	}
 
+	/**
+	 * builds and NTPClient with the servers' ips.
+	 * 
+	 * @version 1.0
+	 * @author Héctor Sánchez San Blas
+	 * @author Francisco Pinto Santos
+	 * 
+	 * @param servers servers to request the time in the NTP protocol
+	 * 
+	 * @return a NTPClient build with the servers
+	 * */
 	public static NTPClient buildNtpClient(String [] servers) {
 		NTPService [] services = new NTPService [servers.length];
 		for(int i=0; i<services.length; i++) 
@@ -141,6 +187,17 @@ public class MainSupervisor {
 		return new NTPClient(services);
 	}
 	
+	/**
+	 * loads a map with the association of server and associated list of NTP Pairs (delay, offset).
+	 * 
+	 * @version 1.0
+	 * @author Héctor Sánchez San Blas
+	 * @author Francisco Pinto Santos
+	 * 
+	 * @param file where the map is stored in the java native serialization format
+	 * 
+	 * @return the described map
+	 * */
 	private static Map<NTPService, Pair[]> loadNtpSamples(String file) {
 		Map<String, Pair[]> loadMap = null;
 		try {
@@ -162,7 +219,18 @@ public class MainSupervisor {
 		return samples;
 	}
 	
-	private static void storeNtpSamples(String file, Map<NTPService, Pair[]> samples) throws Exception{
+	/**
+	 * stores into a file a map with the association of server and list of NTP Pairs (delay, offset),
+	 * in the java native serialization format.
+	 * 
+	 * @version 1.0
+	 * @author Héctor Sánchez San Blas
+	 * @author Francisco Pinto Santos
+	 * 
+	 * @param samples the map to store
+	 * @param file where the map is stored in the java native serialization format
+	 * */
+	private static void storeNtpSamples(String file, Map<NTPService, Pair[]> samples){
 		Map<String, Pair[]> storeMap = new HashMap<>();
 		for(NTPService service : samples.keySet()) {
 			storeMap.put(((NTPServiceProxy)service).getServerIp(), samples.get(service));
@@ -175,11 +243,21 @@ public class MainSupervisor {
 	        fos.close();
 		} catch (IOException e) {
 			LOGGER.log(Level.WARNING, String.format("storeNtpSamples: ERROR: %s", e.getMessage()), e);
-			throw e;
-			// System.exit(IConstants.EXIT_CODE_IO_ERROR);
+			System.exit(IConstants.EXIT_CODE_IO_ERROR);
 		}
 	}
 	
+	/**
+	 * stores into a file a map with the association of server and NTP Pair (delay, offset),
+	 * in the java native serialization format.
+	 * 
+	 * @version 1.0
+	 * @author Héctor Sánchez San Blas
+	 * @author Francisco Pinto Santos
+	 * 
+	 * @param result the map to store
+	 * @param file where the map is stored in the java native serialization format
+	 * */
 	private static void storePairs(String file, Map<String, Pair> result) {
 		try {
 			FileOutputStream fos = new FileOutputStream(file);
@@ -193,6 +271,18 @@ public class MainSupervisor {
 		}
 	}
 	
+	/**
+	 * joins two maps into one.
+	 * 
+	 * @version 1.0
+	 * @author Héctor Sánchez San Blas
+	 * @author Francisco Pinto Santos
+	 * 
+	 * @param m1 a map
+	 * @param m2 another map
+	 * 
+	 * @return another map resulting of merging the m1 and m2 maps
+	 * */
 	private static Map<NTPService, Pair []> joinMaps(Map<NTPService, Pair []> m1, Map<NTPService, Pair []> m2){
 		Map<NTPService, Pair []> result = new HashMap<>();
 		

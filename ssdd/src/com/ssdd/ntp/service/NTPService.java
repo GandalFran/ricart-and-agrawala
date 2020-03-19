@@ -55,11 +55,6 @@ public class NTPService{
 		return new NTPServiceProxy(host, serviceUri);
 	}
 	
-	public static NTPService buildProxyFromUri(String serviceUri) {
-		String host = NTPService.buildServiceHost(serviceUri);
-		return new NTPServiceProxy(host, serviceUri);
-	}
-	
 	/**
 	 * factory method, to build a URI for a NTPService from the host IP and port.
 	 * 
@@ -73,10 +68,6 @@ public class NTPService{
 	 * */
 	public static String buildServiceUri(String host) {
 		return String.format("http://%s:8080/ssdd/ntp", host);
-	}
-	
-	public static String buildServiceHost(String uri) {
-		return uri.replace("http://", "").replace(":8080/ssdd/ntp", "");
 	}
 	
 	/**

@@ -1,4 +1,4 @@
-package com.ssdd.cs.client;
+package com.ssdd.cs.client.senders;
 
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -8,6 +8,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.ssdd.cs.client.CriticalSectionRouter;
 import com.ssdd.cs.service.CriticalSectionService;
 import com.ssdd.cs.service.NodeNotFoundException;
 import com.ssdd.util.constants.IConstants;
@@ -15,6 +16,9 @@ import com.ssdd.util.logging.SSDDLogFactory;
 
 import jersey.repackaged.com.google.common.util.concurrent.ThreadFactoryBuilder;
 
+/**
+ * sends in a concurrent way messages to all nodes to request the acces to critical section.
+ * */
 public class CriticalSectionRequestSenderPool{
 
 	/**
@@ -30,7 +34,7 @@ public class CriticalSectionRequestSenderPool{
     /** 
      * creates a threadpool with receivers.size() threads, to send receivers.size() messages in a concurrent way.
      * Then stops the threadpool to forbid the send of more messages in current poool.
-     * To send messages uses the {@link com.ssdd.cs.client.CriticalSectionRequestSenderPool#send(String, String, CriticalSectionRouter, long)} method
+     * To send messages uses the {@link com.ssdd.cs.client.senders.CriticalSectionRequestSenderPool#send(String, String, CriticalSectionRouter, long)} method
      * 
      * @version 1.0
      * @author Héctor Sánchez San Blas
@@ -96,34 +100,6 @@ public class CriticalSectionRequestSenderPool{
 			LOGGER.log(Level.WARNING, String.format("send: NodeNotFoundException: error %s", e.getMessage()), e);
 			System.exit(IConstants.EXIT_CODE_SIMULATION_ERROR);
 		}
-		
-		/*CriticalSectionServiceProxy service = (CriticalSectionServiceProxy) router.route(receiver);
-		Semaphore s = new Semaphore(0);
-		try {
-			service.request(receiver, sender, messageTimeStamp, 
-				new InvocationCallback<Response>(){
-					@Override
-					public void completed(Response response){
-						s.release();
-					}
-					@Override
-					public void failed(Throwable throwable){
-						System.out.println("Invocation failed.");
-						throwable.printStackTrace();
-					}
-				}
-			);
-		} catch (NodeNotFoundException e) {
-			LOGGER.log(Level.WARNING, String.format("send: NodeNotFoundException: error %s", e.getMessage()), e);
-			System.exit(IConstants.EXIT_CODE_SIMULATION_ERROR);
-		}
-		
-		try {
-			s.acquire();
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}*/
 	}
 
 }
