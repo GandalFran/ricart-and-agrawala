@@ -7,8 +7,6 @@ import java.nio.file.Files;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import com.ssdd.util.constants.IConstants;
 import com.ssdd.util.logging.SSDDLogFactory;
@@ -23,8 +21,6 @@ public class SimulationLogAdjuster{
 	
 	public void adjustTime(String file, double offset) {
 		List<String> log = null;
-
-		LOGGER.log(Level.WARNING, String.format("given offset: %f", offset));
 		
 		// read log
 		try {

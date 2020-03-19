@@ -20,19 +20,49 @@ public class MainLogVerification {
 	
     
 	public static void main(String [] args) {
+		// get pairs file and main logFile
 		String pairsFile = args[0];
 		String logFile = args[1];
 		
-		System.err.println(args[0]);
-		System.err.println(args[1]);
+		LOGGER.log(Level.INFO, "Arguments");
+		LOGGER.log(Level.INFO, String.format("\t log file: %s", logFile));
+		LOGGER.log(Level.INFO, String.format("\t pairs file: %s", pairsFile));
 		
-		Map<String, Pair> idsAndPairs = MainLogVerification.loadPairs(pairsFile);
+		// args to comprobation
+		String [] comprobationArgs = null;
 		
-		Comprobador.main(new String [] {
-				logFile,
-				new Double(idsAndPairs.get("1").getDelay()).toString()
-				// , new Double(idsAndPairs.get("2").getDelay()).toString()
-		});
+		switch(args.length-2) {
+			case -2: 
+			case -1:
+				System.err.println("ERROR: error number of arguments");
+				System.exit(IConstants.EXIT_CODE_ARGS_ERROR);
+				break;
+			case 0:
+				// instance the comrpobationArgs array and set logFile
+				comprobationArgs =  new String [] { logFile };
+				break;
+			default:
+				// load pairs from ntp file
+				Map<String, Pair> logsAndPairs = MainLogVerification.loadPairs(pairsFile);
+				
+				// instance the comrpobationArgs array
+				comprobationArgs =  new String [args.length - 1];
+				
+				// set logFile
+				comprobationArgs[0] = logFile;
+				
+				// load delay
+				LOGGER.log(Level.INFO, "\t offsets and delays");
+				for(int i = 0; i<(args.length-2); i++) {
+					String log = args[i+2];
+					Pair assignedPair = logsAndPairs.get(log);
+					comprobationArgs[i+1] = new Double(assignedPair.getDelay()).toString();
+					LOGGER.log(Level.INFO, String.format("\t\t LOG %s pair %s", log, assignedPair.toString()));
+				}
+		}
+
+		// execute comprobation
+		Comprobador.main(comprobationArgs);
 	}
 	
 	private static Map<String, Pair> loadPairs(String file) {

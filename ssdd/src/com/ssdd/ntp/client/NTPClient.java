@@ -119,17 +119,17 @@ public class NTPClient {
 	 * 
 	 * @return the Pair selected as Best.
 	 * */
+	/*
 	public Pair selectBestPair(Pair [] allPairs) {
 		Pair bestPair = new Pair(Long.MAX_VALUE, 0);
 		
 		for(Pair p: allPairs) {
-			if(p.getDelay() <= bestPair.getDelay()) {
+			if(p.getDelay() < bestPair.getDelay()) {
 				bestPair = p;
 			}
 		}
 		return bestPair;
-	}
-	/*
+	}*/
 	public Pair selectBestPair(Pair [] pairs) {
 		MarzulloInterval [] table = this.generateMarzulloTable(pairs);
 		
@@ -161,6 +161,6 @@ public class NTPClient {
 		double delay = bestEnd - bestStart;
 		double offset = (bestStart + bestEnd)/2;
 		return new Pair(delay, offset);
-	}*/
+	}
 	
 }

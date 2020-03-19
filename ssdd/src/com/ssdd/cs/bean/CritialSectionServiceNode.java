@@ -20,8 +20,9 @@ public class CritialSectionServiceNode {
 	 * */
     private final static Logger LOGGER = SSDDLogFactory.logger(CritialSectionServiceNode.class);
     
+
     /**
-     * the id of the node, used for logging inside the class
+     * the node's id
      * */
     private String id;
     /**
@@ -55,6 +56,20 @@ public class CritialSectionServiceNode {
 		this.lock = new Semaphore(1);
 	}
 
+	public boolean allowNode(String nodeId, long nodeCounter) {
+		return ( this.state == CriticalSectionState.ACQUIRED 
+				|| ( this.state == CriticalSectionState.REQUESTED 
+					&& this.compareCounters(nodeId, nodeCounter)
+					)
+				); 
+	}
+		
+	private boolean compareCounters(String nodeId, long nodeCounter) {
+		return ((this.lastTimeStamp== nodeCounter) ? 
+					(this.id.compareTo(nodeId) < 0) : (this.lastTimeStamp < nodeCounter)
+				);
+	}
+	
 	/** 
 	 * stores the node's current counter value, to be used as last message timestamp
 	 * 

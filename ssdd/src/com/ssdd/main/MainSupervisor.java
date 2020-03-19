@@ -54,14 +54,12 @@ public class MainSupervisor {
 				String ntpFile = args[1];
 				String [] restOfArgs = Arrays.copyOfRange(args, 2, args.length);
 				// associate id with logfile and server
-				Map<String, String> idAndLogFile = new HashMap<>();
-				Map<String, String> serverAndId = new HashMap<>();
-				for(int i =0; i<restOfArgs.length; i+=3) {
-					idAndLogFile.put(restOfArgs[i], restOfArgs[i+1]);
-					serverAndId.put(restOfArgs[i+2], restOfArgs[i]);
+				Map<String, String> logAndServer = new HashMap<>();
+				for(int i =0; i<restOfArgs.length; i+=2) {
+					logAndServer.put(restOfArgs[i], restOfArgs[i+1]);
 				}
 				// correct logs
-				MainSupervisor.correctLogs(ntpFile, idAndLogFile, serverAndId);
+				MainSupervisor.correctLogs(ntpFile, logAndServer);
 				break;
 			default:
 				System.out.println("ERROR: selected service (" + service + ") not found.");
@@ -97,25 +95,31 @@ public class MainSupervisor {
 		
 	}
 	
-	private static void correctLogs(String ntpFile, Map<String, String> idAndLogFile, Map<String, String> serverAndId ) {
+	private static void correctLogs(String ntpFile, Map<String, String> logAndServer) {
 		// load ntp samples
 		Map<NTPService, Pair []> samples = MainSupervisor.loadNtpSamples(ntpFile);
+	
+		LOGGER.log(Level.INFO, "Arguments");
+		LOGGER.log(Level.INFO, String.format("\t ntp file %s", ntpFile));
+		LOGGER.log(Level.INFO, String.format("\t logs, hosts and pairs:", ntpFile));
 		
 		// calculate best pairs for each
 		NTPClient ntp = new NTPClient();
 		Map<String, Pair> logsAndPairs = new HashMap<>();
-		Map<String, Pair> idsAndPairs = new HashMap<>();
-		for(NTPService s : samples.keySet()) {
-			String serverIp = ((NTPServiceProxy) s).getServerIp();
-			// get the log file and id
-			String id = serverAndId.get(serverIp);
-			String logFile = idAndLogFile.get(id);
-			// select best pair
-			Pair bestPair = ntp.selectBestPair(samples.get(s));
-			// add to logsToCorrect and idsAndPairs
-			idsAndPairs.put(id, bestPair);
-			logsAndPairs.put(logFile, bestPair);
-		}	
+		for(String log : logAndServer.keySet()) {
+			// get server
+			String server = logAndServer.get(log);
+			// get list of pairs
+			for(NTPService service : samples.keySet()) {
+				String serviceIp = ((NTPServiceProxy) service).getServerIp();
+				if(server.equals(serviceIp)) {
+					// calculate best pair and add it to logsAndPairs
+					Pair pair = ntp.selectBestPair(samples.get(service));
+					logsAndPairs.put(log, pair);
+					LOGGER.log(Level.INFO, String.format("\t log: %s host: %s pair: %s", log, serviceIp, pair.toString()));
+				}
+			}			
+		}
 		
 		// adjust logs
 		SimulationLogAdjuster adjuster = new SimulationLogAdjuster();
@@ -124,9 +128,10 @@ public class MainSupervisor {
 			adjuster.adjustTime(log, p.getOffset());
 		}
 		
-		// store association between id and pair into ntp file
+		
+		// store association between log and pair into ntp file
 		new File(ntpFile).delete();
-		MainSupervisor.storePairs(ntpFile, idsAndPairs);
+		MainSupervisor.storePairs(ntpFile, logsAndPairs);
 	}
 
 	public static NTPClient buildNtpClient(String [] servers) {

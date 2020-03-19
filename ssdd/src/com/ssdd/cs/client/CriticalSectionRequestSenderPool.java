@@ -3,17 +3,12 @@ package com.ssdd.cs.client;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Semaphore;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.ws.rs.client.InvocationCallback;
-import javax.ws.rs.core.Response;
-
 import com.ssdd.cs.service.CriticalSectionService;
-import com.ssdd.cs.service.CriticalSectionServiceProxy;
 import com.ssdd.cs.service.NodeNotFoundException;
 import com.ssdd.util.constants.IConstants;
 import com.ssdd.util.logging.SSDDLogFactory;

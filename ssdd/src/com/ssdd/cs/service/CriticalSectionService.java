@@ -10,7 +10,6 @@ import java.util.logging.Logger;
 
 import javax.inject.Singleton;
 import javax.ws.rs.GET;
-import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
@@ -321,8 +320,7 @@ public class CriticalSectionService{
 		// update local lamport time
 		node.getCounter().update(messageTimeStamp);
 		
-		if(node.getState() == CriticalSectionState.ACQUIRED
-				|| (node.getState() == CriticalSectionState.REQUESTED && this.compareCounters(nodeId, sender, node.getLastTimeStamp(), messageTimeStamp))) {
+		if(! node.allowNode(sender, messageTimeStamp)) {
 			LOGGER.log(Level.INFO, String.format("[node: %s] /cs/request node %s QUEUED", nodeId, sender));
 			// unlock operations
 			node.unlock();
@@ -337,9 +335,6 @@ public class CriticalSectionService{
 		
 	}
 	
-	private boolean compareCounters(String n1, String n2, long c1, long c2) {
-		return (c1 == c2) ? (n1.compareTo(n2) < 0) : (c1 < c2);
-	}
 
 	/**
 	 * used by suscribed nodes to to release the critical section

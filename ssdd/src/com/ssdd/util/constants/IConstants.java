@@ -9,6 +9,12 @@ package com.ssdd.util.constants;
 */
 public interface IConstants {
 	
+	// log
+	/** 
+	 * Log information
+	 */
+	public static final boolean DEBUG = false;
+	
 	// ntp service constants
 	/** 
 	 * Number of iterations of sampling time in the client and server on NTP algorithm.
@@ -17,11 +23,11 @@ public interface IConstants {
 	/** 
 	 * Minimum time (in milliseconds) between time samples in NTP service.
 	 */
-	public static final long NTP_MIN_SLEEP_MS = 100;
+	public static final long NTP_MIN_SLEEP_MS = 10;
 	/** 
 	 * Maximum time (in milliseconds) between time samples in NTP service.
 	 */
-	public static final long NTP_MAX_SLEEP_MS = 1000;
+	public static final long NTP_MAX_SLEEP_MS = 500;
 	
 	// simulation constants
 	/** 
@@ -62,4 +68,8 @@ public interface IConstants {
 	 * Error code given when an error related to I/O occurs.
 	 * */
 	public static final int EXIT_CODE_IO_ERROR =400;
+	/**
+	 * Error code given when an error related to number of arguments in any main class occurs.
+	 * */
+	public static final int EXIT_CODE_ARGS_ERROR = 500;
 }
