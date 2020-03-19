@@ -11,13 +11,6 @@ public class MarzulloInterval implements Comparable<MarzulloInterval>{
 		this.intervalEnd = intervalEnd;
 		this.intervalStart = intervalStart;
 	}
-
-	public static MarzulloInterval[] buildMarzulloInterval(Pair p) {
-		return new MarzulloInterval [] {
-				new MarzulloInterval(p.getOffset(),-1),
-				new MarzulloInterval(p.getDelay(),+1)
-		};
-	}
 	
 	public static Pair toPair(double start, double end) {
 		double delay = end - start;

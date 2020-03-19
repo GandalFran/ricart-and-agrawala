@@ -77,9 +77,9 @@ public class CritialSectionServiceNode {
 				return false;
 			case REQUESTED:
 				if(this.lastTimeStamp == senderTimeStamp) {
-					return (this.id.compareTo(senderId) > 0);
+					return (senderId.compareTo(this.id) < 0);
 				}else {
-					return (this.lastTimeStamp > senderTimeStamp);
+					return (senderTimeStamp < this.lastTimeStamp);
 				}
 			default:
 				// NOTE: this won't never be reached by the program, but is neccesary to shut up the eclipse warnings
@@ -98,7 +98,7 @@ public class CritialSectionServiceNode {
 	 */
 	public long saveLastTimeStamp() {
 		this.lastTimeStamp = this.counter.getCounter();
-		return lastTimeStamp;
+		return this.lastTimeStamp;
 	}
 	
 	/** 

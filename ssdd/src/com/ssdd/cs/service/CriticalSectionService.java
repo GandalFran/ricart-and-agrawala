@@ -396,7 +396,7 @@ public class CriticalSectionService{
 	private CritialSectionServiceNode getNode(String nodeId) throws NodeNotFoundException{
 		// check if given nodeId corresponds to a suscribed process
 		if(! this.nodes.keySet().contains(nodeId)) {
-			LOGGER.log(Level.WARNING, String.format(": ERROR the given node is not subscribed", nodeId));
+			LOGGER.log(Level.WARNING, String.format("ERROR the given node is not subscribed %s", nodeId));
 			throw new NodeNotFoundException(nodeId);
 		}
 		return this.nodes.get(nodeId);
