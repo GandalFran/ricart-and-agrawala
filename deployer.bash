@@ -27,9 +27,11 @@ server_war_initial=$project_name.war
 server_war_final=$tomcat_folder_final/webapps/$project_name.war
 
 # tmp files
-ntp_tmp_file=/tmp/ntp.tmp
-log_folder=/tmp
+tmp_folder=/tmp
+ntp_file=ntp.bin
+log_folder=$tmp_folder/log
 log_file_sufix=simulation.log
+
 
 # ================================================== #
 # 					  utils							 #
@@ -174,14 +176,14 @@ run_application(){
 	user_host3="$user@$host3"
 
 	# log files names
-	log_file_host1=$(get_log_name 0)
-	log_file_host2=$(get_log_name 1)
-	log_file_host3=$(get_log_name 2)
+	log_file_host1=$(get_log_name 1)
+	log_file_host2=$(get_log_name 2)
+	log_file_host3=$(get_log_name 3)
 	log_file_total=$(get_log_name total_)
 
-	# clean temporary files from other executions in remotes
-	echo "cleaning temporary files in remotes ..."
-	clean_file $user_host1 $ntp_tmp_file
+	# cleaning files from other executions
+	echo "cleaning temporary files in remotes (results of other executions) ..."
+	clean_file $user_host1 $ntp_file
 	clean_file $user_host1 $log_file_total
 	clean_file $user_host1 $log_file_host1
 	clean_file $user_host2 $log_file_host2
@@ -189,7 +191,8 @@ run_application(){
 
 	# run supervisor ntp
 	echo "running supervisor ntp ..."
-	remote_exec_app $user_host1 "supervisor ntp $ntp_tmp_file $host2 $host3"
+	# remote_exec_app $user_host1 "supervisor ntp $ntp_file $host1 $host2 $host3"
+	remote_exec_app $user_host1 "supervisor ntp $ntp_file $host2 $host3"
 
 	# restart critical section and run simulation
 	echo "running simulation ..."
@@ -200,7 +203,8 @@ run_application(){
 
 	# calculate ntp in supervisor
 	echo "running supervisor ntp ..."
-	remote_exec_app $user_host1 "supervisor ntp $ntp_tmp_file $host2 $host3"
+	# remote_exec_app $user_host1 "supervisor ntp $ntp_file $host1 $host2 $host3"
+	remote_exec_app $user_host1 "supervisor ntp $ntp_file $host2 $host3"
 
 	# copy logs to machine where supervisor is allocated
 	echo "copying logs to supervisor..."
@@ -209,19 +213,20 @@ run_application(){
 
 	# correct time in logs
 	echo "adjusting time in logs ..."
-	remote_exec_app $user_host1 "supervisor correctLog $ntp_tmp_file 1 $log_file_host2 $host2 2 $log_file_host3 $host3"
+	#remote_exec_app $user_host1 "supervisor correctLog $ntp_file $log_file_host1 $host1 $log_file_host2 $host2 $log_file_host3 $host3"
+	remote_exec_app $user_host1 "supervisor correctLog $ntp_file $log_file_host2 $host2 $log_file_host3 $host3"
 
 	# join and sort logs
 	echo "joining and sorting logs ..."
-	remote_exec $user_host1 "cat $log_file_host1 $log_file_host2 $log_file_host3 | sort -k 3 | awk NF > $log_file_total"
+	remote_exec $user_host1 "cat $log_file_host1 $log_file_host2 $log_file_host3 | awk NF | sort -k 3 > $log_file_total"
 
 	# run supervisor log comprobation
 	echo "run log comprobation ..."
-	remote_exec_app $user_host1 "verification $ntp_tmp_file $log_file_total"
+	remote_exec_app $user_host1 "verification $ntp_file $log_file_total $log_file_host2 $log_file_host3"
 
 	# clean temporary files in remotes
 	echo "cleaning temporary files in remotes ..."
-	clean_file $user_host1 $ntp_tmp_file
+	clean_file $user_host1 $ntp_file
 	clean_file $user_host1 $log_file_total
 	clean_file $user_host1 $log_file_host1
 	clean_file $user_host2 $log_file_host2
@@ -306,6 +311,14 @@ do
 			share_key $user_host2
 			share_key $user_host3
 
+			# create temporary and log fodlers in remote
+			remote_exec $user_host1 "mkdir -p $tmp_folder"
+			remote_exec $user_host2 "mkdir -p $tmp_folder"
+			remote_exec $user_host3 "mkdir -p $tmp_folder"
+			remote_exec $user_host1 "mkdir -p $log_folder"
+			remote_exec $user_host2 "mkdir -p $log_folder"
+			remote_exec $user_host3 "mkdir -p $log_folder"
+
 			# download tomcat
 			echo "downloading tomcat ..."
 			download_tomcat
@@ -356,18 +369,20 @@ do
 			user_host2="$user@$host2"
 			user_host3="$user@$host3"
 
+			# clean server files
+			echo "cleaning older server files ..."
+			clean_server $user_host1
+			clean_server $user_host2
+			clean_server $user_host3
+
 			# clean client files
 			echo "cleaning older client files ..."
 			clean_file $user_host1 $client_jar_final
 			clean_file $user_host2 $client_jar_final
 			clean_file $user_host3 $client_jar_final
 
-			# clean server files
-			echo "cleaning older server files ..."
-			clean_server $user_host1
-			clean_server $user_host2
-			clean_server $user_host3
 			# wait for server to detect that files has been deleted
+			echo "waiting 5 seconds to allow servers to detect the deletion of files ..."
 			sleep 5
 
 			# restart tomcat in each server
@@ -397,7 +412,7 @@ do
 			sleep 5
 
 			# run application
-			echo "running clients ..."
+			echo "running application ..."
 			run_application $user $host1 $host2 $host3
       ;;
       "-clean")
@@ -441,10 +456,13 @@ do
 			clean_file $user_host2 $tomcat_folder_final
 			clean_file $user_host3 $tomcat_folder_final
 
-			# clean tmp folder where temporary files are located
-			remote_exec $user_host1 "rm -rf /tmp/*"
-			remote_exec $user_host2 "rm -rf /tmp/*"
-			remote_exec $user_host3 "rm -rf /tmp/*"
+			# clean log and tmp files folders
+			clean_file $user_host1 $log_folder
+			clean_file $user_host2 $log_folder
+			clean_file $user_host3 $log_folder
+			clean_file $user_host1 $tmp_folder
+			clean_file $user_host2 $tmp_folder
+			clean_file $user_host3 $tmp_folder
 			
       ;;
       *)
