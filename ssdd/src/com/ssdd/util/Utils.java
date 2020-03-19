@@ -20,8 +20,9 @@ public class Utils {
 	 * 
 	 * */
 	 public static long randomBetweenInterval(Random r, long min, long max) {
-		 long number = (min + (r.nextLong() % (max - min + 1)));
-		 number *= (number > 0) ? 1 : -1;
+		 long random = r.nextLong();
+		 random *= (random >= 0) ? 1 : -1;
+		 long number = (min + (random % (max - min + 1)));
 		 return number;
 	 }
 	 
