@@ -136,11 +136,11 @@ public class NTPClient {
 		double best=0, cnt=0, bestStart=0, bestEnd=0;
 		for(int i = 0; i< table.length; i++) {
 			 MarzulloInterval interval  = table[i];
-			cnt -= interval.getIntervalEnd();
+			cnt -= interval.getType();
 			if(cnt > best) {
 				best = cnt;
-				bestStart = interval.getIntervalStart();
-				bestEnd = table[i+1].getIntervalStart();
+				bestStart = interval.getOffset();
+				bestEnd = table[i+1].getOffset();
 			}
 		}
 		
@@ -164,8 +164,9 @@ public class NTPClient {
 		for(Pair p: pairs) {
 			table.addAll(Arrays.asList(p.toMarzulloInterval()));
 		}
-		Collections.sort(table);
-		return Arrays.copyOf(table.toArray(), table.size(), MarzulloInterval[].class);
+		MarzulloInterval[] tableArray = Arrays.copyOf(table.toArray(), table.size(), MarzulloInterval[].class);
+		Arrays.sort(tableArray);
+		return tableArray;
 	}
 	
 }

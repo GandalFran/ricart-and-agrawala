@@ -28,10 +28,8 @@ public class Pair implements Comparable<Pair>, Serializable{
 	
 	public MarzulloInterval[] toMarzulloInterval() {
 		return new MarzulloInterval [] {
-				// new MarzulloInterval(this.offset,-1),
-				// new MarzulloInterval(this.delay,+1)
-				new MarzulloInterval(this.offset - (this.delay/2),-1),
-				new MarzulloInterval(this.offset + (this.delay/2),+1)
+				new MarzulloInterval(this.offset - this.delay*0.5,-1),
+				new MarzulloInterval(this.offset + this.delay*0.5,+1)
 		};
 	}
 

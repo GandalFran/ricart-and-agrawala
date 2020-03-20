@@ -3,13 +3,13 @@ package com.ssdd.ntp.bean;
 
 public class MarzulloInterval implements Comparable<MarzulloInterval>{
 
-	private double intervalEnd;
-	private double intervalStart;	
+	private int type;	
+	private double offset;
 	
-	public MarzulloInterval(double intervalStart, double intervalEnd) {
+	public MarzulloInterval(double offset, int type) {
 		super();
-		this.intervalEnd = intervalEnd;
-		this.intervalStart = intervalStart;
+		this.type = type;
+		this.offset = offset;
 	}
 	
 	public static Pair toPair(double start, double end) {
@@ -18,26 +18,32 @@ public class MarzulloInterval implements Comparable<MarzulloInterval>{
 		return new Pair(delay, offset);
 	}
 	
-	public double getIntervalEnd() {
-		return intervalEnd;
+	public int getType() {
+		return type;
 	}
 
-	public void setIntervalEnd(double intervalEnd) {
-		this.intervalEnd = intervalEnd;
+	public void setType(int type) {
+		this.type = type;
 	}
 
-	public double getIntervalStart() {
-		return intervalStart;
+	public double getOffset() {
+		return offset;
 	}
 
-	public void setIntervalStart(double intervalStart) {
-		this.intervalStart = intervalStart;
+	public void setOffset(double offset) {
+		this.offset = offset;
 	}
 
 	@Override
 	public int compareTo(MarzulloInterval o) {
-		int foo = Double.compare(this.intervalStart, o.intervalStart);
-		return (foo == 0) ? Double.compare(this.intervalEnd, o.intervalEnd) : foo;
+		// TODO: cambiar forma de comparar
+		if(o.offset > this.offset) {
+			return -1;
+		}else if(o.offset < this.offset){
+			return 1;
+		}else {
+			return this.type;
+		}
 	}
 	
 }
