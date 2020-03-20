@@ -162,7 +162,7 @@ public class NTPClient {
 	private MarzulloInterval[] populateMarzulloTable(Pair [] pairs) {
 		List <MarzulloInterval> table = new ArrayList<>();
 		for(Pair p: pairs) {
-			table.addAll(Arrays.asList(Pair.toMarzulloInterval(p)));
+			table.addAll(Arrays.asList(p.toMarzulloInterval()));
 		}
 		Collections.sort(table);
 		return Arrays.copyOf(table.toArray(), table.size(), MarzulloInterval[].class);

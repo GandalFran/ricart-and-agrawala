@@ -36,9 +36,8 @@ public class MarzulloInterval implements Comparable<MarzulloInterval>{
 
 	@Override
 	public int compareTo(MarzulloInterval o) {
-		//int foo = Double.compare(this.intervalStart, o.intervalStart);	
-		//return (foo != 0) ? foo : Double.compare(this.intervalEnd, o.intervalEnd);
-		return Double.compare(this.intervalStart, o.intervalStart);
+		int foo = Double.compare(this.intervalStart, o.intervalStart);
+		return (foo == 0) ? Double.compare(this.intervalEnd, o.intervalEnd) : foo;
 	}
 	
 }
