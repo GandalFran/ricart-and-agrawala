@@ -9,7 +9,7 @@ import javax.ws.rs.ext.Provider;
 
 
 /** 
- * Exception to represent that the requested node is not suscribed to curent broker.
+ * Exception to represent that the requested node is not suscribed to curent service.
  * Is only a security check to avoid unhandled errors like NoSuchKeyException on Maps, ...
  * @see <a href="https://stackoverflow.com/questions/23858488/how-i-return-http-404-json-xml-response-in-jax-rs-jersey-on-tomcat">https://stackoverflow.com/questions/23858488/how-i-return-http-404-json-xml-response-in-jax-rs-jersey-on-tomcat</a>
  * 
@@ -18,7 +18,7 @@ import javax.ws.rs.ext.Provider;
  * @author Francisco Pinto Santos
 */
 @Provider
-public class NodeNotFoundException extends Exception implements ExceptionMapper<NodeNotFoundException>{
+public class ProcessNotFoundException extends Exception implements ExceptionMapper<ProcessNotFoundException>{
 
 	/**
 	 * version uid neccesary to stop the eclipse warnings
@@ -30,11 +30,11 @@ public class NodeNotFoundException extends Exception implements ExceptionMapper<
 	 * */
 	private String nodeId;
 	
-	public NodeNotFoundException() {
+	public ProcessNotFoundException() {
 		super("The requested node is not suscribed to this service");
 	}
 	
-	public NodeNotFoundException(String nodeId) {
+	public ProcessNotFoundException(String nodeId) {
 		this.nodeId = nodeId;
 	}
     
@@ -42,7 +42,7 @@ public class NodeNotFoundException extends Exception implements ExceptionMapper<
     private HttpHeaders headers;
 
     @Override
-    public Response toResponse(NodeNotFoundException ex){
+    public Response toResponse(ProcessNotFoundException ex){
         return Response.status(404).entity("The requested node (" + this.nodeId + ") is not suscribed to this service").type(MediaType.TEXT_PLAIN).build();
     }
 }

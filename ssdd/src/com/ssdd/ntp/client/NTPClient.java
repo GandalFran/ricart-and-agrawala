@@ -2,16 +2,15 @@ package com.ssdd.ntp.client;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.ssdd.ntp.bean.MarzulloInterval;
+import com.ssdd.ntp.bean.MarzulloTuple;
 import com.ssdd.ntp.bean.Pair;
 import com.ssdd.ntp.service.NTPService;
 import com.ssdd.ntp.service.NTPServiceProxy;
-import com.ssdd.util.constants.IConstants;
+import com.ssdd.util.constants.INtpConstants;
 
 
 /** 
@@ -23,7 +22,7 @@ import com.ssdd.util.constants.IConstants;
  * @author Francisco Pinto Santos
 */
 public class NTPClient {
-	
+
 	/**
 	 * list of services to request the time samples.
 	 * */
@@ -40,7 +39,7 @@ public class NTPClient {
 	}
 
 	/**
-	 * for each service, samples time in host and server and calculates the delay and offset for {@link com.ssdd.util.constants.IConstants#NTP_NUM_ITERATIONS} times
+	 * for each service, samples time in host and server and calculates the delay and offset for {@link com.ssdd.util.constants.INtpConstants#NTP_NUM_ITERATIONS} times
 	 * 
 	 * @see com.ssdd.ntp.service.NTPService#time()
 	 * 
@@ -55,57 +54,21 @@ public class NTPClient {
 		Map<NTPService, Pair []> samples = new HashMap<>();
 		
 		for(NTPService service : services) {
-			Pair [] pairs = new Pair [IConstants.NTP_NUM_ITERATIONS];
-			for(int currIteration=0; currIteration<IConstants.NTP_NUM_ITERATIONS; currIteration++) {
+			Pair [] pairs = new Pair [INtpConstants.NTP_NUM_ITERATIONS];
+			for(int currIteration=0; currIteration<INtpConstants.NTP_NUM_ITERATIONS; currIteration++) {
 				// get times
 				time0 = System.currentTimeMillis();
 				long [] response = NTPServiceProxy.parseTimeResponse(service.time());
 				time3 = System.currentTimeMillis();
 				time1 = response[0]; 
 				time2 = response[1]; 
-				pairs[currIteration] = new Pair(this.calculateDelay(time0, time1, time2, time3), this.calculateOffset(time0, time1, time2, time3));
+				pairs[currIteration] = new Pair(time0, time1, time2, time3);
 			}
 			samples.put(service, pairs);
 		}
 		
 		return samples;
 	} 
-	
-	/**
-	 * Calculates the offset of the time sampling in client and service.
-	 * 
-	 * @version 1.0
-	 * @author Héctor Sánchez San Blas
-	 * @author Francisco Pinto Santos
-	 * 
-	 * @param time0 first time sampled in client
-	 * @param time1 first time sampled in server
-	 * @param time2 first time sampled in server
-	 * @param time3 second time sampled in client
-	 * 
-	 * @return the calculated offset with the NTP algorithm.
-	 * */
-	private double calculateOffset(long time0, long time1, long time2, long time3) {
-		return (((double)(time1-time0+time2-time3))/2);
-	}
-	
-	/**
-	 * Calculates the delay of the time sampling in client and service.
-	 * 
-	 * @version 1.0
-	 * @author Héctor Sánchez San Blas
-	 * @author Francisco Pinto Santos
-	 * 
-	 * @param time0 first time sampled in client
-	 * @param time1 first time sampled in server
-	 * @param time2 first time sampled in server
-	 * @param time3 second time sampled in client
-	 * 
-	 * @return the calculated delay with the NTP algorithm.
-	 * */
-	private double calculateDelay(long time0, long time1, long time2, long time3) {
-		return ((double)((time1-time0)+(time3-time2)));
-	}
 	
 	/**
 	 * Given a list of Pairs (delay, offset), selects the best pair. Currently, the pair selected as best
@@ -119,23 +82,15 @@ public class NTPClient {
 	 * 
 	 * @return the Pair selected as Best.
 	 * */
-	/*
-	public Pair selectBestPair(Pair [] allPairs) {
-		Pair bestPair = new Pair(Long.MAX_VALUE, 0);
-		
-		for(Pair p: allPairs) {
-			if(p.getDelay() < bestPair.getDelay()) {
-				bestPair = p;
-			}
-		}
-		return bestPair;
-	}*/
 	public Pair selectBestPair(Pair [] pairs) {
-		MarzulloInterval [] table = this.populateMarzulloTable(pairs);
+		MarzulloTuple [] table = this.populateMarzulloTable(pairs);
+
+		Arrays.sort(table);
 		
-		double best=0, cnt=0, bestStart=0, bestEnd=0;
+		int cnt=0;
+		double best=0, bestStart=0, bestEnd=0;
 		for(int i = 0; i< table.length; i++) {
-			 MarzulloInterval interval  = table[i];
+			 MarzulloTuple interval  = table[i];
 			cnt -= interval.getType();
 			if(cnt > best) {
 				best = cnt;
@@ -144,12 +99,13 @@ public class NTPClient {
 			}
 		}
 		
-		Pair pair = MarzulloInterval.toPair(bestStart, bestEnd);
+		Pair pair = MarzulloTuple.toPair(bestStart, bestEnd);
 		return pair;
 	}
 	
 	/**
-	 * Facility to populate the marzullo's algorithm table.
+	 * facility to populate the marzullo's algorithm tuples table 
+	 * using pairs of (delay, offset) resulting from the NTP time sampling.
 	 * 
 	 * @version 1.0
 	 * @author Héctor Sánchez San Blas
@@ -159,13 +115,12 @@ public class NTPClient {
 	 * 
 	 * @return the table
 	 * */
-	private MarzulloInterval[] populateMarzulloTable(Pair [] pairs) {
-		List <MarzulloInterval> table = new ArrayList<>();
+	private MarzulloTuple[] populateMarzulloTable(Pair [] pairs) {
+		List <MarzulloTuple> table = new ArrayList<>();
 		for(Pair p: pairs) {
-			table.addAll(Arrays.asList(p.toMarzulloInterval()));
+			table.addAll(Arrays.asList(p.toMarzulloTuple()));
 		}
-		MarzulloInterval[] tableArray = Arrays.copyOf(table.toArray(), table.size(), MarzulloInterval[].class);
-		Arrays.sort(tableArray);
+		MarzulloTuple[] tableArray = Arrays.copyOf(table.toArray(), table.size(), MarzulloTuple[].class);
 		return tableArray;
 	}
 	

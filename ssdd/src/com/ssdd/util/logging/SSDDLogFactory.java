@@ -50,7 +50,9 @@ public class SSDDLogFactory {
 	}
 	
 	/**
-	 * buils a Handler for {@link java.util.logging.Logger}
+	 * buils a Handler for {@link java.util.logging.Logger}.
+	 * If the {@link com.ssdd.util.constants.IConstants#DEBUG} is set to false,
+	 * only the warning and error information is logged to console.
 	 * 
 	 * @version 1.0
 	 * @author Héctor Sánchez San Blas
@@ -79,7 +81,7 @@ public class SSDDLogFactory {
 	 * */
 	private static SimpleFormatter buildFormatter(String className) {
 		return new SimpleFormatter() {
-	          private String format = "[%1$tF %1$tT] [%2$-7s] [%3$-12s] [" + className + "]  %4$s %n";
+	          private String format = "[%1$tF %1$tT] [%2$-7s] [%3$-4s] [" + className + "]  %4$s %n";
 	          
 	          @Override
 	          public synchronized String format(LogRecord lr) {

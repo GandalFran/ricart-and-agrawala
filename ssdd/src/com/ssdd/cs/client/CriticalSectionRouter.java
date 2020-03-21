@@ -10,102 +10,102 @@ import com.ssdd.cs.service.CriticalSectionService;
 import com.ssdd.cs.service.CriticalSectionServiceProxy;
 
 /** 
- * Provides access to a node by it's associated broker.
- * If the node is not found, the class will request all available brokers
- * for the suscribed nodes, to know which service is the one associated with
- * the requested node.
+ * Provides access to a process by it's associated service.
+ * If the process is not found, the class will request all available services
+ * for the suscribed processes, to know which service is the one associated with
+ * the requested process.
  * 
  * @version 1.0
  * @author Héctor Sánchez San Blas
  * @author Francisco Pinto Santos
-*/
+ */
 public class CriticalSectionRouter {
 	
 	/**
-	 * List of availabe services to request the suscribed nodes
+	 * List of availabe services to request the suscribed processes
 	 * */
-	private List<CriticalSectionService> brokers;
+	private List<CriticalSectionService> services;
 	/**
-	 * Cached asociation between node and broker
+	 * Cached asociation between process and service
 	 * */
 	private Map<String, CriticalSectionService> router;
 
 	public CriticalSectionRouter() {
 		this.router = new HashMap<>();
-		this.brokers = new ArrayList<>();
+		this.services = new ArrayList<>();
 	}
 	
-	public CriticalSectionRouter(String [] nodes, CriticalSectionService [] services) {
+	public CriticalSectionRouter(String [] processes, CriticalSectionService [] services) {
 		this.router = new HashMap<>();
-		this.brokers = Arrays.asList(services);
-		// store the nodes as keys on the map
-		for(String node : nodes)
-			router.put(node, null);
+		this.services = Arrays.asList(services);
+		// store the processes as keys on the map
+		for(String process : processes)
+			router.put(process, null);
 	}
 
 	/** 
-	 * given a node, provides its associated service.
-	 * If the node is not found, it will request all available brokers
-	 * for the suscribed nodes, to know which service is the one associated with
-	 * the requested node.
+	 * given a process, provides its associated service.
+	 * If the process is not found, it will request all available services
+	 * for the suscribed processes, to know which service is the one associated with
+	 * the requested process.
 	 * 
 	 * @version 1.0
 	 * @author Héctor Sánchez San Blas
 	 * @author Francisco Pinto Santos
 	 * 
-	 * @param nodeId the requested node's id
+	 * @param processId the requested process's id
 	 * 
-	 * @return the node's associated {@link com.ssdd.cs.service.CriticalSectionService}, to which it is subscribed
+	 * @return the process's associated {@link com.ssdd.cs.service.CriticalSectionService}, to which it is subscribed
 	*/
-	public CriticalSectionService route(String nodeId) {
-		// if the requested node is not registered in router, update it
-		if(this.router.get(nodeId) == null) {
+	public CriticalSectionService route(String processId) {
+		// if the requested process is not registered in router, update it
+		if(this.router.get(processId) == null) {
 			this.updateAll();
 		}
-		return this.router.get(nodeId);
+		return this.router.get(processId);
 	}
 	
 	/** 
-	 * updates the local association information with a new association between a node and a service.
+	 * updates the local association information with a new association between a process and a service.
 	 * 
 	 * @version 1.0
 	 * @author Héctor Sánchez San Blas
 	 * @author Francisco Pinto Santos
 	 * 
-	 * @param nodeId a node's id
-	 * @param service the node's associated broker
+	 * @param processId a process's id
+	 * @param service the process's associated service
 	*/
-	public void update(String nodeId, CriticalSectionService service) {
-		this.router.put(nodeId, service);
+	public void update(String processId, CriticalSectionService service) {
+		this.router.put(processId, service);
 	}
 	
 	/** 
-	 * requests all brokers for all suscribed nodes, and updates the local association information.
+	 * requests all services for all suscribed processes, and updates the local association information.
 	 * 
 	 * @version 1.0
 	 * @author Héctor Sánchez San Blas
 	 * @author Francisco Pinto Santos
 	*/
 	public void updateAll() {
-		for(CriticalSectionService broker : this.brokers) {
-			String response = broker.suscribed();
-			String [] nodes = CriticalSectionServiceProxy.parseSuscribedResponse(response);
-			for(String node : nodes) {
-				this.update(node, broker);
+		for(CriticalSectionService service : this.services) {
+			String response = service.suscribed();
+			String [] processes = CriticalSectionServiceProxy.parseSuscribedResponse(response);
+			for(String process : processes) {
+				this.update(process, service);
 			}
 		}
 	}
 
-	public List<String> getNodes(){
+	public List<String> getProcesses(){
 		return new ArrayList<>(this.router.keySet());
 	}
 	
-	public List<CriticalSectionService> getBrokers() {
-		return brokers;
+	public List<CriticalSectionService> getServices() {
+		return services;
 	}
 
-	public void setBrokers(List<CriticalSectionService> brokers) {
-		this.brokers = brokers;
+	public void setServices(List<CriticalSectionService> services) {
+		this.services = services;
 	}
 
 	public Map<String, CriticalSectionService> getRouter() {

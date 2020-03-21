@@ -12,7 +12,7 @@ import com.ssdd.util.constants.IConstants;
 import com.ssdd.util.logging.SSDDLogFactory;
 
 /**
- * Main class to verify that consistency is fullfilmed in critical section during all simulation
+ * Main class to verify that consistency is fullfilmed in critical section during all simulation.
  * 
  * @version 1.0
  * @author Héctor Sánchez San Blas
@@ -27,6 +27,14 @@ public class MainLogVerification {
 	
     
 	public static void main(String [] args) {
+		
+		// args length check
+		if(args.length < 2) {
+			System.err.println("ERROR: error number of arguments");
+			System.err.println("usage: <ntpPairsFile> <mainLogFile> [<logFileHost2>] [<logFileHost3>]");
+			System.exit(IConstants.EXIT_CODE_ARGS_ERROR);
+		}
+		
 		// get pairs file and main logFile
 		String pairsFile = args[0];
 		String logFile = args[1];
@@ -39,11 +47,6 @@ public class MainLogVerification {
 		String [] comprobationArgs = null;
 		
 		switch(args.length-2) {
-			case -2: 
-			case -1:
-				System.err.println("ERROR: error number of arguments");
-				System.exit(IConstants.EXIT_CODE_ARGS_ERROR);
-				break;
 			case 0:
 				// instance the comrpobationArgs array and set logFile
 				comprobationArgs =  new String [] { logFile };
@@ -63,7 +66,9 @@ public class MainLogVerification {
 				for(int i = 0; i<(args.length-2); i++) {
 					String log = args[i+2];
 					Pair assignedPair = logsAndPairs.get(log);
+					LOGGER.log(Level.WARNING, "ACTUALMENTE NO SE USA EL DELAY AUTENTICO, CAMBIAR ANTES DE PROBAR");
 					comprobationArgs[i+1] = new Double(assignedPair.getDelay()).toString();
+					//comprobationArgs[i+1] = new Double(2.0).toString();
 					LOGGER.log(Level.INFO, String.format("\t\t LOG %s pair %s", log, assignedPair.toString()));
 				}
 		}
@@ -74,7 +79,6 @@ public class MainLogVerification {
 	
 	/**
 	 * Load a map with the association of logfile and associated NTP Pair (delay, offset).
-	 * 
 	 * 
 	 * @version 1.0
 	 * @author Héctor Sánchez San Blas
@@ -89,9 +93,10 @@ public class MainLogVerification {
 		try {
 	         FileInputStream fis = new FileInputStream(file);
 	         ObjectInputStream ois = new ObjectInputStream(fis);
-	         idsAndPairs = (Map<String, Pair>) ois.readObject();
+	         Object data = ois.readObject();;
 	         ois.close();
 	         fis.close();
+	         idsAndPairs = (Map<String, Pair>) data;
 	    } catch (IOException | ClassNotFoundException e) {
 			LOGGER.log(Level.WARNING, String.format("loadPairs: ERROR: %s", e.getMessage()), e);
 			System.exit(IConstants.EXIT_CODE_IO_ERROR);

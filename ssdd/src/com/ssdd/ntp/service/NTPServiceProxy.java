@@ -22,6 +22,11 @@ import com.ssdd.util.logging.SSDDLogFactory;
 public class NTPServiceProxy extends NTPService implements Serializable{
 
 	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -1422303209511297072L;
+
+	/**
 	 * Class logger generated with {@link com.ssdd.util.logging.SSDDLogFactory#logger(Class)}
 	 * */
     private final static Logger LOGGER = SSDDLogFactory.logger(NTPServiceProxy.class);

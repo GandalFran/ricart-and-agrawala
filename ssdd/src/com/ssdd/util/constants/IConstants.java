@@ -1,57 +1,17 @@
 package com.ssdd.util.constants;
 
 /** 
- * Stores constant values for the application.
+ * Stores the general constant values for the application.
  * 
  * @version 1.0
  * @author Héctor Sánchez San Blas
  * @author Francisco Pinto Santos
 */
 public interface IConstants {
-	
-	// log
 	/** 
 	 * Log information
 	 */
-	public static final boolean DEBUG = false;
-	
-	// ntp service constants
-	/** 
-	 * Number of iterations of sampling time in the client and server on NTP algorithm.
-	 */
-	public static final int NTP_NUM_ITERATIONS = 10;
-	/** 
-	 * Minimum time (in milliseconds) between time samples in NTP service.
-	 */
-	public static final long NTP_MIN_SLEEP_MS = 10;
-	/** 
-	 * Maximum time (in milliseconds) between time samples in NTP service.
-	 */
-	public static final long NTP_MAX_SLEEP_MS = 500;
-	
-	// simulation constants
-	/** 
-	 * Number of iterations of calculus and critical section wait in simulation.
-	 */
-	public static final int SIMULATION_NUM_ITERATIONS = 100;
-	/** 
-	 * Minimum time (in milliseconds) of calclus simulation in application.
-	 */
-	public static final long SIMULATION_MIN_CALULUS_TIME = 300;
-	/** 
-	 * Maximum time (in milliseconds) of calclus simulation in application.
-	 */
-	public static final long SIMULATION_MAX_CALULUS_TIME = 500;
-	/** 
-	 * Minimum time (in milliseconds) of critical section wait in application.
-	 */
-	public static final long SIMULATION_MIN_CRITICAL_SECTION_TIME = 100;
-	/** 
-	 * Maximum time (in milliseconds) of critical section wait in application.
-	 */
-	public static final long SIMULATION_MAX_CRITICAL_SECTION_TIME = 300;	
-	
-	// error codes
+	public static final boolean DEBUG = true;
 	/**
 	 * Error code given when an error related to HTTP request occurs.
 	 * */
@@ -61,7 +21,7 @@ public interface IConstants {
 	 * */
 	public static final int EXIT_CODE_THREAD_ERROR = 200;
 	/**
-	 * Error code given when an error related to the simulation behaviour (linke a NodeNotFoundException) occurs.
+	 * Error code given when an error related to the simulation behaviour (linke a ProcessNotFoundException) occurs.
 	 * */
 	public static final int EXIT_CODE_SIMULATION_ERROR = 300;
 	/**

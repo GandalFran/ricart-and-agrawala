@@ -16,11 +16,18 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
 import com.google.gson.Gson;
-import com.ssdd.cs.bean.CritialSectionServiceNode;
+import com.ssdd.cs.bean.CritialSectionProcessState;
 import com.ssdd.cs.bean.CriticalSectionState;
 import com.ssdd.cs.bean.LamportCounter;
 import com.ssdd.util.logging.SSDDLogFactory;
 
+/**
+ * Service to regulate the access to critical section.
+ * 
+ * @version 1.0
+ * @author Héctor Sánchez San Blas
+ * @author Francisco Pinto Santos 
+ * */
 @Singleton
 @Path("/cs")
 public class CriticalSectionService{
@@ -31,22 +38,22 @@ public class CriticalSectionService{
     private final static Logger LOGGER = SSDDLogFactory.logger(CriticalSectionService.class);
  
 	/**
-     * barrier to wait all nodes to be suscribed
+     * barrier to wait all processes to be suscribed
      * */
 	private CyclicBarrier startBarrier;
 
 	/**
-     * barrier to wait all nodes to finish
+     * barrier to wait all processes to finish
      * */
 	private CyclicBarrier finishBarrier;
     /**
-     * associates the state of a subscribed node to it's id, and stores the state relative to
-     * the node's critical section state
+     * associates the state of a subscribed process to it's id, and stores the state relative to
+     * the process's critical section state
      * */
-	private Map<String, CritialSectionServiceNode> nodes;
+	private Map<String, CritialSectionProcessState> processes;
 	
 	public CriticalSectionService() {
-		this.nodes = new ConcurrentHashMap<String, CritialSectionServiceNode>();
+		this.processes = new ConcurrentHashMap<String, CritialSectionProcessState>();
 	}
 
 	/**
@@ -97,26 +104,26 @@ public class CriticalSectionService{
 	}
 	
 	/**
-	 * restarts the service cleaning all node's state structures and
-	 * receives the number of nodes that will try to access the critical section.
+	 * restarts the service cleaning all process's state structures and
+	 * receives the number of processes that will try to access the critical section.
 	 * 
 	 * @version 1.0
 	 * @author Héctor Sánchez San Blas
 	 * @author Francisco Pinto Santos
 	 * 
-	 * @param numNodes the number of nodes that will try to access to critial section
+	 * @param numProcesses the number of processes that will try to access to critial section
 	 * */
 	@GET
 	@Path("/restart")
-	public void restart(@QueryParam(value="numNodes") int numNodes){
+	public void restart(@QueryParam(value="numProcesses") int numProcesses){
 		LOGGER.log(Level.INFO, String.format("/cs/restart"));
-		this.nodes.clear();
-		this.startBarrier = new CyclicBarrier(numNodes);
-		this.finishBarrier = new CyclicBarrier(numNodes);
+		this.processes.clear();
+		this.startBarrier = new CyclicBarrier(numProcesses);
+		this.finishBarrier = new CyclicBarrier(numProcesses);
 	}
 
 	/**
-	 * waits untill all nodes are ready
+	 * waits untill all processes are ready
 	 * 
 	 * @version 1.0
 	 * @author Héctor Sánchez San Blas
@@ -134,7 +141,7 @@ public class CriticalSectionService{
 	}
 	
 	/**
-	 * waits untill all nodes has finished
+	 * waits untill all processes has finished
 	 * 
 	 * @version 1.0
 	 * @author Héctor Sánchez San Blas
@@ -152,30 +159,30 @@ public class CriticalSectionService{
 	}
 	
 	/**
-	 * registers a node, and create the neccesary structures to work with it.
+	 * registers a process, and create the neccesary structures to work with it.
 	 * 
 	 * @version 1.0
 	 * @author Héctor Sánchez San Blas
 	 * @author Francisco Pinto Santos
 	 * 
-	 * @param nodeId the id of the node who wants to suscribe to current service.
+	 * @param processId the id of the process who wants to suscribe to current service.
 	 * */
 	@GET
 	@Path("/suscribe")
-	public void suscribe(@QueryParam(value="node") String nodeId){
-		LOGGER.log(Level.INFO, String.format("[node: %s] /cs/suscribe", nodeId));
-		CritialSectionServiceNode node = new CritialSectionServiceNode(nodeId, new LamportCounter(), CriticalSectionState.FREE);
-		this.nodes.put(nodeId, node);
+	public void suscribe(@QueryParam(value="process") String processId){
+		LOGGER.log(Level.INFO, String.format("[process: %s] /cs/suscribe", processId));
+		CritialSectionProcessState process = new CritialSectionProcessState(processId, new LamportCounter(), CriticalSectionState.FREE);
+		this.processes.put(processId, process);
 	}
 
 	/**
-	 * return a JSON serialized list of suscribed nodes.
+	 * return a JSON serialized list of suscribed processes.
 	 * 
 	 * @version 1.0
 	 * @author Héctor Sánchez San Blas
 	 * @author Francisco Pinto Santos
 	 * 
-	 * @return String containing the list of suscribed nodes separated with the '_character'.
+	 * @return String containing the list of suscribed processes separated with the '_character'.
 	  */
 	@GET
 	@Path("/suscribed")
@@ -183,223 +190,162 @@ public class CriticalSectionService{
 	public String suscribed(){
 		LOGGER.log(Level.INFO, String.format("/cs/suscribed"));
 
-		// get nodes
-		String[] suscribedNodes = new String[this.nodes.keySet().size()];
-		this.nodes.keySet().toArray(suscribedNodes);
+		// get processes
+		String[] suscribedProcesses = new String[this.processes.keySet().size()];
+		this.processes.keySet().toArray(suscribedProcesses);
 		
-		// serialize list of nodes to JSON
-		String response = new Gson().toJson(suscribedNodes);
+		// serialize list of processes to JSON
+		String response = new Gson().toJson(suscribedProcesses);
 		return response;
 	}
-
 	
 	/**
-	 * set new state for the critical section on a concrete node.
+	 * used by processes to notify to its associated service that the critical section is requested
 	 * 
 	 * @version 1.0
 	 * @author Héctor Sánchez San Blas
 	 * @author Francisco Pinto Santos
 	 * 
-	 * @param nodeId the id of the node trying to accces the critical section. Must be a suscribed node.
-	 * @param newState the new state given to the critical section by the node. Must be a String serialized {@link com.ssdd.cs.bean.CriticalSectionState}
+	 * @param processId the id of the sender. Must be suscribed to current service.
 	 * 
-	 * @throws NodeNotFoundException when then nodeId doesn't corresponds to any node suscribed to current service.
+	 * @return the message timestamp for the client
+	 * 
+	 * @throws ProcessNotFoundException when then processId doesn't corresponds to any process suscribed to current service
 	 * */
 	@GET
-	@Path("/set/state")
-	public void setCsState(@QueryParam(value="node") String nodeId, @QueryParam(value="state") String newState) throws NodeNotFoundException {
-		LOGGER.log(Level.INFO, String.format("[node: %s] /cs/set/state %s", nodeId, newState));
-
-		// get node
-		CritialSectionServiceNode node = this.getNode(nodeId);
-		//set new state
-		node.setState(CriticalSectionState.valueOf(newState));
-	}
-	
-	/**
-	 * get a node's current lamport counter value, to use it as a timestamp on a message
-	 * 
-	 * @version 1.0
-	 * @author Héctor Sánchez San Blas
-	 * @author Francisco Pinto Santos
-	 * 
-	 * @param nodeId the id of the node trying to accces the critical section. Must be a suscribed node
-	 * 
-	 * @return requested node's current lamport counter value
-	 * 
-	 * @throws NodeNotFoundException when then nodeId doesn't corresponds to any node suscribed to current service
-	 * */
-	@GET
-	@Path("/get/messagetimestamp")
+	@Path("/set/requested")
 	@Produces(MediaType.TEXT_PLAIN)
-	public long getMessageTimeStamp(@QueryParam(value="node") String nodeId) throws NodeNotFoundException {
-		LOGGER.log(Level.INFO, String.format("[node: %s] /cs/get/messagetimestamp", nodeId));
-
-		// get node
-		CritialSectionServiceNode node = this.getNode(nodeId);
-		// save and obtain counter value
-		long timeStamp = node.saveLastTimeStamp();
+	public long setRequested(@QueryParam(value="process") String processId) throws ProcessNotFoundException {
+		LOGGER.log(Level.INFO, String.format("[process: %s] /cs/set/requested", processId));
 		
-		return timeStamp;
+		// get process
+		CritialSectionProcessState process = this.getProcessState(processId);
+		// lock operations
+		process.lock();
+		// get process' lamport time and update process's critical section state
+		long messageTimeStamp = process.saveLastTimeStamp();
+		process.setState(CriticalSectionState.REQUESTED);
+		// unlock operations
+		process.unlock();
+		// return the timestamp to process, for sending the requests
+		return messageTimeStamp;
 	}
-
+	
 	/**
-	 * updates a node's lamport counter value in one unit with the LC1 formule
+	 * processes the requests to the critical section access, send by other processes
 	 * 
 	 * @version 1.0
 	 * @author Héctor Sánchez San Blas
 	 * @author Francisco Pinto Santos
 	 * 
-	 * @param nodeId the id of the node trying to accces the critical section. Must be a suscribed node
+	 * @param processId the id of the process that will be asked to access the critical section. Must be suscribed to requested service.
+	 * @param sender the id of the process trying to accces the critical section.
+	 * @param messageTimeStamp the message's timestamp (process's lamport time counter value)
 	 * 
-	 * @throws NodeNotFoundException when then nodeId doesn't corresponds to any node suscribed to current service
-	 * */
-	@GET
-	@Path("/update/counter")
-	public void updateCounter(@QueryParam(value="node") String nodeId) throws NodeNotFoundException {
-		LOGGER.log(Level.INFO, String.format("[node: %s] /cs/update/counter", nodeId));
-
-		// get node
-		CritialSectionServiceNode node = this.getNode(nodeId);
-		// update counter
-		node.getCounter().update();
-	}	
-	
-	
-	/**
-	 * processes the requests to the critical section access, send by other nodes
-	 * 
-	 * @version 1.0
-	 * @author Héctor Sánchez San Blas
-	 * @author Francisco Pinto Santos
-	 * 
-	 * @param nodeId the id of the node that will be asked to access the critical section. Must be suscribed to requested service.
-	 * @param sender the id of the node trying to accces the critical section.
-	 * @param messageTimeStamp the message's timestamp (node's lamport time counter value)
-	 * 
-	 * @throws NodeNotFoundException when then nodeId doesn't corresponds to any node suscribed to current service
+	 * @throws ProcessNotFoundException when then processId doesn't corresponds to any process suscribed to current service
 	 * */
 	@GET
 	@Path("/request")
-	public void request(@QueryParam(value="node") String nodeId, @QueryParam(value="sender") String sender, @QueryParam(value="messageTimeStamp") long messageTimeStamp) throws NodeNotFoundException {
-		LOGGER.log(Level.INFO, String.format("[node: %s] /cs/request sender %s ", nodeId, sender));
+	public void request(@QueryParam(value="process") String processId, @QueryParam(value="sender") String sender, @QueryParam(value="messageTimeStamp") long messageTimeStamp) throws ProcessNotFoundException {
+		LOGGER.log(Level.INFO, String.format("[process: %s] /cs/request sender %s ", processId, sender));
 
-		// get node
-		CritialSectionServiceNode node = this.getNode(nodeId);
+		// get process
+		CritialSectionProcessState process = this.getProcessState(processId);
 		// lock operations
-		node.lock();
+		process.lock();
 		// update local lamport time
-		node.getCounter().update(messageTimeStamp);
+		process.getCounter().update(messageTimeStamp);
 	
-		// check if the enter of node is permited or not
-		if(node.permitEnter(sender, messageTimeStamp)){
+		// check if the enter of process is permited or not
+		if(process.permitEnter(sender, messageTimeStamp)){
 			// unlock operations
-			node.unlock();
-			LOGGER.log(Level.INFO, String.format("[node: %s] /cs/request node %s ALLOWED", nodeId, sender));
+			process.unlock();
+			LOGGER.log(Level.INFO, String.format("[process: %s] /cs/request process %s ALLOWED", processId, sender));
 		}else{
-			LOGGER.log(Level.INFO, String.format("[node: %s] /cs/request node %s QUEUED", nodeId, sender));
+			LOGGER.log(Level.INFO, String.format("[process: %s] /cs/request process %s QUEUED", processId, sender));
 			// unlock operations
-			node.unlock();
+			process.unlock();
 			// wait until the enter in CS is permited
-			node.queueAccessRequest();
-			LOGGER.log(Level.INFO, String.format("[node: %s] /cs/request node %s DEQUEUED (ALLOWED)", nodeId, sender));
+			process.queueAccessRequest();
+			LOGGER.log(Level.INFO, String.format("[process: %s] /cs/request process %s DEQUEUED (ALLOWED)", processId, sender));
 		}
 	}
-	
 
 	/**
-	 * used by suscribed nodes to to release the critical section
+	 * used by processes to notify to its associated service that the critical section is acquired
 	 * 
 	 * @version 1.0
 	 * @author Héctor Sánchez San Blas
 	 * @author Francisco Pinto Santos
 	 * 
-	 * @param nodeId the id of the node trying to accces the critical section. Must be suscribed to requested service
+	 * @param processId the id of the sender. Must be suscribed to current service.
 	 * 
-	 * @throws NodeNotFoundException when then nodeId doesn't corresponds to any node suscribed to current service
+	 * @throws ProcessNotFoundException when then processId doesn't corresponds to any process suscribed to current service
+	 * */
+	@GET
+	@Path("/set/acquired")
+	public void setAcquired(@QueryParam(value="process") String processId) throws ProcessNotFoundException {
+		LOGGER.log(Level.INFO, String.format("[process: %s] /cs/set/acquired", processId));
+		// get process
+		CritialSectionProcessState process = this.getProcessState(processId);
+		// lock operations
+		process.lock();
+		// get process' lamport time and update process's critical section state
+		process.getCounter().update();
+		process.setState(CriticalSectionState.ACQUIRED);
+		// unlock operations
+		process.unlock();
+	}
+
+	/**
+	 * used by suscribed processes to to release the critical section
+	 * 
+	 * @version 1.0
+	 * @author Héctor Sánchez San Blas
+	 * @author Francisco Pinto Santos
+	 * 
+	 * @param processId the id of the process trying to accces the critical section. Must be suscribed to requested service
+	 * 
+	 * @throws ProcessNotFoundException when then processId doesn't corresponds to any process suscribed to current service
 	 * */
 	@GET
 	@Path("/release")
-	public void release(@QueryParam(value="node") String nodeId) throws NodeNotFoundException {
-		LOGGER.log(Level.INFO, String.format("[node: %s] /cs/release", nodeId));
+	public void release(@QueryParam(value="process") String processId) throws ProcessNotFoundException {
+		LOGGER.log(Level.INFO, String.format("[process: %s] /cs/release", processId));
 		
-		// get node
-		CritialSectionServiceNode node = this.getNode(nodeId);
+		// get process
+		CritialSectionProcessState process = this.getProcessState(processId);
 		// lock operations
-		node.lock();
+		process.lock();
 		// set new state
-		node.setState(CriticalSectionState.FREE);
+		process.setState(CriticalSectionState.FREE);
 		// notify all that critical section has been released
-		node.dequeueAcessRequest();
+		process.dequeueAcessRequest();
 		// unlock operations
-		node.unlock();
+		process.unlock();
 	}
 	
 	/**
-	 * locks the operations over a suscribed node
+	 * given a processId checks if is suscribed to current service instance and returns the
+	 * status of the process in the critical section
 	 * 
 	 * @version 1.0
 	 * @author Héctor Sánchez San Blas
 	 * @author Francisco Pinto Santos
 	 * 
-	 * @param nodeId the id of the node trying to lock. Must be suscribed to requested service
+	 * @param processId id of the process we want to check if you have subscribed to this service.
 	 * 
-	 * @throws NodeNotFoundException when then nodeId doesn't corresponds to any node suscribed to current service
+	 * @return the status of the process in the system
+	 * 
+	 * @throws ProcessNotFoundException when then processId doesn't corresponds to any process suscribed to current service
 	 * */
-	@GET
-	@Path("/lock")
-	public void lock(@QueryParam(value="node") String nodeId) throws NodeNotFoundException {
-		LOGGER.log(Level.INFO, String.format("[node: %s] /cs/lock", nodeId));
-
-		// get node
-		CritialSectionServiceNode node = this.getNode(nodeId);
-		// lock operations on this node
-		node.lock();
-	}
-	
-	/**
-	 * unlocks the operations over a suscribed node
-	 * 
-	 * @version 1.0
-	 * @author Héctor Sánchez San Blas
-	 * @author Francisco Pinto Santos
-	 * 
-	 * @param nodeId the id of the node trying to lock. Must be suscribed to requested service
-	 * 
-	 * @throws NodeNotFoundException when then nodeId doesn't corresponds to any node suscribed to current service
-	 * */
-	@GET
-	@Path("/unlock")
-	public void unlock(@QueryParam(value="node") String nodeId) throws NodeNotFoundException {
-		LOGGER.log(Level.INFO, String.format("[node: %s] /cs/unlock", nodeId));
-		
-		// get node
-		CritialSectionServiceNode node = this.getNode(nodeId);
-		// unlock operations on this node
-		node.unlock();
-	}
-	
-	/**
-	 * given a nodeId checks if is suscribed to current service instance and returns the
-	 * status of the node in the critical section
-	 * 
-	 * @version 1.0
-	 * @author Héctor Sánchez San Blas
-	 * @author Francisco Pinto Santos
-	 * 
-	 * @param nodeId id of the node we want to check if you have subscribed to this service.
-	 * 
-	 * @return the status of the node in the system
-	 * 
-	 * @throws NodeNotFoundException when then nodeId doesn't corresponds to any node suscribed to current service
-	 * */
-	private CritialSectionServiceNode getNode(String nodeId) throws NodeNotFoundException{
-		// check if given nodeId corresponds to a suscribed process
-		if(! this.nodes.keySet().contains(nodeId)) {
-			LOGGER.log(Level.WARNING, String.format("ERROR the given node is not subscribed %s", nodeId));
-			throw new NodeNotFoundException(nodeId);
+	private CritialSectionProcessState getProcessState(String processId) throws ProcessNotFoundException{
+		// check if given processId corresponds to a suscribed process
+		if(! this.processes.keySet().contains(processId)) {
+			LOGGER.log(Level.WARNING, String.format("ERROR the given process is not subscribed %s", processId));
+			throw new ProcessNotFoundException(processId);
 		}
-		return this.nodes.get(nodeId);
+		return this.processes.get(processId);
 	}
 	
 }

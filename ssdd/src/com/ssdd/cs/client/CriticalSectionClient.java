@@ -5,12 +5,11 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.ssdd.cs.bean.CriticalSectionState;
-import com.ssdd.cs.client.senders.CritialSectionFinishedSenderPool;
-import com.ssdd.cs.client.senders.CritialSectionReadySenderPool;
-import com.ssdd.cs.client.senders.CriticalSectionRequestSenderPool;
+import com.ssdd.cs.client.senders.CritialSectionFinishedConcurrentSender;
+import com.ssdd.cs.client.senders.CritialSectionReadyConcurrentSender;
+import com.ssdd.cs.client.senders.CriticalSectionRequestConcurrentSender;
 import com.ssdd.cs.service.CriticalSectionService;
-import com.ssdd.cs.service.NodeNotFoundException;
+import com.ssdd.cs.service.ProcessNotFoundException;
 import com.ssdd.util.constants.IConstants;
 import com.ssdd.util.logging.SSDDLogFactory;
 
@@ -29,48 +28,48 @@ public class CriticalSectionClient {
 	private final static Logger LOGGER = SSDDLogFactory.logger(CriticalSectionClient.class);
     
 	/**
-	 * client's node id
+	 * client's process id
 	 * */
 	private String ID;
 	/**
-	 * the other node's trying to access critical section, ids
+	 * the other processes's trying to access critical section, ids
 	 * */
-	private List<String> nodes;
+	private List<String> processes;
 	/**
-	 * router to access other nodes
+	 * router to access other processes
 	 * */
 	private CriticalSectionRouter router;
 	
-	public CriticalSectionClient(String ID, CriticalSectionService selectedBroker, String [] nodes, CriticalSectionService [] services) {
+	public CriticalSectionClient(String ID, CriticalSectionService selectedService, String [] processes, CriticalSectionService [] services) {
 		this.ID = ID;
-		this.router = new CriticalSectionRouter(nodes, services);
-		this.router.update(ID, selectedBroker);
-		this.nodes = this.buildNodeArray(nodes);
+		this.router = new CriticalSectionRouter(processes, services);
+		this.router.update(ID, selectedService);
+		this.processes = this.buildProcessArray(processes);
 	}
 	
 	/** 
-	 * builds an array with all nodes' ids except the client's node id
+	 * builds an array with all processes' ids except the client's process id
 	 * 
 	 * @version 1.0
 	 * @author Héctor Sánchez San Blas
 	 * @author Francisco Pinto Santos
 	 * 
-	 * @param allNodes array containing all nodes
+	 * @param allProcesses array containing all processes
 	 * 
-	 * @return a list with all nodes' ids except the client's node id
+	 * @return a list with all processes' ids except the client's process id
 	*/
-	private List<String> buildNodeArray(String [] allNodes) {
-		List<String> nodes =  new ArrayList<>();
-		for(String node : allNodes) {
-			if(!node.equals(this.ID)) {
-				nodes.add(node);
+	private List<String> buildProcessArray(String [] allProcesses) {
+		List<String> processes =  new ArrayList<>();
+		for(String process : allProcesses) {
+			if(!process.equals(this.ID)) {
+				processes.add(process);
 			}
 		}
-		return nodes;
+		return processes;
 	}
 
 	/** 
-	 * suscribes this client to a broker
+	 * suscribes this client to a service
 	 * 
 	 * @version 1.0
 	 * @author Héctor Sánchez San Blas
@@ -84,7 +83,7 @@ public class CriticalSectionClient {
 	}
 	
 	/** 
-	 * indicates the brokers that the current node is ready and waits until all nodes are ready
+	 * indicates the services that the current process is ready and waits until all processes are ready
 	 * 
 	 * @version 1.0
 	 * @author Héctor Sánchez San Blas
@@ -92,14 +91,15 @@ public class CriticalSectionClient {
 	*/
 	public void ready() {
 		LOGGER.log(Level.INFO, "ready start");
-		CritialSectionReadySenderPool multicastSender = new CritialSectionReadySenderPool();
-		multicastSender.multicastSend(this.router.getBrokers());
+		CritialSectionReadyConcurrentSender multicastSender = new CritialSectionReadyConcurrentSender();
+		List<Runnable>tasks = multicastSender.buildCommunicationTasks(this.router.getServices());
+		multicastSender.multicastSend(tasks);
 		multicastSender.await();
 		LOGGER.log(Level.INFO, "ready end");
 	}
 	
 	/** 
-	 * indicates the brokers that the current node has finished and waits untill all nodes has finished
+	 * indicates the services that the current process has finished and waits untill all processes has finished
 	 * 
 	 * @version 1.0
 	 * @author Héctor Sánchez San Blas
@@ -107,14 +107,15 @@ public class CriticalSectionClient {
 	*/
 	public void finished() {
 		LOGGER.log(Level.INFO, " finished start");
-		CritialSectionReadySenderPool multicastSender = new CritialSectionFinishedSenderPool();
-		multicastSender.multicastSend(this.router.getBrokers());
+		CritialSectionFinishedConcurrentSender multicastSender = new CritialSectionFinishedConcurrentSender();
+		List<Runnable>tasks = multicastSender.buildCommunicationTasks(this.router.getServices());
+		multicastSender.multicastSend(tasks);
 		multicastSender.await();
 		LOGGER.log(Level.INFO, "finished end");
 	}
 	
 	/** 
-	 * acquires the critical section with the Ricart and Argawala algorithm.
+	 * acquires the critical section with the Ricart and Argawala's algorithm.
 	 * 
 	 * @version 1.0
 	 * @author Héctor Sánchez San Blas
@@ -126,29 +127,21 @@ public class CriticalSectionClient {
 			// get my associated service to send messages
 			CriticalSectionService myservice = this.router.route(this.ID);
 
-			// lock
-			myservice.lock(this.ID);
-			// set cs state
-			myservice.setCsState(this.ID, CriticalSectionState.REQUESTED.toString());
-			// get message timestamp
-			long messageTimeStamp = myservice.getMessageTimeStamp(this.ID);
-			// send requests and unlock
-			CriticalSectionRequestSenderPool multicastSender = new CriticalSectionRequestSenderPool();
-			multicastSender.multicastSend(this.ID, this.nodes, router, messageTimeStamp);
-			myservice.unlock(this.ID);
+			// set requested in associated service adn retrieve the message timestamp
+			long messageTimeStamp = myservice.setRequested(this.ID);
 			
-			// wait to requests
+			// send requests
+			CriticalSectionRequestConcurrentSender multicastSender = new CriticalSectionRequestConcurrentSender();
+			List<Runnable>tasks = multicastSender.buildCommunicationTasks(this.ID, this.processes, router, messageTimeStamp);
+			multicastSender.multicastSend(tasks);
+		
+			// wait for responses
 			multicastSender.await();
 			
-			// lock operations
-			myservice.lock(this.ID);
-			// update node's critical section state
-			myservice.setCsState(this.ID, CriticalSectionState.ACQUIRED.toString());
-			// update lamport counter
-			myservice.updateCounter(this.ID);
-			// unlock operations over the node
-			myservice.unlock(this.ID);
-		} catch (NodeNotFoundException e) {
+			// notify the associated service that critical section is acquired (because all responses has arrived)
+			myservice.setAcquired(this.ID);
+			
+		} catch (ProcessNotFoundException e) {
 			LOGGER.log(Level.WARNING, String.format("acquire: error %s", e.getMessage()), e);
 			System.exit(IConstants.EXIT_CODE_SIMULATION_ERROR);
 		}
@@ -168,7 +161,7 @@ public class CriticalSectionClient {
 			CriticalSectionService myservice = this.router.route(this.ID);
 			// release the critical section
 			myservice.release(this.ID);
-		} catch (NodeNotFoundException e) {
+		} catch (ProcessNotFoundException e) {
 			LOGGER.log(Level.WARNING, String.format("release: error %s", e.getMessage()), e);
 			System.exit(IConstants.EXIT_CODE_SIMULATION_ERROR);
 		}

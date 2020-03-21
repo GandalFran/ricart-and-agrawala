@@ -2,6 +2,13 @@ package com.ssdd.util;
 
 import java.util.Random;
 
+/**
+ * collection of uitilites
+ * 
+ * @version 1.0
+ * @author Héctor Sánchez San Blas
+ * @author Francisco Pinto Santos
+ * */
 public class Utils {
  
 	/**
@@ -19,9 +26,9 @@ public class Utils {
 	 * 
 	 * */
 	 public static long randomBetweenInterval(Random r, long min, long max) {
-		 long random = r.nextLong();
+		 long random = r.nextInt((int)(max - min + 1));
 		 random *= (random >= 0) ? 1 : -1;
-		 long number = (min + (random % (max - min + 1)));
+		 long number = min + random;
 		 return number;
 	 }
 }

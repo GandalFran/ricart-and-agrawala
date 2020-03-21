@@ -25,7 +25,11 @@ import com.ssdd.util.logging.SSDDLogFactory;
 
 /**
  * main class to manage critical sections supervisor tasks (restart, ntp, log time adjustement, ...)
- * */
+ * 
+ * @version 1.0
+ * @author Héctor Sánchez San Blas
+ * @author Francisco Pinto Santos
+*/
 public class MainSupervisor {
 
 	/**
@@ -34,18 +38,37 @@ public class MainSupervisor {
     private final static Logger LOGGER = SSDDLogFactory.logger(MainSupervisor.class);
     
 	public static void main(String [] args){
+		// args length check
+		if(args.length < 1) {
+			System.err.println("ERROR: error number of arguments");
+			System.err.println("usage: <command> command args");
+			System.exit(IConstants.EXIT_CODE_ARGS_ERROR);
+		}
+		
 		// take service type argument
-		String service = args[0];
+		String command = args[0];
 
-		switch(service) {
+		switch(command) {
 			case "restartCs":
+				// args length check
+				if(args.length < 3) {
+					System.err.println("ERROR: error number of arguments");
+					System.err.println("usage: restartCs <number of processes> <server1> [<server2> ... <serverN>]");
+					System.exit(IConstants.EXIT_CODE_ARGS_ERROR);
+				}
 				// take arguments
-				int numNodes = Integer.parseInt(args[1]);
+				int numProcess = Integer.parseInt(args[1]);
 				String [] csServers = Arrays.copyOfRange(args, 2, args.length);
 				// restart critical section
-				MainSupervisor.restartCs(numNodes, csServers);
+				MainSupervisor.restartCs(numProcess, csServers);
 			break;
 			case "ntp":
+				// args length check
+				if(args.length < 3) {
+					System.err.println("ERROR: error number of arguments");
+					System.err.println("usage: ntp <ntp results file> <server1> [<server2> ... <serverN>]");
+					System.exit(IConstants.EXIT_CODE_ARGS_ERROR);
+				}
 				// take arguments
 				String file = args[1];
 				String [] ntpServers = Arrays.copyOfRange(args, 2, args.length);
@@ -53,6 +76,12 @@ public class MainSupervisor {
 				MainSupervisor.sampleNtp(file, ntpServers);
 				break;
 			case "correctLog":
+				// args length check
+				if(args.length < 3) {
+					System.err.println("ERROR: error number of arguments");
+					System.err.println("usage: <ntp results file> <simulationHost1> <simulationHost1LogFile> [<simulationHost2> <simulationHost2LogFile> ... <simulationHostN> <simulationHostNLogFile>]");
+					System.exit(IConstants.EXIT_CODE_ARGS_ERROR);
+				}
 				// take arguments
 				String ntpFile = args[1];
 				String [] restOfArgs = Arrays.copyOfRange(args, 2, args.length);
@@ -65,7 +94,12 @@ public class MainSupervisor {
 				MainSupervisor.correctLogs(ntpFile, logAndServer);
 				break;
 			default:
-				System.out.println("ERROR: selected service (" + service + ") not found.");
+				System.err.println("ERROR: selected command (" + command + ") not found.");
+				System.err.println("usage: available commands:");
+				System.err.println("\t restartCs <number of processes> <server1> [<server2> ... <serverN>]");
+				System.err.println("\t ntp <ntp results file> <server1> [<server2> ... <serverN>]");
+				System.err.println("\t correctLog  <ntp results file> <simulationHost1> <simulationHost1LogFile> [<simulationHost2> <simulationHost2LogFile> ... <simulationHostN> <simulationHostNLogFile>]");
+				System.exit(IConstants.EXIT_CODE_ARGS_ERROR);
 		}
 		
 	}
@@ -77,12 +111,12 @@ public class MainSupervisor {
 	 * @author Héctor Sánchez San Blas
 	 * @author Francisco Pinto Santos
 	 * 
-	 * @param numNodes number of processes tath will handle the critical section
+	 * @param numProcess number of processes tath will handle the critical section
 	 * @param servers where the critical section service is deployed
 	 * */
-	private static void restartCs(int numNodes, String [] servers) {
+	private static void restartCs(int numProcess, String [] servers) {
 		for(String server : servers)
-			CriticalSectionService.buildProxy(server).restart(numNodes);
+			CriticalSectionService.buildProxy(server).restart(numProcess);
 	}
 	
 	/**
@@ -160,6 +194,7 @@ public class MainSupervisor {
 		SimulationLogAdjuster adjuster = new SimulationLogAdjuster();
 		for(String log : logsAndPairs.keySet()) {
 			Pair p = logsAndPairs.get(log);
+			LOGGER.log(Level.WARNING, "ACTUALMENTE NO SE CORRIGEN LOS LOGS, CAMBIAR ANTES DE PROBAR");
 			adjuster.adjustTime(log, p.getOffset());
 		}
 		
@@ -203,9 +238,10 @@ public class MainSupervisor {
 		try {
 	         FileInputStream fis = new FileInputStream(file);
 	         ObjectInputStream ois = new ObjectInputStream(fis);
-	         loadMap = (Map<String, Pair[]>) ois.readObject();
+	         Object data = ois.readObject();;
 	         ois.close();
 	         fis.close();
+	         loadMap = (Map<String, Pair []>) data;
 	    } catch (IOException | ClassNotFoundException e) {
 			LOGGER.log(Level.WARNING, String.format("loadNtpSamples: ERROR: %s", e.getMessage()), e);
 			System.exit(IConstants.EXIT_CODE_IO_ERROR);

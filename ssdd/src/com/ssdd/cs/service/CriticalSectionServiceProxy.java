@@ -4,10 +4,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.InvocationCallback;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 
 import com.google.gson.Gson;
@@ -65,13 +63,13 @@ public class CriticalSectionServiceProxy extends CriticalSectionService{
 	 * @author Héctor Sánchez San Blas
 	 * @author Francisco Pinto Santos
 	 * 
-	 * @param numNodes the number of nodes that will try to access to critial section
+	 * @param numProcesses the number of processes that will try to access to critial section
 	 * */
 	@Override
-	public void restart(int numNodes) {
-		LOGGER.log(Level.INFO, String.format("/cs/restart numNodes:%d", numNodes));
+	public void restart(int numProcesses) {
+		LOGGER.log(Level.INFO, String.format("/cs/restart numProcesses:%d", numProcesses));
 		try {
-			this.service.path("restart").queryParam("numNodes", numNodes).request().get();
+			this.service.path("restart").queryParam("numProcesses", numProcesses).request().get();
 		} catch (Exception e) {
 			LOGGER.log(Level.WARNING, String.format("/cs/restart: error %s", e.getMessage()), e);
 			System.exit(IConstants.EXIT_CODE_HTTP_REQUEST_ERROR);
@@ -121,13 +119,13 @@ public class CriticalSectionServiceProxy extends CriticalSectionService{
 	 * @author Héctor Sánchez San Blas
 	 * @author Francisco Pinto Santos
 	 * 
-	 * @param nodeId the id of the node who wants to suscribe to requested service
+	 * @param processId the id of the process who wants to suscribe to requested service
 	 * */
 	@Override
-	public void suscribe(String nodeId){
+	public void suscribe(String processId){
 		LOGGER.log(Level.INFO, "/cs/suscribe");
 		try {
-			this.service.path("suscribe").queryParam("node", nodeId).request().get();
+			this.service.path("suscribe").queryParam("process", processId).request().get();
 		} catch (Exception e) {
 			LOGGER.log(Level.WARNING, String.format("/cs/suscribe: error %s", e.getMessage()), e);
 			System.exit(IConstants.EXIT_CODE_HTTP_REQUEST_ERROR);
@@ -141,7 +139,7 @@ public class CriticalSectionServiceProxy extends CriticalSectionService{
 	 * @author Héctor Sánchez San Blas
 	 * @author Francisco Pinto Santos
 	 * 
-	 * @return String containing a JSON serialized array with the list of nodes suscribed to requested service
+	 * @return String containing a JSON serialized array with the list of processes suscribed to requested service
 	 * */
 	@Override
 	public String suscribed(){
@@ -156,76 +154,49 @@ public class CriticalSectionServiceProxy extends CriticalSectionService{
 	}
 
 	/**
-	 * See {@link com.ssdd.cs.service.CriticalSectionService#setCsState(String, String)}
+	 * See {@link com.ssdd.cs.service.CriticalSectionService#setRequested(String)}
 	 * 
 	 * @version 1.0
 	 * @author Héctor Sánchez San Blas
 	 * @author Francisco Pinto Santos
 	 * 
-	 * @param nodeId the id of the node trying to accces the critical section. Must be suscribed to requested service.
-	 * @param newState the new state given to the critical section by the node. Must be a String serialized {@link com.ssdd.cs.bean.CriticalSectionState}
+	 * @param processId the id of the sender. Must be suscribed to current service.
 	 * 
-	 * @throws NodeNotFoundException when then nodeId doesn't corresponds to any node suscribed to requested service.
+	 * @throws ProcessNotFoundException when then processId doesn't corresponds to any process suscribed to current service
 	 * */
-	@Override
-	public void setCsState(String nodeId, String newState) throws NodeNotFoundException{
-		LOGGER.log(Level.INFO, String.format("/cs/set/state %s", newState));
+	public long setRequested(String processId) throws ProcessNotFoundException {
+		LOGGER.log(Level.INFO, "/set/requested");
 		try {
-			this.service.path("set").path("state").queryParam("node", nodeId).queryParam("state", newState.toString()).request().get();
+			String repsonse = this.service.path("set").path("requested").queryParam("process", processId).request(MediaType.TEXT_PLAIN).get(String.class);
+			return Long.parseLong(repsonse);
 		} catch (Exception e) {
-			LOGGER.log(Level.WARNING, String.format("/cs/set/state: error %s", e.getMessage()), e);
-			System.exit(IConstants.EXIT_CODE_HTTP_REQUEST_ERROR);
-		}
-	}
-	
-	/**
-	 * See {@link com.ssdd.cs.service.CriticalSectionService#getMessageTimeStamp(String)}
-	 * 
-	 * @version 1.0
-	 * @author Héctor Sánchez San Blas
-	 * @author Francisco Pinto Santos
-	 * 
-	 * @param nodeId the id of the node trying to accces the critical section. Must be suscribed to requested service.
-	 * 
-	 * @return the current lamport counter value, corresponding to the requested node.
-	 * 
-	 * @throws NodeNotFoundException when then nodeId doesn't corresponds to any node suscribed to requested service.
-	 * */
-	@Override
-	public long getMessageTimeStamp(String nodeId) throws NodeNotFoundException{
-		LOGGER.log(Level.INFO, "/cs/get/messagetimestamp");
-		try {
-			String data = this.service.path("get").path("messagetimestamp").queryParam("node", nodeId).request(MediaType.TEXT_PLAIN).get(String.class);
-			return Long.parseLong(data);
-		} catch (Exception e) {
-			LOGGER.log(Level.WARNING, String.format("/cs/messagetimestamp: error %s", e.getMessage()), e);
+			LOGGER.log(Level.WARNING, String.format("/cs/set/requested: error %s", e.getMessage()), e);
 			System.exit(IConstants.EXIT_CODE_HTTP_REQUEST_ERROR);
 			return 0;
 		}
 	}
-
+	
 	/**
-	 * See {@link com.ssdd.cs.service.CriticalSectionService#updateCounter(String)}
+	 * used by processes to notify to its associated service that the critical section is acquired
 	 * 
 	 * @version 1.0
 	 * @author Héctor Sánchez San Blas
 	 * @author Francisco Pinto Santos
 	 * 
-	 * @param nodeId the id of the node trying to accces the critical section. Must be suscribed to requested service.
+	 * @param processId the id of the sender. Must be suscribed to current service.
 	 * 
-	 * @throws NodeNotFoundException when then nodeId doesn't corresponds to any node suscribed to requested service.
+	 * @throws ProcessNotFoundException when then processId doesn't corresponds to any process suscribed to current service
 	 * */
-	@Override
-	public void updateCounter(String nodeId) throws NodeNotFoundException{
-		LOGGER.log(Level.INFO, "/cs/update/counter");
+	public void setAcquired(String processId) throws ProcessNotFoundException {
+		LOGGER.log(Level.INFO, "/set/acquired");
 		try {
-			this.service.path("update").path("counter").queryParam("node", nodeId).request().get();
+			this.service.path("set").path("acquired").queryParam("process", processId).request().get();
 		} catch (Exception e) {
-			LOGGER.log(Level.WARNING, String.format("/cs/update/counter: error %s", e.getMessage()), e);
+			LOGGER.log(Level.WARNING, String.format("/cs/set/acquired: error %s", e.getMessage()), e);
 			System.exit(IConstants.EXIT_CODE_HTTP_REQUEST_ERROR);
 		}
 	}
-	
+
 	/**
 	 * See {@link com.ssdd.cs.service.CriticalSectionService#request(String, String, long)}
 	 * 
@@ -233,33 +204,22 @@ public class CriticalSectionServiceProxy extends CriticalSectionService{
 	 * @author Héctor Sánchez San Blas
 	 * @author Francisco Pinto Santos
 	 * 
-	 * @param nodeId the id of the node that will be asked to access the critical section. Must be suscribed to requested service.
-	 * @param sender the id of the node trying to accces the critical section.
-	 * @param messageTimeStamp the message's timestamp (node's lamport time counter value)
+	 * @param processId the id of the process that will be asked to access the critical section. Must be suscribed to requested service.
+	 * @param sender the id of the process trying to accces the critical section.
+	 * @param messageTimeStamp the message's timestamp (process's lamport time counter value)
 	 * 
-	 * @throws NodeNotFoundException when then nodeId doesn't corresponds to any node suscribed to requested service
+	 * @throws ProcessNotFoundException when then processId doesn't corresponds to any process suscribed to requested service
 	 * */
 	@Override
-	public void request(String nodeId, String sender, long messageTimeStamp) throws NodeNotFoundException{
+	public void request(String processId, String sender, long messageTimeStamp) throws ProcessNotFoundException{
 		LOGGER.log(Level.INFO, "/cs/request");
 		try {
-			this.service.path("request").queryParam("node", nodeId).queryParam("sender", sender).queryParam("messageTimeStamp", messageTimeStamp).request().get();
+			this.service.path("request").queryParam("process", processId).queryParam("sender", sender).queryParam("messageTimeStamp", messageTimeStamp).request().get();
 		} catch (Exception e) {
 			LOGGER.log(Level.WARNING, String.format("/cs/request: error %s", e.getMessage()), e);
 			System.exit(IConstants.EXIT_CODE_HTTP_REQUEST_ERROR);
 		}
 	}
-	
-	public void request(String nodeId, String sender, long messageTimeStamp,  InvocationCallback<Response> callback) throws NodeNotFoundException{
-		LOGGER.log(Level.INFO, "/cs/request");
-		try {
-			this.service.path("request").queryParam("node", nodeId).queryParam("sender", sender).queryParam("messageTimeStamp", messageTimeStamp).request().async().get(callback);
-		} catch (Exception e) {
-			LOGGER.log(Level.WARNING, String.format("/cs/request: error %s", e.getMessage()), e);
-			System.exit(IConstants.EXIT_CODE_HTTP_REQUEST_ERROR);
-		}
-	}
-	
 
 	/**
 	 * See {@link com.ssdd.cs.service.CriticalSectionService#release(String)}
@@ -268,61 +228,17 @@ public class CriticalSectionServiceProxy extends CriticalSectionService{
 	 * @author Héctor Sánchez San Blas
 	 * @author Francisco Pinto Santos
 	 * 
-	 * @param nodeId the id of the node trying to accces the critical section. Must be suscribed to requested service.
+	 * @param processId the id of the process trying to accces the critical section. Must be suscribed to requested service.
 	 * 
-	 * @throws NodeNotFoundException when then nodeId doesn't corresponds to any node suscribed to requested service. 
+	 * @throws ProcessNotFoundException when then processId doesn't corresponds to any process suscribed to requested service. 
 	 * */
 	@Override
-	public void release(String nodeId) throws NodeNotFoundException{
+	public void release(String processId) throws ProcessNotFoundException{
 		LOGGER.log(Level.INFO, "/cs/release");
 		try {
-			this.service.path("release").queryParam("node", nodeId).request().get();
+			this.service.path("release").queryParam("process", processId).request().get();
 		} catch (Exception e) {
 			LOGGER.log(Level.WARNING, String.format("/cs/release: error %s", e.getMessage()), e);
-			System.exit(IConstants.EXIT_CODE_HTTP_REQUEST_ERROR);
-		}
-	}
-	
-	/**
-	 * See {@link com.ssdd.cs.service.CriticalSectionService#lock(String)}
-	 * 
-	 * @version 1.0
-	 * @author Héctor Sánchez San Blas
-	 * @author Francisco Pinto Santos
-	 * 
-	 * @param nodeId the id of the node trying to lock. Must be suscribed to requested service.
-	 * 
-	 * @throws NodeNotFoundException when then nodeId doesn't corresponds to any node suscribed to requested service. 
-	 * */
-	@Override
-	public void lock(String nodeId) throws NodeNotFoundException{
-		LOGGER.log(Level.INFO, "/cs/lock");
-		try {
-			this.service.path("lock").queryParam("node", nodeId).request().get();
-		} catch (Exception e) {
-			LOGGER.log(Level.WARNING, String.format("/cs/lock: error %s", e.getMessage()), e);
-			System.exit(IConstants.EXIT_CODE_HTTP_REQUEST_ERROR);
-		}
-	}
-	
-	/**
-	 * See {@link com.ssdd.cs.service.CriticalSectionService#unlock(String)}
-	 * 
-	 * @version 1.0
-	 * @author Héctor Sánchez San Blas
-	 * @author Francisco Pinto Santos
-	 * 
-	 * @param nodeId the id of the node trying to unlock. Must be suscribed to requested service.
-	 * 
-	 * @throws NodeNotFoundException when then nodeId doesn't corresponds to any node suscribed to requested service. 
-	 * */
-	@Override
-	public void unlock(String nodeId) throws NodeNotFoundException{
-		LOGGER.log(Level.INFO, "/cs/unlock");
-		try {
-			this.service.path("unlock").queryParam("node", nodeId).request().get();
-		} catch (Exception e) {
-			LOGGER.log(Level.WARNING, String.format("/cs/unlock: error %s", e.getMessage()), e);
 			System.exit(IConstants.EXIT_CODE_HTTP_REQUEST_ERROR);
 		}
 	}

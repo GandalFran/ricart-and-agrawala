@@ -7,46 +7,45 @@ import java.util.logging.Logger;
 import com.ssdd.util.logging.SSDDLogFactory;
 
 /** 
- * stores all the relative information to a node's in the critical section context in the server side.
+ * stores all the relative information to a process's in the critical section context in the server side.
  * 
  * @version 1.0
  * @author Héctor Sánchez San Blas
  * @author Francisco Pinto Santos
  */
-public class CritialSectionServiceNode {
+public class CritialSectionProcessState {
 
 	/**
 	 * Class logger generated with {@link com.ssdd.util.logging.SSDDLogFactory#logger(Class)}
 	 * */
-    private final static Logger LOGGER = SSDDLogFactory.logger(CritialSectionServiceNode.class);
+    private final static Logger LOGGER = SSDDLogFactory.logger(CritialSectionProcessState.class);
     
-
     /**
-     * the node's id
+     * the process's id
      * */
     private String id;
     /**
-     * node's time counter based in the Lamport's counter (gided by events)
+     * process's time counter based in the Lamport's counter (gided by events)
      * */
 	private LamportCounter counter;
     /**
-     * node's timestamp (lamport counter value) for the last message
+     * process's timestamp (lamport counter value) for the last message
      * */
     private long lastTimeStamp;
     /**
-     * critical section's state in the node's context
+     * critical section's state in the process's context
      * */
 	private CriticalSectionState state;
     /**
-     * object to notify that critical section has been released in the queued nodes by the algorithm of Ricart and Argawala
+     * object to notify that critical section has been released in the queued processes by the algorithm of Ricart and Argawala
      * */
 	private Object releaseNotifier;
     /**
-     * to lock operations on the node
+     * to lock operations on the process
      * */
 	private Semaphore lock;
 	
-	public CritialSectionServiceNode(String id, LamportCounter counter, CriticalSectionState state) {
+	public CritialSectionProcessState(String id, LamportCounter counter, CriticalSectionState state) {
 		super();
 		this.id = id;
 		this.counter = counter;
@@ -57,14 +56,14 @@ public class CritialSectionServiceNode {
 	}
 
 	/** 
-	 * when a request is received, decides if the node has access to critical section with the 
+	 * when a request is received, decides if the process has access to critical section with the 
 	 * criteria set on the Ricart and Argawala's algorithm.
 	 * 
 	 * @version 1.0
 	 * @author Héctor Sánchez San Blas
 	 * @author Francisco Pinto Santos
 	 * 
-	 * @param senderId the node's id of the request's sender
+	 * @param senderId the process's id of the request's sender
 	 * @param senderTimeStamp the lamport counter value of the request's sender at the moment of the build of request
 	 * 
 	 * @return true if the request is accepted and false if the request should be queued
@@ -88,13 +87,13 @@ public class CritialSectionServiceNode {
 	}
 	
 	/** 
-	 * stores the node's current counter value, to be used as last message timestamp
+	 * stores the process's current counter value, to be used as last message timestamp
 	 * 
 	 * @version 1.0
 	 * @author Héctor Sánchez San Blas
 	 * @author Francisco Pinto Santos
 	 * 
-	 * @return the node's current counter value, to be used as message timestamp
+	 * @return the process's current counter value, to be used as message timestamp
 	 */
 	public long saveLastTimeStamp() {
 		this.lastTimeStamp = this.counter.getCounter();
@@ -102,7 +101,7 @@ public class CritialSectionServiceNode {
 	}
 	
 	/** 
-	 * locks relative operations on the node in the critical section
+	 * locks operations relative to process in the critical section
 	 * 
 	 * @version 1.0
 	 * @author Héctor Sánchez San Blas
@@ -117,7 +116,7 @@ public class CritialSectionServiceNode {
 	}
 	
 	/** 
-	 * unlocks relative operations on the node in the critical section
+	 * unlocks operations relative to process in the critical section
 	 * 
 	 * @version 1.0
 	 * @author Héctor Sánchez San Blas
@@ -128,7 +127,7 @@ public class CritialSectionServiceNode {
 	}
 	
 	/** 
-	 * blocks the thread until the node releases the critical section
+	 * blocks the thread until the process releases the critical section
 	 * 
 	 * @version 1.0
 	 * @author Héctor Sánchez San Blas
@@ -146,7 +145,7 @@ public class CritialSectionServiceNode {
 	}
 	
 	/** 
-	 * allows the blocked nodes in the {@link #queueAccessRequest()} to continue when the node releases the critical section
+	 * allows the blocked processes in the {@link #queueAccessRequest()} to continue when the process releases the critical section
 	 * 
 	 * @version 1.0
 	 * @author Héctor Sánchez San Blas

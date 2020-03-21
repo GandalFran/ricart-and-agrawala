@@ -8,7 +8,7 @@ import java.util.logging.Logger;
 import com.ssdd.util.logging.SSDDLogFactory;
 
 /** 
- * Writes in the required format the simulation log file with the node's ins and outs.
+ * Writes in the required format the simulation log file with the process's ins and outs.
  * @see <a href="https://www.codejava.net/java-se/file-io/how-to-read-and-write-text-file-in-java">https://www.codejava.net/java-se/file-io/how-to-read-and-write-text-file-in-java</a>
  * 
  * @version 1.0
@@ -33,16 +33,16 @@ public class SimulationLog {
 
 
     /**
-     * node's id
+     * process's id
      * */
-	private String nodeId;
+	private String processId;
 	/**
      * Data stream to write to file
      * */
 	private FileWriter file;
 	
-	public SimulationLog(String nodeId, String logFile) {
-		this.nodeId = nodeId;
+	public SimulationLog(String processId, String logFile) {
+		this.processId = processId;
 		try {
 			this.file = new FileWriter(logFile, true);
 		} catch (IOException e) {
@@ -59,7 +59,7 @@ public class SimulationLog {
 	*/
 	public void logIn() {
 		try {
-			this.file.write(String.format(SimulationLog.IN_FORMAT, this.nodeId, System.currentTimeMillis()));
+			this.file.write(String.format(SimulationLog.IN_FORMAT, this.processId, System.currentTimeMillis()));
 			this.file.flush();
 		} catch (IOException e) {
 			LOGGER.log(Level.WARNING, String.format("logIn: error %s", e.getMessage()), e);
@@ -75,7 +75,7 @@ public class SimulationLog {
 	*/
 	public void logOut() {
 		try {
-			this.file.write(String.format(SimulationLog.OUT_FORMAT, this.nodeId, System.currentTimeMillis()));
+			this.file.write(String.format(SimulationLog.OUT_FORMAT, this.processId, System.currentTimeMillis()));
 			this.file.flush();
 		} catch (IOException e) {
 			LOGGER.log(Level.WARNING, String.format("logOut: error %s", e.getMessage()), e);

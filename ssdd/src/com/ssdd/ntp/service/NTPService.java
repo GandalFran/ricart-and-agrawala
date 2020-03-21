@@ -11,7 +11,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import com.ssdd.util.Utils;
-import com.ssdd.util.constants.IConstants;
+import com.ssdd.util.constants.INtpConstants;
 import com.ssdd.util.logging.SSDDLogFactory;
 
 /** 
@@ -31,8 +31,8 @@ public class NTPService{
     private final static Logger LOGGER = SSDDLogFactory.logger(NTPService.class);
 	
     /** 
-     * Random number generator.
-    */
+     * Random number generator (for sleep time).
+     */
 	private Random generator;
 
 	public NTPService() {
@@ -108,7 +108,7 @@ public class NTPService{
 		
 		// sleep during a random time
 		try {
-			long interval = Utils.randomBetweenInterval(this.generator, IConstants.NTP_MIN_SLEEP_MS, IConstants.NTP_MAX_SLEEP_MS);
+			long interval = Utils.randomBetweenInterval(this.generator, INtpConstants.NTP_MIN_SLEEP_MS, INtpConstants.NTP_MAX_SLEEP_MS);
 			Thread.sleep(interval);
 		} catch (InterruptedException e) {
 			LOGGER.log(Level.WARNING, String.format("/ntp/pedirTiempo: ERROR InterruptedException: %s", e.getMessage()));
