@@ -66,9 +66,7 @@ public class MainLogVerification {
 				for(int i = 0; i<(args.length-2); i++) {
 					String log = args[i+2];
 					Pair assignedPair = logsAndPairs.get(log);
-					LOGGER.log(Level.WARNING, "ACTUALMENTE NO SE USA EL DELAY AUTENTICO, CAMBIAR ANTES DE PROBAR");
 					comprobationArgs[i+1] = new Double(assignedPair.getDelay()).toString();
-					//comprobationArgs[i+1] = new Double(2.0).toString();
 					LOGGER.log(Level.INFO, String.format("\t\t LOG %s pair %s", log, assignedPair.toString()));
 				}
 		}

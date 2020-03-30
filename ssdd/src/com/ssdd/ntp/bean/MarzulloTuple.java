@@ -39,7 +39,7 @@ public class MarzulloTuple implements Comparable<MarzulloTuple>{
 	 */
 	public static Pair toPair(double start, double end) {
 		double delay = end - start;
-		double offset = start + (delay/2);
+		double offset = start + (delay/2.0);
 		return new Pair(delay, offset);
 	}
 	

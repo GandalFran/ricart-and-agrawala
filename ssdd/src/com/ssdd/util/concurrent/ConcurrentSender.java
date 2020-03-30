@@ -8,7 +8,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.ssdd.cs.service.CriticalSectionService;
 import com.ssdd.util.constants.IConstants;
 import com.ssdd.util.logging.SSDDLogFactory;
 
@@ -43,7 +42,8 @@ public class ConcurrentSender {
 		this.pool = Executors.newFixedThreadPool(communicationTasks.size(), nameThreadFactory);
 		
 		// send services.size() messages	
-		communicationTasks.forEach(task -> this.pool.submit(task));
+		for(Runnable task: communicationTasks)
+			this.pool.submit(task);
 
 		// shutdown the pool when all tasks has finished
 		this.pool.shutdown();	

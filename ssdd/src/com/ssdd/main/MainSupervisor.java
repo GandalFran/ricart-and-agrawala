@@ -194,7 +194,6 @@ public class MainSupervisor {
 		SimulationLogAdjuster adjuster = new SimulationLogAdjuster();
 		for(String log : logsAndPairs.keySet()) {
 			Pair p = logsAndPairs.get(log);
-			LOGGER.log(Level.WARNING, "ACTUALMENTE NO SE CORRIGEN LOS LOGS, CAMBIAR ANTES DE PROBAR");
 			adjuster.adjustTime(log, p.getOffset());
 		}
 		

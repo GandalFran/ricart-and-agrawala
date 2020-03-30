@@ -82,16 +82,18 @@ public class MainSimulation {
 		}
 		
 		// start processes
-		processes.forEach(n -> n.start());	
+		for(SimulationProcess p : processes)
+			p.start();
 		
-		// wait for nodoes to finish
-		processes.forEach(n -> {
+		// wait for nodes to finish
+
+		for(SimulationProcess p : processes){
 			try {
-				n.join();
+				p.join();
 			} catch (InterruptedException e) {
 				LOGGER.log(Level.WARNING, String.format("ERROR when waiting for processes to finish: %s", e.getMessage()), e);
 				System.exit(IConstants.EXIT_CODE_THREAD_ERROR);
 			}
-		});	
+		}
 	}
 }

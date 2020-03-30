@@ -35,7 +35,7 @@ public class CritialSectionFinishedConcurrentSender extends ConcurrentSender{
 	 */
 	public List<Runnable> buildCommunicationTasks(List<CriticalSectionService> services){
 		
-		List<Runnable> tasks = new ArrayList<>();
+		List<Runnable> tasks = new ArrayList<Runnable>();
 		
 		for(CriticalSectionService service : services) {
 			Runnable task = new Runnable() {		

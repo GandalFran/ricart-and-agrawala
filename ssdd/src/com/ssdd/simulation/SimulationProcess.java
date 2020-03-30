@@ -71,6 +71,7 @@ public class SimulationProcess extends Thread{
 		}
 		// wait untill all processs has finished
 		this.cs.finished();
+		this.csLog.close();
 	}
 	
 	/** 

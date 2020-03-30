@@ -59,7 +59,9 @@ public class SimulationLog {
 	*/
 	public void logIn() {
 		try {
-			this.file.write(String.format(SimulationLog.IN_FORMAT, this.processId, System.currentTimeMillis()));
+			String logEntry = String.format(SimulationLog.IN_FORMAT, this.processId, System.currentTimeMillis());
+			LOGGER.log(Level.INFO,String.format(" new log entry %s", logEntry.substring(0, logEntry.length()-2)));
+			this.file.write(logEntry);
 			this.file.flush();
 		} catch (IOException e) {
 			LOGGER.log(Level.WARNING, String.format("logIn: error %s", e.getMessage()), e);
@@ -75,11 +77,21 @@ public class SimulationLog {
 	*/
 	public void logOut() {
 		try {
-			this.file.write(String.format(SimulationLog.OUT_FORMAT, this.processId, System.currentTimeMillis()));
+			String logEntry = String.format(SimulationLog.OUT_FORMAT, this.processId, System.currentTimeMillis());
+			LOGGER.log(Level.INFO,String.format(" new log entry %s", logEntry.substring(0, logEntry.length()-2)));
+			this.file.write(logEntry);
 			this.file.flush();
 		} catch (IOException e) {
 			LOGGER.log(Level.WARNING, String.format("logOut: error %s", e.getMessage()), e);
 		}
+	}
+	
+	public void close(){
+		try {
+			this.file.close();
+		} catch (IOException e) {
+			LOGGER.log(Level.WARNING, String.format("close: error %s", e.getMessage()), e);
+		}	
 	}
 	
 }

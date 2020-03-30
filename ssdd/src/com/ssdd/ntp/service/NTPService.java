@@ -119,7 +119,6 @@ public class NTPService{
 		long time2 = System.currentTimeMillis();
 		
 		// build the response
-		// TODO: puesto tiemo 1 en los dos a ver si hay suerte
 		String response = String.format("%d_%d", time1, time2);
 		
 		return response;

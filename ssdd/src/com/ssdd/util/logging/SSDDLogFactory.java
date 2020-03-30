@@ -79,7 +79,7 @@ public class SSDDLogFactory {
 	 * 
 	 * @return a {@link java.util.logging.SimpleFormatter} object with the selected format.
 	 * */
-	private static SimpleFormatter buildFormatter(String className) {
+	private static SimpleFormatter buildFormatter(final String className) {
 		return new SimpleFormatter() {
 	          private String format = "[%1$tF %1$tT] [%2$-7s] [%3$-4s] [" + className + "]  %4$s %n";
 	          
