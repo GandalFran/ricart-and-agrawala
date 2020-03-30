@@ -5,6 +5,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.ssdd.cs.client.CriticalSectionClient;
+import com.ssdd.simulation.centralizedLog.SimulationLogCentralized;
 import com.ssdd.util.Utils;
 import com.ssdd.util.constants.ISimulationConstants;
 import com.ssdd.util.constants.IConstants;
@@ -46,7 +47,7 @@ public class SimulationProcess extends Thread{
 		this.cs = cs;
 		this.processId = processId;
 		this.generator = new Random();
-		this.csLog = new SimulationLog(processId, logFile);
+		this.csLog = new SimulationLogCentralized(processId, logFile);
 		// set thread name
 		this.setName(String.format("P%s", processId));
 	}

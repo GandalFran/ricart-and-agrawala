@@ -8,6 +8,10 @@ package com.ssdd.util.constants;
  * @author Francisco Pinto Santos
 */
 public interface ISimulationConstants {
+
+	public static final String LOG_SERVER = "192.168.230.129";	
+	public static final String LOG_FILE = "/home/gandalfran/centralizedlogFile.log";
+	
 	/** 
 	 * Number of iterations of calculus and critical section wait in simulation.
 	 */
@@ -27,5 +31,6 @@ public interface ISimulationConstants {
 	/** 
 	 * Maximum time (in milliseconds) of critical section wait in application.
 	 */
-	public static final long SIMULATION_MAX_CRITICAL_SECTION_TIME = 300;	
+	public static final long SIMULATION_MAX_CRITICAL_SECTION_TIME = 300;
+
 }

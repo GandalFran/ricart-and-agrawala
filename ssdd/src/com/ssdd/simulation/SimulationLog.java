@@ -93,5 +93,12 @@ public class SimulationLog {
 			LOGGER.log(Level.WARNING, String.format("close: error %s", e.getMessage()), e);
 		}	
 	}
-	
+
+	public String getProcessId() {
+		return processId;
+	}
+
+	public void setProcessId(String processId) {
+		this.processId = processId;
+	}
 }
