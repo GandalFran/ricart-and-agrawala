@@ -147,7 +147,6 @@ public class MainSupervisor {
 			// delete old sample file before write new samples
 			f.delete();
 		}
-		
 		// store into file
 		MainSupervisor.storeNtpSamples(file, samples);
 		
@@ -170,7 +169,14 @@ public class MainSupervisor {
 	
 		LOGGER.log(Level.INFO, "Arguments");
 		LOGGER.log(Level.INFO, String.format("\t ntp file %s", ntpFile));
-		LOGGER.log(Level.INFO, String.format("\t logs, hosts and pairs:", ntpFile));
+		LOGGER.log(Level.INFO, String.format("\t logs, hosts and pairs: %s", logAndServer.toString()));
+		LOGGER.log(Level.INFO, "Samples (from NTP file):");
+		for(NTPService service : samples.keySet()){
+			LOGGER.log(Level.INFO, String.format("service(%s):  %d", service.toString(), samples.get(service).length));
+			for(Pair p: samples.get(service)){
+				LOGGER.log(Level.INFO, String.format("\t%s", p.toString()));
+			}
+		}	
 		
 		// calculate best pairs for each
 		NTPClient ntp = new NTPClient();

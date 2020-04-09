@@ -39,7 +39,8 @@ public class MarzulloTuple implements Comparable<MarzulloTuple>{
 	 */
 	public static Pair toPair(double start, double end) {
 		double delay = end - start;
-		double offset = start + (delay/2.0);
+		// double offset = start + (delay/2.0);
+		double offset = (start + end) / 2.0;
 		return new Pair(delay, offset);
 	}
 	
@@ -61,7 +62,8 @@ public class MarzulloTuple implements Comparable<MarzulloTuple>{
 
 	@Override
 	public int compareTo(MarzulloTuple o) {
-		return (o.offset > this.offset) ? (-1) : ( (o.offset < this.offset) ? (1) : this.type);
+		//return (o.offset > this.offset) ? (-1) : ( (o.offset < this.offset) ? (1) : this.type);
+		return ((this.offset == o.offset) ? (o.type - this.type) : ((this.offset < o.offset) ? (-1) : (1)) );
 	}
 	
 }

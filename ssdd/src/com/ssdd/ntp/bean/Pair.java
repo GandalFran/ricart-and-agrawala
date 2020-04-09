@@ -70,7 +70,7 @@ public class Pair implements Serializable{
 	 * @return the calculated offset for the NTP algorithm.
 	 * */
 	private double calculateOffset(long time0, long time1, long time2, long time3) {
-		return (((double)(time1-time0+time2-time3))/2.0);
+		return (((double)((time1-time0)+(time2-time3)))/2.0);
 	}
 	
 	/**
@@ -89,7 +89,7 @@ public class Pair implements Serializable{
 	 * @return the calculated delay for the NTP algorithm.
 	 * */
 	private double calculateDelay(long time0, long time1, long time2, long time3) {
-		return ((double)(time1-time0+time3-time2));
+		return ((double)((time1-time0)+(time3-time2)));
 	}
 	
 	@Override

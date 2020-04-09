@@ -255,19 +255,18 @@ public class CriticalSectionService{
 		process.lock();
 		// update local lamport time
 		process.getCounter().update(messageTimeStamp);
-	
 		// check if the enter of process is permited or not
-		if(process.permitEnter(sender, messageTimeStamp)){
-			// unlock operations
-			process.unlock();
-			LOGGER.log(Level.INFO, String.format("[process: %s] /cs/request process %s ALLOWED", processId, sender));
-		}else{
-			LOGGER.log(Level.INFO, String.format("[process: %s] /cs/request process %s QUEUED", processId, sender));
-			// unlock operations
-			process.unlock();
+		boolean permitEnter = process.permitEnter(sender, messageTimeStamp);
+		// unlock operations
+		process.unlock();
+		
+		if(!permitEnter){
 			// wait until the enter in CS is permited
+			LOGGER.log(Level.INFO, String.format("[process: %s] /cs/request process %s QUEUED", processId, sender));
 			process.queueAccessRequest();
-			LOGGER.log(Level.INFO, String.format("[process: %s] /cs/request process %s DEQUEUED (ALLOWED)", processId, sender));
+			LOGGER.log(Level.INFO, String.format("[process: %s] /cs/request process %s DEQUEUED (ALLOWED)", processId, sender));	
+		}else{
+			LOGGER.log(Level.INFO, String.format("[process: %s] /cs/request process %s ALLOWED", processId, sender));
 		}
 	}
 
