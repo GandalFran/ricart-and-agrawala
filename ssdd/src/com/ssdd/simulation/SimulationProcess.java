@@ -46,7 +46,7 @@ public class SimulationProcess extends Thread{
 		super();
 		this.cs = cs;
 		this.processId = processId;
-		this.generator = new Random();
+		this.generator = new Random(System.currentTimeMillis());
 		this.csLog = new SimulationLogCentralized(processId, logFile);
 		// set thread name
 		this.setName(String.format("P%s", processId));

@@ -9,7 +9,7 @@ package com.ssdd.util.constants;
 */
 public interface ISimulationConstants {
 
-	public static final String LOG_SERVER = "192.168.230.129";	
+	public static final String LOG_SERVER = "192.168.230.133";	
 	public static final String LOG_FILE = "/home/gandalfran/centralizedlogFile.log";
 	
 	/** 
