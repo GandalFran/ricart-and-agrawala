@@ -36,8 +36,8 @@ import java.util.Locale;
  * de violaciones detectadas, las lIneas donde se producen, y la razOn para la detecciOn
  * 
  * [ Para juntar y ordenar los ficheros, en sistemas Unix podemos usar:
- * cat 0.log 1.log 2.log ... &gt; total.log
- * sort -k 3 total.log &gt; totalSorted.log ]
+ * cat 0.log 1.log 2.log ... > total.log
+ * sort -k 3 total.log > totalSorted.log ]
  * @author rodri
  *
  */

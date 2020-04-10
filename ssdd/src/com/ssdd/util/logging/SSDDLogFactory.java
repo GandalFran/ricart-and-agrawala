@@ -1,7 +1,9 @@
 package com.ssdd.util.logging;
 
+import java.io.IOException;
 import java.util.Date;
 import java.util.logging.ConsoleHandler;
+import java.util.logging.FileHandler;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
@@ -9,6 +11,7 @@ import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 
 import com.ssdd.util.constants.IConstants;
+import com.ssdd.util.logging.centralized.CentralizedLogHandler;
 
 /** 
  * Class with static methods to build and configure {@link java.util.logging.Logger}
@@ -49,6 +52,25 @@ public class SSDDLogFactory {
 		return log;
 	}
 	
+	public static Logger fileLogger(String file) {
+
+		// generate handler and formatter
+		Handler handler = null;
+		try {
+			handler = new FileHandler(file);
+		} catch (SecurityException | IOException e) {
+			System.exit(IConstants.EXIT_CODE_IO_ERROR);
+		}
+	    
+	    // create and configure log
+		Logger log = Logger.getLogger(file);
+		log.addHandler(handler);
+	    log.setUseParentHandlers(false);
+	    
+		return log;
+	}
+	
+	
 	/**
 	 * buils a Handler for {@link java.util.logging.Logger}.
 	 * If the {@link com.ssdd.util.constants.IConstants#DEBUG} is set to false,
@@ -60,8 +82,8 @@ public class SSDDLogFactory {
 	 * 
 	 * @return a {@link java.util.logging.Handler} for the configured medium (currently console).
 	 * */
-	private static Handler buildHandler() {
-		Handler handler = new ConsoleHandler();
+	public static Handler buildHandler() {
+		Handler handler = (IConstants.CENTRALIZED_LOG) ? (new CentralizedLogHandler()) : (new ConsoleHandler());
 		if(! IConstants.DEBUG) {
 			handler.setLevel(Level.WARNING);
 		}
@@ -79,7 +101,7 @@ public class SSDDLogFactory {
 	 * 
 	 * @return a {@link java.util.logging.SimpleFormatter} object with the selected format.
 	 * */
-	private static SimpleFormatter buildFormatter(final String className) {
+	public static SimpleFormatter buildFormatter(final String className) {
 		return new SimpleFormatter() {
 	          private String format = "[%1$tF %1$tT] [%2$-7s] [%3$-4s] [" + className + "]  %4$s %n";
 	          

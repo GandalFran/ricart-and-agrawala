@@ -6,9 +6,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -16,7 +13,6 @@ import com.ssdd.ntp.bean.MarzulloTuple;
 import com.ssdd.ntp.bean.Pair;
 import com.ssdd.ntp.service.NTPService;
 import com.ssdd.ntp.service.NTPServiceProxy;
-import com.ssdd.util.constants.IConstants;
 import com.ssdd.util.constants.INtpConstants;
 import com.ssdd.util.logging.SSDDLogFactory;
 
@@ -64,49 +60,19 @@ public class NTPClient {
 	 * */
 	public Map<NTPService, Pair []> sample() {
 		Map<NTPService, Pair []> samples = new HashMap<>();
+		NTPConcurrentSender sender = new NTPConcurrentSender();
 		
-		List<Runnable> tasks = new ArrayList<>();
-		for(NTPService service : services){
-			Runnable task = new Runnable(){
-				private NTPClient client;
-				private NTPService service;
-				private Map<NTPService, Pair []> samples;
-				  
-				private Runnable init(NTPClient client, NTPService service,  Map<NTPService, Pair []> samples){
-					  this.client = client;
-					  this.service = service;
-					  this.samples = samples;
-					  return this;
-				}
-				  
-				public void run(){
-					Pair [] pairs = this.client.sampleTime(this.service, INtpConstants.NTP_NUM_ITERATIONS);
-					samples.put(this.service, pairs);
-				 }
-				  
-			}.init(this, service, samples);
-			tasks.add(task);
-		}
-
-		// execute with threadpool
-		ExecutorService pool = Executors.newFixedThreadPool(tasks.size());	
-		for(Runnable task: tasks)
-			pool.submit(task);
-		pool.shutdown();
-		
-		try {
-			pool.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
-		} catch (InterruptedException e) {
-			LOGGER.log(Level.WARNING, String.format("await: InterruptedException: error %s", e.getMessage()), e);
-			System.exit(IConstants.EXIT_CODE_THREAD_ERROR);
-		}
+		List<Runnable> tasks = sender.buildTasks(this, services, samples);
+		sender.multicastSend(tasks);
+		sender.await();
 		
 		return samples;
 	} 
 	
-	private Pair [] sampleTime(NTPService service, int numIterations){
+	public Pair [] sampleTime(NTPService service, int numIterations){
 		long time0, time1, time2, time3;
 		Pair [] pairs = new Pair [INtpConstants.NTP_NUM_ITERATIONS];
+		
 		for(int currIteration=0; currIteration<numIterations; currIteration++) {
 			// get times
 			time0 = System.currentTimeMillis();

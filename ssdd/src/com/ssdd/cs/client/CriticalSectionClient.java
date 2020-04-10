@@ -131,6 +131,7 @@ public class CriticalSectionClient {
 			long messageTimeStamp = myservice.setRequested(this.ID);
 			
 			// send requests
+			LOGGER.log(Level.INFO, String.format("requesting access with %d", messageTimeStamp));
 			CriticalSectionRequestConcurrentSender multicastSender = new CriticalSectionRequestConcurrentSender();
 			List<Runnable>tasks = multicastSender.buildCommunicationTasks(this.ID, this.processes, router, messageTimeStamp);
 			multicastSender.multicastSend(tasks);

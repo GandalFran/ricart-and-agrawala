@@ -4,7 +4,6 @@ import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.inject.Singleton;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -100,6 +99,7 @@ public class NTPService{
 	@Path("/time")
 	@Produces(MediaType.TEXT_PLAIN)
 	public String time() {
+		this.setThreadName();
 		LOGGER.log(Level.INFO, "/ntp/time");
 		
 		// sample time
@@ -111,7 +111,7 @@ public class NTPService{
 			Thread.sleep(interval);
 		} catch (InterruptedException e) {
 			LOGGER.log(Level.WARNING, String.format("/ntp/time: ERROR InterruptedException: %s", e.getMessage()));
-			return "_";
+			return "";
 		}
 		
 		// sample for second time
@@ -123,5 +123,7 @@ public class NTPService{
 		return response;
 	}
 		
-	
+	private void setThreadName(){
+		Thread.currentThread().setName(String.format("NTP"));
+	}
 }

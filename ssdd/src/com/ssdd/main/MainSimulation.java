@@ -54,13 +54,13 @@ public class MainSimulation {
 		String assignedService = servers[assignedServerPosition];
 		
 		// print information about params
-		LOGGER.log(Level.INFO, "Params:");
-		LOGGER.log(Level.INFO, "\t log file: " + simulationLogFile);
-		LOGGER.log(Level.INFO, "\t number of processes: " + numberOfProcesses);
-		LOGGER.log(Level.INFO, "\t assigned range start: " + assignedProcessIdRangeStart);
-		LOGGER.log(Level.INFO, "\t assigned range start: " + assignedProcessIdRangeEnd);
-		LOGGER.log(Level.INFO, "\t asigned server: " + assignedService);
-		LOGGER.log(Level.INFO, "\t servers: " + Arrays.toString(servers));
+		LOGGER.log(Level.INFO, "Params:"
+			+ "\n\t log file: " + simulationLogFile
+			+ "\n\t number of processes: " + numberOfProcesses
+			+ "\n\t assigned range start: " + assignedProcessIdRangeStart
+			+ "\n\t assigned range start: " + assignedProcessIdRangeEnd
+			+ "\n\t asigned server: " + assignedService
+			+ "\n\t servers: " + Arrays.toString(servers));
 
 		// instance builder
 		SimulationProcessBuilder builder = new SimulationProcessBuilder();
