@@ -111,7 +111,7 @@ public class NTPService{
 			Thread.sleep(interval);
 		} catch (InterruptedException e) {
 			LOGGER.log(Level.WARNING, String.format("/ntp/time: ERROR InterruptedException: %s", e.getMessage()));
-			return "";
+			return "error";
 		}
 		
 		// sample for second time
