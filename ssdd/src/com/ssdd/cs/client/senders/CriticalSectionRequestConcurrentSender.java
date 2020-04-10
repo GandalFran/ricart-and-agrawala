@@ -67,6 +67,7 @@ public class CriticalSectionRequestConcurrentSender extends ConcurrentSender{
 				public void run() {
 					try {
 						service.request(this.receiver, this.sender, this.messageTimeStamp);
+						LOGGER.log(Level.INFO, String.format("recived response from P%s", this.receiver));
 					} catch (ProcessNotFoundException e) {
 						LOGGER.log(Level.WARNING, String.format("run: ProcessNotFoundException: error %s", e.getMessage()), e);
 						System.exit(IConstants.EXIT_CODE_SIMULATION_ERROR);

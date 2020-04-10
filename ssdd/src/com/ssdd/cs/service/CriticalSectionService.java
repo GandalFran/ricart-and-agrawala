@@ -100,6 +100,7 @@ public class CriticalSectionService{
 	@Path("/status")
 	@Produces(MediaType.TEXT_PLAIN)
 	public String status() {
+		this.setThreadName();
 		return "{ \"service\": \"cs\", \"status\": \"ok\"}";
 	}
 	
@@ -116,6 +117,7 @@ public class CriticalSectionService{
 	@GET
 	@Path("/restart")
 	public void restart(@QueryParam(value="numProcesses") int numProcesses){
+		this.setThreadName();
 		LOGGER.log(Level.INFO, String.format("/cs/restart"));
 		this.processes.clear();
 		this.startBarrier = new CyclicBarrier(numProcesses);
@@ -132,6 +134,7 @@ public class CriticalSectionService{
 	@GET
 	@Path("/ready")
 	public void ready(){
+		this.setThreadName();
 		LOGGER.log(Level.INFO, String.format("/cs/ready"));
 		try {
 			this.startBarrier.await();
@@ -150,6 +153,7 @@ public class CriticalSectionService{
 	@GET
 	@Path("/finished")
 	public void finished(){
+		this.setThreadName();
 		LOGGER.log(Level.INFO, String.format("/cs/finished"));
 		try {
 			this.finishBarrier.await();
@@ -170,6 +174,7 @@ public class CriticalSectionService{
 	@GET
 	@Path("/suscribe")
 	public void suscribe(@QueryParam(value="process") String processId){
+		this.setThreadName(processId);
 		LOGGER.log(Level.INFO, String.format("[process: %s] /cs/suscribe", processId));
 		CritialSectionProcessState process = new CritialSectionProcessState(processId, new LamportCounter(), CriticalSectionState.FREE);
 		this.processes.put(processId, process);
@@ -188,6 +193,7 @@ public class CriticalSectionService{
 	@Path("/suscribed")
 	@Produces(MediaType.APPLICATION_JSON)
 	public String suscribed(){
+		this.setThreadName();
 		LOGGER.log(Level.INFO, String.format("/cs/suscribed"));
 
 		// get processes
@@ -216,6 +222,7 @@ public class CriticalSectionService{
 	@Path("/set/requested")
 	@Produces(MediaType.TEXT_PLAIN)
 	public long setRequested(@QueryParam(value="process") String processId) throws ProcessNotFoundException {
+		this.setThreadName(processId);
 		LOGGER.log(Level.INFO, String.format("[process: %s] /cs/set/requested", processId));
 		
 		// get process
@@ -225,6 +232,8 @@ public class CriticalSectionService{
 		// get process' lamport time and update process's critical section state
 		long messageTimeStamp = process.saveLastTimeStamp();
 		process.setState(CriticalSectionState.REQUESTED);
+		// enable queueing
+		process.getQueue().activate();
 		// unlock operations
 		process.unlock();
 		// return the timestamp to process, for sending the requests
@@ -247,7 +256,7 @@ public class CriticalSectionService{
 	@GET
 	@Path("/request")
 	public void request(@QueryParam(value="process") String processId, @QueryParam(value="sender") String sender, @QueryParam(value="messageTimeStamp") long messageTimeStamp) throws ProcessNotFoundException {
-		LOGGER.log(Level.INFO, String.format("[process: %s] /cs/request sender %s ", processId, sender));
+		this.setThreadName(processId);
 
 		// get process
 		CritialSectionProcessState process = this.getProcessState(processId);
@@ -255,18 +264,15 @@ public class CriticalSectionService{
 		process.lock();
 		// update local lamport time
 		process.getCounter().update(messageTimeStamp);
-	
 		// check if the enter of process is permited or not
-		if(process.permitEnter(sender, messageTimeStamp)){
-			// unlock operations
-			process.unlock();
-			LOGGER.log(Level.INFO, String.format("[process: %s] /cs/request process %s ALLOWED", processId, sender));
-		}else{
-			LOGGER.log(Level.INFO, String.format("[process: %s] /cs/request process %s QUEUED", processId, sender));
-			// unlock operations
-			process.unlock();
+		boolean permitEnter = process.permitEnter(sender, messageTimeStamp);
+		LOGGER.log(Level.INFO, String.format("[process: %s] /cs/request process %s %s", processId, sender,( permitEnter ? "ALLOWED" : "QUEUED" )));
+		// unlock operations
+		process.unlock();
+		
+		if(!permitEnter){
 			// wait until the enter in CS is permited
-			process.queueAccessRequest();
+			process.getQueue().waitInQueue();
 			LOGGER.log(Level.INFO, String.format("[process: %s] /cs/request process %s DEQUEUED (ALLOWED)", processId, sender));
 		}
 	}
@@ -285,6 +291,7 @@ public class CriticalSectionService{
 	@GET
 	@Path("/set/acquired")
 	public void setAcquired(@QueryParam(value="process") String processId) throws ProcessNotFoundException {
+		this.setThreadName(processId);
 		LOGGER.log(Level.INFO, String.format("[process: %s] /cs/set/acquired", processId));
 		// get process
 		CritialSectionProcessState process = this.getProcessState(processId);
@@ -311,6 +318,7 @@ public class CriticalSectionService{
 	@GET
 	@Path("/release")
 	public void release(@QueryParam(value="process") String processId) throws ProcessNotFoundException {
+		this.setThreadName(processId);
 		LOGGER.log(Level.INFO, String.format("[process: %s] /cs/release", processId));
 		
 		// get process
@@ -319,8 +327,8 @@ public class CriticalSectionService{
 		process.lock();
 		// set new state
 		process.setState(CriticalSectionState.FREE);
-		// notify all that critical section has been released
-		process.dequeueAcessRequest();
+		// release queued processes
+		process.getQueue().deactivateAndRelease();
 		// unlock operations
 		process.unlock();
 	}
@@ -348,4 +356,11 @@ public class CriticalSectionService{
 		return this.processes.get(processId);
 	}
 	
+	private void setThreadName(){
+		Thread.currentThread().setName(String.format("CS"));
+	}
+	
+	private void setThreadName(String p){
+		Thread.currentThread().setName(String.format("CS.%s",p));
+	}
 }

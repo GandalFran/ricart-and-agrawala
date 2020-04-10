@@ -4,7 +4,6 @@ import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.inject.Singleton;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -21,7 +20,6 @@ import com.ssdd.util.logging.SSDDLogFactory;
  * @author Héctor Sánchez San Blas
  * @author Francisco Pinto Santos
 */
-@Singleton
 @Path("/ntp")
 public class NTPService{
 
@@ -36,7 +34,7 @@ public class NTPService{
 	private Random generator;
 
 	public NTPService() {
-		this.generator = new Random();
+		this.generator = new Random(System.currentTimeMillis());
 	}
 
 	/**
@@ -80,8 +78,8 @@ public class NTPService{
 	 * @return string indicating the status of the service is up.
 	 * */
 	@GET
-	@Produces(MediaType.TEXT_PLAIN)
 	@Path("/status")
+	@Produces(MediaType.TEXT_PLAIN)
 	public String status() {
 		return "{ \"service\": \"ntp\", \"status\": \"ok\"}";
 	}
@@ -101,6 +99,7 @@ public class NTPService{
 	@Path("/time")
 	@Produces(MediaType.TEXT_PLAIN)
 	public String time() {
+		this.setThreadName();
 		LOGGER.log(Level.INFO, "/ntp/time");
 		
 		// sample time
@@ -111,8 +110,8 @@ public class NTPService{
 			long interval = Utils.randomBetweenInterval(this.generator, INtpConstants.NTP_MIN_SLEEP_MS, INtpConstants.NTP_MAX_SLEEP_MS);
 			Thread.sleep(interval);
 		} catch (InterruptedException e) {
-			LOGGER.log(Level.WARNING, String.format("/ntp/pedirTiempo: ERROR InterruptedException: %s", e.getMessage()));
-			return "0_0";
+			LOGGER.log(Level.WARNING, String.format("/ntp/time: ERROR InterruptedException: %s", e.getMessage()));
+			return "";
 		}
 		
 		// sample for second time
@@ -124,5 +123,7 @@ public class NTPService{
 		return response;
 	}
 		
-	
+	private void setThreadName(){
+		Thread.currentThread().setName(String.format("NTP"));
+	}
 }
