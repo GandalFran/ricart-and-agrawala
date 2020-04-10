@@ -69,11 +69,11 @@ public class NTPClient {
 		return samples;
 	} 
 	
-	public Pair [] sampleTime(NTPService service, int numIterations){
+	public Pair [] sampleTime(NTPService service){
 		long time0, time1, time2, time3;
 		Pair [] pairs = new Pair [INtpConstants.NTP_NUM_ITERATIONS];
 		
-		for(int currIteration=0; currIteration<numIterations; currIteration++) {
+		for(int currIteration=0; currIteration<INtpConstants.NTP_NUM_ITERATIONS; currIteration++) {
 			// get times
 			time0 = System.currentTimeMillis();
 			long [] response = NTPServiceProxy.parseTimeResponse(service.time());

@@ -4,6 +4,7 @@
 # 					constants						 #
 # ================================================== #
 
+
 # project
 project_name=ssdd
 service_path=/$project_name$service
@@ -16,7 +17,7 @@ build_folder=/tmp/build
 tomcat_tar=/tmp/tomcat.tar.gz
 tomcat_download_folder=/tmp/tomcat
 tomcat_folder_final=/tmp/tomcat
-tomcat_uri=https://apache.brunneis.com/tomcat/tomcat-7/v7.0.100/bin/apache-tomcat-7.0.100.tar.gz
+tomcat_uri=http://apache.uvigo.es/tomcat/tomcat-7/v7.0.103/bin/apache-tomcat-7.0.103.tar.gz
 
 # client files location
 client_jar_initial=$project_name.jar
@@ -32,6 +33,8 @@ ntp_file=ntp.bin
 log_folder=$tmp_folder/log
 log_file_sufix=simulation.log
 
+# ntp enalbed -> 0 = NO and 1 = YES
+NTP_ENABLED=1
 
 # ================================================== #
 # 					  utils							 #
@@ -127,7 +130,7 @@ clean_project(){
 download_tomcat(){
 	wget -q $tomcat_uri -O $tomcat_tar
 	tar -zxf $tomcat_tar --directory /tmp
-	mv /tmp/apache-tomcat-7.0.100 $tomcat_download_folder
+	mv /tmp/apache-tomcat-7.0.103 $tomcat_download_folder
 	rm $tomcat_tar
 }
 
@@ -165,6 +168,17 @@ remote_exec_app(){
 	remote_exec $user_host "java -jar $client_jar_final $appargs"
 }
 
+clean_tmp_files(){
+	user_host1=$1
+	user_host2=$2
+	user_host3=$3
+	clean_file $user_host1 $ntp_file
+	clean_file $user_host1 $log_file_total
+	clean_file $user_host1 $log_file_host1
+	clean_file $user_host2 $log_file_host2
+	clean_file $user_host3 $log_file_host3
+}
+
 run_application(){
 	user=$1
 	host1=$2
@@ -181,17 +195,17 @@ run_application(){
 	log_file_host3=$(get_log_name 3)
 	log_file_total=$(get_log_name total_)
 
+	# start/stop ntp in remotes
+	#remote_exec $user_host1 "timedatectl set-ntp $NTP_ENABLED"
+	#remote_exec $user_host2 "timedatectl set-ntp $NTP_ENABLED"
+	#remote_exec $user_host3 "timedatectl set-ntp $NTP_ENABLED"
+
 	# cleaning files from other executions
 	echo "cleaning temporary files in remotes (results of other executions) ..."
-	clean_file $user_host1 $ntp_file
-	clean_file $user_host1 $log_file_total
-	clean_file $user_host1 $log_file_host1
-	clean_file $user_host2 $log_file_host2
-	clean_file $user_host3 $log_file_host3
+	clean_tmp_files $user_host1 $user_host2 $user_host3
 
 	# run supervisor ntp
 	echo "running supervisor ntp ..."
-	# remote_exec_app $user_host1 "supervisor ntp $ntp_file $host1 $host2 $host3"
 	remote_exec_app $user_host1 "supervisor ntp $ntp_file $host2 $host3"
 
 	# restart critical section and run simulation
@@ -203,7 +217,6 @@ run_application(){
 
 	# calculate ntp in supervisor
 	echo "running supervisor ntp ..."
-	# remote_exec_app $user_host1 "supervisor ntp $ntp_file $host1 $host2 $host3"
 	remote_exec_app $user_host1 "supervisor ntp $ntp_file $host2 $host3"
 
 	# copy logs to machine where supervisor is allocated
@@ -213,7 +226,6 @@ run_application(){
 
 	# correct time in logs
 	echo "adjusting time in logs ..."
-	#remote_exec_app $user_host1 "supervisor correctLog $ntp_file $log_file_host1 $host1 $log_file_host2 $host2 $log_file_host3 $host3"
 	remote_exec_app $user_host1 "supervisor correctLog $ntp_file $log_file_host2 $host2 $log_file_host3 $host3"
 
 	# join and sort logs
@@ -226,11 +238,94 @@ run_application(){
 
 	# clean temporary files in remotes
 	echo "cleaning temporary files in remotes ..."
-	clean_file $user_host1 $ntp_file
-	clean_file $user_host1 $log_file_total
-	clean_file $user_host1 $log_file_host1
-	clean_file $user_host2 $log_file_host2
-	clean_file $user_host3 $log_file_host3
+	remote_exec $user_host1 "cp $log_file_total /root/total.log"
+	clean_tmp_files $user_host1 $user_host2 $user_host3
+}
+
+run_application_no_ntp(){
+	user=$1
+	host1=$2
+	host2=$3
+	host3=$4
+
+	user_host1="$user@$host1"
+	user_host2="$user@$host2"
+	user_host3="$user@$host3"
+
+	# log files names
+	log_file_host1=$(get_log_name 1)
+	log_file_host2=$(get_log_name 2)
+	log_file_host3=$(get_log_name 3)
+	log_file_total=$(get_log_name total_)
+
+	# start/stop ntp in remotes
+	remote_exec $user_host1 "timedatectl set-ntp $NTP_ENABLED"
+	remote_exec $user_host2 "timedatectl set-ntp $NTP_ENABLED"
+	remote_exec $user_host3 "timedatectl set-ntp $NTP_ENABLED"
+
+	# cleaning files from other executions
+	echo "cleaning temporary files in remotes (results of other executions) ..."
+	clean_tmp_files $user_host1 $user_host2 $user_host3
+
+	# restart critical section and run simulation
+	echo "running simulation ..."
+	remote_exec_app $user_host1 "supervisor restartCs 6 $host1 $host2 $host3"
+	remote_exec_app $user_host1 "simulation $log_file_host1 6 1 2 0 $host1 $host2 $host3" &
+	remote_exec_app $user_host2 "simulation $log_file_host2 6 3 4 1 $host1 $host2 $host3" &
+	remote_exec_app $user_host3 "simulation $log_file_host3 6 5 6 2 $host1 $host2 $host3"
+
+	# copy logs to machine where supervisor is allocated
+	echo "copying logs to supervisor..."
+	copy_file_between_remotes $user_host2 $user_host1 $log_file_host2 $log_file_host2
+	copy_file_between_remotes $user_host3 $user_host1 $log_file_host3 $log_file_host3
+
+	# join and sort logs
+	echo "joining and sorting logs ..."
+	remote_exec $user_host1 "cat $log_file_host1 $log_file_host2 $log_file_host3 | awk NF | sort -k 3 > $log_file_total"
+
+	# run supervisor log comprobation
+	echo "run log comprobation ..."
+	remote_exec_app $user_host1 "verification $ntp_file $log_file_total"
+
+	# clean temporary files in remotes
+	echo "cleaning temporary files in remotes ..."
+	remote_exec $user_host1 "cp $log_file_total /root/total.log"
+	clean_tmp_files $user_host1 $user_host2 $user_host3
+}
+
+run_application_log_centralized(){
+	user=$1
+	host1=$2
+	host2=$3
+	host3=$4
+
+	user_host1="$user@$host1"
+	user_host2="$user@$host2"
+	user_host3="$user@$host3"
+
+	# log files names
+	log_file="/home/gandalfran/centralizedlogFile.log"
+	log_file_for_hosts="/dev/null"
+
+	# cleaning files from other executions
+	echo "cleaning temporary files in remotes (results of other executions) ..."
+	clean_tmp_files $user_host1 $user_host2 $user_host3
+
+	# restart critical section and run simulation
+	echo "running simulation ..."
+	remote_exec_app $user_host1 "supervisor restartCs 6 $host1 $host2 $host3"
+	remote_exec_app $user_host1 "simulation $log_file_for_hosts 6 1 2 0 $host1 $host2 $host3" &
+	remote_exec_app $user_host2 "simulation $log_file_for_hosts 6 3 4 1 $host1 $host2 $host3" &
+	remote_exec_app $user_host3 "simulation $log_file_for_hosts 6 5 6 2 $host1 $host2 $host3"
+
+	# run supervisor log comprobation
+	echo "run log comprobation ..."
+	remote_exec_app $user_host3 "verification $ntp_file $log_file"
+
+	# clean temporary files in remotes
+	echo "cleaning temporary files in remotes ..."
+	clean_file $user_host1 $log_file
+	clean_tmp_files $user_host1 $user_host2 $user_host3
 }
 
 # ================================================== #
@@ -304,13 +399,6 @@ do
 			user_host2="$user@$host2"
 			user_host3="$user@$host3"
 
-			# generate session key and share keys
-			echo "preparing ssh connections ..."
-			gen_key
-			share_key $user_host1
-			share_key $user_host2
-			share_key $user_host3
-
 			# create temporary and log fodlers in remote
 			remote_exec $user_host1 "mkdir -p $tmp_folder"
 			remote_exec $user_host2 "mkdir -p $tmp_folder"
@@ -318,6 +406,11 @@ do
 			remote_exec $user_host1 "mkdir -p $log_folder"
 			remote_exec $user_host2 "mkdir -p $log_folder"
 			remote_exec $user_host3 "mkdir -p $log_folder"
+
+			# kill old java processes
+			remote_exec $user_host1 "pkill -f 'java -jar $client_jar_final'"
+			remote_exec $user_host2 "pkill -f 'java -jar $client_jar_final'"
+			remote_exec $user_host3 "pkill -f 'java -jar $client_jar_final'"
 
 			# download tomcat
 			echo "downloading tomcat ..."
@@ -347,12 +440,15 @@ do
 			copy_file $user_host3 $server_war_initial $server_war_final
 
 			# wait for server to complete deploy
-			echo "waiting 5 seconds to allow servers to complete the deploy ..."
-			sleep 5
+			echo "waiting 10 seconds to allow servers to complete the deploy ..."
+			sleep 10
 
 			# run application
 			echo "running application ..."
 			run_application $user $host1 $host2 $host3
+			# run_application_no_ntp $user $host1 $host2 $host3
+			# run_application_log_centralized $user $host1 $host2 $host3
+
       ;;
       "-redeploy")
 			i=$((i+1))
@@ -369,6 +465,11 @@ do
 			user_host2="$user@$host2"
 			user_host3="$user@$host3"
 
+			# kill old java processes
+			remote_exec $user_host1 "pkill -f 'java -jar $client_jar_final'"
+			remote_exec $user_host2 "pkill -f 'java -jar $client_jar_final'"
+			remote_exec $user_host3 "pkill -f 'java -jar $client_jar_final'"
+
 			# clean server files
 			echo "cleaning older server files ..."
 			clean_server $user_host1
@@ -382,8 +483,8 @@ do
 			clean_file $user_host3 $client_jar_final
 
 			# wait for server to detect that files has been deleted
-			echo "waiting 5 seconds to allow servers to detect the deletion of files ..."
-			sleep 5
+			echo "waiting 10 seconds to allow servers to detect the deletion of files ..."
+			sleep 10
 
 			# restart tomcat in each server
 			echo "restarting tomcat ..."
@@ -408,12 +509,13 @@ do
 			copy_file $user_host3 $server_war_initial $server_war_final
 
 			# wait for server to complete deploy
-			echo "waiting 5 seconds to allow servers to complete the deploy ..."
-			sleep 5
+			echo "waiting 10 seconds to allow servers to complete the deploy ..."
+			sleep 10
 
 			# run application
 			echo "running application ..."
 			run_application $user $host1 $host2 $host3
+			# run_application_log_centralized $user $host1 $host2 $host3
       ;;
       "-clean")
 			i=$((i+1))

@@ -7,7 +7,6 @@ import java.util.Map;
 import com.ssdd.ntp.bean.Pair;
 import com.ssdd.ntp.service.NTPService;
 import com.ssdd.util.concurrent.ConcurrentSender;
-import com.ssdd.util.constants.INtpConstants;
 
 
 /**
@@ -51,7 +50,7 @@ public class NTPConcurrentSender extends ConcurrentSender{
 				}
 				  
 				public void run(){
-					Pair [] pairs = this.client.sampleTime(this.service, INtpConstants.NTP_NUM_ITERATIONS);
+					Pair [] pairs = this.client.sampleTime(this.service);
 					samples.put(this.service, pairs);
 				 }
 				  
