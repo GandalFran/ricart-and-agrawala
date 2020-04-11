@@ -6,9 +6,12 @@ import java.io.IOException;
 import javax.inject.Singleton;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.MediaType;
 
 import com.ssdd.util.constants.IConstants;
+import com.ssdd.util.constants.ILoggingConstants;
 
 @Singleton
 @Path("/log")
@@ -18,7 +21,7 @@ public class CentralizedLogService {
 	
 	public CentralizedLogService() {
 		try {
-			this.file = new FileWriter(IConstants.CENTRALIZED_LOG_FILE, true);
+			this.file = new FileWriter(ILoggingConstants.CENTRALIZED_LOG_FILE, true);
 		} catch (IOException e) {
 			System.exit(IConstants.EXIT_CODE_IO_ERROR);
 		}
@@ -33,6 +36,21 @@ public class CentralizedLogService {
 		return String.format("http://%s:8080/ssdd/log", host);
 	}
 	
+	/**
+	 * shows service status.
+	 * 
+	 * @version 1.0
+	 * @author Héctor Sánchez San Blas
+	 * @author Francisco Pinto Santos
+	 * 
+	 * @return string indicating the status of the service is up.
+	 * */
+	@GET
+	@Path("/status")
+	@Produces(MediaType.TEXT_PLAIN)
+	public String status() {
+		return "{ \"service\": \"centralized log\", \"status\": \"ok\"}";
+	}
 	@GET
 	@Path("/write")
 	public void log(@QueryParam(value="line") String line){

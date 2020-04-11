@@ -3,7 +3,7 @@ package com.ssdd.util.logging.centralized;
 import java.util.logging.Handler;
 import java.util.logging.LogRecord;
 
-import com.ssdd.util.constants.IConstants;
+import com.ssdd.util.constants.ILoggingConstants;
 import com.ssdd.util.logging.SSDDLogFactory;
 
 public class CentralizedLogHandler extends Handler{
@@ -11,7 +11,7 @@ public class CentralizedLogHandler extends Handler{
 	private CentralizedLogService service;
 	
 	public CentralizedLogHandler(){
-		this.service = CentralizedLogService.buildProxy(IConstants.CENTRALIZED_LOG_IP);
+		this.service = CentralizedLogService.buildProxy(ILoggingConstants.CENTRALIZED_LOG_IP);
 	}
 	
 	@Override

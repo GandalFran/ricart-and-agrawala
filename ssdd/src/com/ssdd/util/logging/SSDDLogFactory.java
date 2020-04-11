@@ -11,6 +11,7 @@ import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 
 import com.ssdd.util.constants.IConstants;
+import com.ssdd.util.constants.ILoggingConstants;
 import com.ssdd.util.logging.centralized.CentralizedLogHandler;
 
 /** 
@@ -83,8 +84,8 @@ public class SSDDLogFactory {
 	 * @return a {@link java.util.logging.Handler} for the configured medium (currently console).
 	 * */
 	public static Handler buildHandler() {
-		Handler handler = (IConstants.CENTRALIZED_LOG) ? (new CentralizedLogHandler()) : (new ConsoleHandler());
-		if(! IConstants.DEBUG) {
+		Handler handler = (ILoggingConstants.CENTRALIZED_LOG) ? (new CentralizedLogHandler()) : (new ConsoleHandler());
+		if(! ILoggingConstants.DEBUG) {
 			handler.setLevel(Level.WARNING);
 		}
 		return handler; 

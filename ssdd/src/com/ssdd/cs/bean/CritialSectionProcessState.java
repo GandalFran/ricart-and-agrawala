@@ -1,10 +1,6 @@
 package com.ssdd.cs.bean;
 
 import java.util.concurrent.Semaphore;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import com.ssdd.util.logging.SSDDLogFactory;
 
 /** 
  * stores all the relative information to a process's in the critical section context in the server side.
@@ -16,11 +12,6 @@ import com.ssdd.util.logging.SSDDLogFactory;
 public class CritialSectionProcessState {
 
 	/**
-	 * Class logger generated with {@link com.ssdd.util.logging.SSDDLogFactory#logger(Class)}
-	 * */
-    private final static Logger LOGGER = SSDDLogFactory.logger(CritialSectionProcessState.class);
-    
-    /**
      * the process's id
      * */
     private String id;
@@ -150,9 +141,5 @@ public class CritialSectionProcessState {
 
 	public void setQueue(CriticalSectionQueue queue) {
 		this.queue = queue;
-	}
-	
-	
-
-	
+	}	
 }
