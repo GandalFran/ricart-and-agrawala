@@ -8,10 +8,11 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.glassfish.jersey.internal.guava.ThreadFactoryBuilder;
+
 import com.ssdd.util.constants.IConstants;
 import com.ssdd.util.logging.SSDDLogFactory;
 
-import jersey.repackaged.com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 public class ConcurrentSender {
 	
