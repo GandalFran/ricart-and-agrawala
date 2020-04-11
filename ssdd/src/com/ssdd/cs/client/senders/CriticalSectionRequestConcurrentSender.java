@@ -45,40 +45,35 @@ public class CriticalSectionRequestConcurrentSender extends ConcurrentSender{
 	 * @return the list of runnables to perform the send task to each process
 	 */
 	public List<Runnable> buildCommunicationTasks(String sender, List<String> receivers, CriticalSectionRouter router, long messageTimeStamp){
-		
 		List<Runnable> tasks = new ArrayList<>();
-		
-		for(String receiver : receivers) {
+		receivers.forEach(receiver -> {
 			CriticalSectionService service = router.route(receiver);
-			Runnable task = new Runnable() {		
-				private String sender;
-				private String receiver;
-				private long messageTimeStamp;
-				private CriticalSectionService service;
-				
-				public Runnable init(String sender, String receiver, long messageTimeStamp, CriticalSectionService service) {
-			        this.sender = sender;
-			        this.receiver = receiver;
-			        this.messageTimeStamp = messageTimeStamp;
-				    this.service = service;
-				    return this;
-				}
-				
-				public void run() {
-					try {
-						service.request(this.receiver, this.sender, this.messageTimeStamp);
-						LOGGER.log(Level.INFO, String.format("recived response from P%s", this.receiver));
-					} catch (ProcessNotFoundException e) {
-						LOGGER.log(Level.WARNING, String.format("run: ProcessNotFoundException: error %s", e.getMessage()), e);
-						System.exit(IConstants.EXIT_CODE_SIMULATION_ERROR);
+			tasks.add(new Runnable() {		
+					private String sender;
+					private String receiver;
+					private long messageTimeStamp;
+					private CriticalSectionService service;
+					
+					public Runnable init(String sender, String receiver, long messageTimeStamp, CriticalSectionService service) {
+				        this.sender = sender;
+				        this.receiver = receiver;
+				        this.messageTimeStamp = messageTimeStamp;
+					    this.service = service;
+					    return this;
 					}
-				}
-			}.init(sender, receiver, messageTimeStamp, service);
-			
-			tasks.add(task);
-		}	
-		
+					
+					public void run() {
+						try {
+							service.request(this.receiver, this.sender, this.messageTimeStamp);
+							LOGGER.log(Level.INFO, String.format("recived response from P%s", this.receiver));
+						} catch (ProcessNotFoundException e) {
+							LOGGER.log(Level.WARNING, String.format("run: ProcessNotFoundException: error %s", e.getMessage()), e);
+							System.exit(IConstants.EXIT_CODE_SIMULATION_ERROR);
+						}
+					}
+				}.init(sender, receiver, messageTimeStamp, service)
+			);
+		});
 		return tasks;
 	}
-
 }

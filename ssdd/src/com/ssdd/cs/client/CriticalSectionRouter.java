@@ -87,13 +87,15 @@ public class CriticalSectionRouter {
 	 * @author Francisco Pinto Santos
 	*/
 	public void updateAll() {
-		for(CriticalSectionService service : this.services) {
-			String response = service.suscribed();
-			String [] processes = CriticalSectionServiceProxy.parseSuscribedResponse(response);
-			for(String process : processes) {
-				this.update(process, service);
+		this.services.forEach(service -> 
+			{
+				String response = service.suscribed();
+				String [] processes = CriticalSectionServiceProxy.parseSuscribedResponse(response);
+				for(String process : processes) {
+					this.update(process, service);
+				}
 			}
-		}
+		);
 	}
 
 	public List<String> getProcesses(){
