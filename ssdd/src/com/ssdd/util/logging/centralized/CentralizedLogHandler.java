@@ -4,7 +4,6 @@ import java.util.logging.Handler;
 import java.util.logging.LogRecord;
 
 import com.ssdd.util.constants.ILoggingConstants;
-import com.ssdd.util.logging.SSDDLogFactory;
 
 public class CentralizedLogHandler extends Handler{
 
@@ -13,6 +12,11 @@ public class CentralizedLogHandler extends Handler{
 	public CentralizedLogHandler(){
 		this.service = CentralizedLogService.buildProxy(ILoggingConstants.CENTRALIZED_LOG_IP);
 	}
+	
+	public boolean isServerAvailable() {
+		return CentralizedLogServiceProxy.parseIsAvailableResponse(this.service.isAvailable());
+	}
+	
 	
 	@Override
 	public void close() throws SecurityException {
@@ -27,7 +31,7 @@ public class CentralizedLogHandler extends Handler{
 
 	@Override
 	public void publish(LogRecord arg0) {
-		String line = SSDDLogFactory.buildFormatter(arg0.getLoggerName()).format(arg0);
+		String line = this.getFormatter().format(arg0);
 		this.service.log(line);
 	}
 
