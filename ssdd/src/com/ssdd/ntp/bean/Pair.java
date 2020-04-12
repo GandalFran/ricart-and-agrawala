@@ -48,14 +48,17 @@ public class Pair implements Serializable{
 	 * @return a pair of Marzullo tuples representing the strat and end of the interval represented by the Pair
 	 */
 	public MarzulloTuple[] toMarzulloTuple() {
+		double halfDelay = this.delay/2.0;
+		double start = this.offset - halfDelay;
+		double end = this.offset + halfDelay;
 		return new MarzulloTuple [] {
-				new MarzulloTuple(this.offset - (this.delay/2.0), -1),
-				new MarzulloTuple(this.offset + (this.delay/2.0), +1)
+				new MarzulloTuple(start, -1),
+				new MarzulloTuple(end, +1)
 		};
 	}
 	
 	/**
-	 * given four time stamples (two in the client side and two in the server side),
+	 * given four time samples (two in the client side and two in the server side),
 	 * calculates the offset between two hosts.
 	 * 
 	 * @version 1.0
@@ -70,7 +73,11 @@ public class Pair implements Serializable{
 	 * @return the calculated offset for the NTP algorithm.
 	 * */
 	private double calculateOffset(long time0, long time1, long time2, long time3) {
-		return (((double)((time1-time0)+(time2-time3)))/2.0);
+		long tx = time1-time0;
+		long ty = time2-time3;
+		double tz = (double) (tx + ty);
+		double tw = tz/2.0;
+		return tw;
 	}
 	
 	/**
@@ -89,7 +96,10 @@ public class Pair implements Serializable{
 	 * @return the calculated delay for the NTP algorithm.
 	 * */
 	private double calculateDelay(long time0, long time1, long time2, long time3) {
-		return ((double)((time1-time0)+(time3-time2)));
+		long tx = time1-time0;
+		long ty = time3-time2;
+		double tz = (double) (tx - ty);
+		return tz;
 	}
 	
 	@Override

@@ -16,5 +16,5 @@ public class ILoggingConstants {
 	/** 
 	 * If log is centralized, centralized log host
 	 */
-	public static final String CENTRALIZED_LOG_FILE = "/home/ssdd/ssdd.log";
+	public static final String CENTRALIZED_LOG_FILE = "/home/vagrant/ssdd/ssdd.log";
 }

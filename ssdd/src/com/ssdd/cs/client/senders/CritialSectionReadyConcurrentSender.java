@@ -33,26 +33,22 @@ public class CritialSectionReadyConcurrentSender extends ConcurrentSender{
 	 * @return the list of runnables to perform the send task to each service
 	 */
 	public List<Runnable> buildCommunicationTasks(List<CriticalSectionService> services){
-		
 		List<Runnable> tasks = new ArrayList<>();
-		
-		for(CriticalSectionService service : services) {
-			Runnable task = new Runnable() {		
-				private CriticalSectionService service;
-				
-				public Runnable init(CriticalSectionService service) {
-				        this.service = service;
-				        return this;
-				}
-				
-				public void run() {
-					 this.service.ready();
-				}
-			}.init(service);
-			
-			tasks.add(task);
-		}	
-		
+		services.forEach(service -> {
+			tasks.add(new Runnable() {		
+					private CriticalSectionService service;
+					
+					public Runnable init(CriticalSectionService service) {
+					        this.service = service;
+					        return this;
+					}
+					
+					public void run() {
+						 this.service.ready();
+					}
+				}.init(service)
+			);
+		});
 		return tasks;
 	}
 }

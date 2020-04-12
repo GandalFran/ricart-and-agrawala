@@ -1,0 +1,17 @@
+[Unit]
+Description=Tomcat server - instance
+After=syslog.target network.target
+
+[Service]
+User=vagrant
+Group=vagrant
+Type=forking
+
+ExecStart=/opt/tomcat/bin/startup.sh
+ExecStop=/opt/tomcat/bin/shutdown.sh
+
+RestartSec=5
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

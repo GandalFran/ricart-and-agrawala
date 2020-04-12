@@ -19,8 +19,7 @@ public class CriticalSectionQueue {
 	}
 	
 	public synchronized void deactivateAndRelease(){
-		for(Semaphore s : this.waitingProcesses)
-			s.release();
+		this.waitingProcesses.forEach(s -> s.release());
 		this.waitingProcesses.clear();
 		this.queueingAllowed = false;
 	}
