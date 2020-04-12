@@ -29,8 +29,9 @@ public class CentralizedLogServiceProxy extends CentralizedLogService{
 	@Override
 	public String isAvailable() {
 		try {
-			return this.service.path("isAvailable").request(MediaType.TEXT_PLAIN).get(String.class);
-		} catch (Exception e) {
+			String result = this.service.path("available").request(MediaType.TEXT_PLAIN).get(String.class);
+			return result;
+		} catch (Exception e){
 			return new Boolean(false).toString();
 		}
 		

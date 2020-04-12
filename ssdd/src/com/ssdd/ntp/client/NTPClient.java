@@ -48,7 +48,7 @@ public class NTPClient {
 	}
 
 	/**
-	 * for each service, samples time in host and server and calculates the delay and offset for {@link com.ssdd.util.constants.INtpConstants#NTP_NUM_ITERATIONS} times
+	 * for each service, samples time in host and server and calculates the delay and offset for {@link com.ssdd.util.constants.INtpConstants#NUM_SAMPLES} times
 	 * 
 	 * @see com.ssdd.ntp.service.NTPService#time()
 	 * 
@@ -69,23 +69,34 @@ public class NTPClient {
 		return samples;
 	} 
 	
-	public Pair [] sampleTime(NTPService service){
+	public Pair [] sample(NTPService service) throws NTPMaxFailsReachedException{
 		long time0, time1, time2, time3;
-		Pair [] pairs = new Pair [INtpConstants.NTP_NUM_ITERATIONS];
+		Pair [] pairs = new Pair [INtpConstants.NUM_SAMPLES];
 		
-		// discard first request
-		service.time();
-		
-		for(int currIteration=0; currIteration<INtpConstants.NTP_NUM_ITERATIONS; currIteration++) {
+		int failed = 0;
+		for(int currIteration=0; currIteration<INtpConstants.NUM_SAMPLES && failed<INtpConstants.MAX_FAILED_ATTEMPTS; currIteration++) {
 			// get times
 			time0 = System.currentTimeMillis();
 			long [] response = NTPServiceProxy.parseTimeResponse(service.time());
 			time3 = System.currentTimeMillis();
+			
+			if(response == null) {
+				LOGGER.log(Level.INFO, "error sampling pair");
+				currIteration--;
+				failed++;
+				continue;
+			}
+			
 			time1 = response[0]; 
 			time2 = response[1]; 
 			pairs[currIteration] = new Pair(time0, time1, time2, time3);
 			LOGGER.log(Level.INFO, String.format("sampled pair %s", pairs[currIteration].toString()));
 		}
+		
+		if(failed == INtpConstants.MAX_FAILED_ATTEMPTS) {
+			throw new NTPMaxFailsReachedException(service);
+		}
+		
 		return pairs;
 	 }
 	

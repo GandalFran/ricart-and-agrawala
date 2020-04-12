@@ -70,7 +70,7 @@ public class SSDDLogFactory {
 			if(centralizedHandler.isServerAvailable()) {
 				handler = centralizedHandler;
 			}else {
-				System.err.println("[ERROR] Logging server not available, using local logging");
+				System.err.println("\n\n\n[ERROR] Logging server not available, using local logging\\n\\n\\n");
 				handler = new ConsoleHandler();
 			}
 		}else {

@@ -9,6 +9,7 @@ import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
 
+import com.google.gson.Gson;
 import com.ssdd.util.constants.IConstants;
 import com.ssdd.util.logging.SSDDLogFactory;
 
@@ -82,8 +83,12 @@ public class NTPServiceProxy extends NTPService implements Serializable{
 	 * @return array with to long, corresponding to time1 and time2 in "time1_time2" response.
 	 * */
 	public static long[] parseTimeResponse(String response) {
-		String [] splittedresponse = response.split("_");
-		return new long [] {Long.parseLong(splittedresponse[0]), Long.parseLong(splittedresponse[1]) };
+		if(response== null || response.isEmpty()) {
+			return null;
+		}else {
+			long [] times = new Gson().fromJson(response, long[].class);
+			return (times.length == 0) ? null : times;
+		}
 	}
 	
 	@Override

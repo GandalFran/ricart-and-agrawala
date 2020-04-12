@@ -54,7 +54,7 @@ public class CentralizedLogService {
 	}
 	
 	@GET
-	@Path("/isAvailable")
+	@Path("/available")
 	@Produces(MediaType.TEXT_PLAIN)
 	public String isAvailable(){
 		return new Boolean(this.isFileWritable).toString();
@@ -66,7 +66,7 @@ public class CentralizedLogService {
 		try {
 			this.file.write(line);
 			this.file.flush();
-		} catch (IOException e) {
+		} catch (Exception e) {
 			System.err.println("ERROR: log request failed");
 		}
 	}

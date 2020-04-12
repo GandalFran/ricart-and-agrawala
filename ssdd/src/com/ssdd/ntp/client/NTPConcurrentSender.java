@@ -3,10 +3,14 @@ package com.ssdd.ntp.client;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import com.ssdd.ntp.bean.Pair;
 import com.ssdd.ntp.service.NTPService;
 import com.ssdd.util.concurrent.ConcurrentSender;
+import com.ssdd.util.constants.IConstants;
+import com.ssdd.util.logging.SSDDLogFactory;
 
 
 /**
@@ -20,6 +24,12 @@ import com.ssdd.util.concurrent.ConcurrentSender;
  */
 public class NTPConcurrentSender extends ConcurrentSender{
 
+	/**
+	 * Class logger generated with {@link com.ssdd.util.logging.SSDDLogFactory#logger(Class)}
+	 * */
+    private final static Logger LOGGER = SSDDLogFactory.logger(NTPConcurrentSender.class);
+ 
+	
 	public NTPConcurrentSender() {
 		super();
 	}
@@ -50,7 +60,13 @@ public class NTPConcurrentSender extends ConcurrentSender{
 				}
 				  
 				public void run(){
-					Pair [] pairs = this.client.sampleTime(this.service);
+					Pair[] pairs = null;
+					try {
+						pairs = this.client.sample(this.service);
+					} catch (NTPMaxFailsReachedException e) {
+						LOGGER.log(Level.WARNING, "unable to sample service: " + this.service.toString());
+						System.exit(IConstants.EXIT_CODE_HTTP_REQUEST_ERROR);
+					}
 					samples.put(this.service, pairs);
 				 }
 				  
