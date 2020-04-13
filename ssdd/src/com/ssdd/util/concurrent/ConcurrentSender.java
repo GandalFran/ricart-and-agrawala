@@ -13,6 +13,7 @@ import com.ssdd.util.logging.SSDDLogFactory;
 
 import jersey.repackaged.com.google.common.util.concurrent.ThreadFactoryBuilder;
 
+
 public class ConcurrentSender {
 	
 	/**
@@ -41,10 +42,9 @@ public class ConcurrentSender {
 		ThreadFactory nameThreadFactory = new ThreadFactoryBuilder().setNameFormat(Thread.currentThread().getName() + ".%d").build();
 		this.pool = Executors.newFixedThreadPool(communicationTasks.size(), nameThreadFactory);
 		
-		// send services.size() messages	
-		for(Runnable task: communicationTasks)
-			this.pool.submit(task);
-
+		// send communicationTasks.size() messages	
+		communicationTasks.forEach(task -> this.pool.submit(task));
+			
 		// shutdown the pool when all tasks has finished
 		this.pool.shutdown();	
 	}

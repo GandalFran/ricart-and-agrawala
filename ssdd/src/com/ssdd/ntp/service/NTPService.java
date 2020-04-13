@@ -9,6 +9,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import com.google.gson.Gson;
 import com.ssdd.util.Utils;
 import com.ssdd.util.constants.INtpConstants;
 import com.ssdd.util.logging.SSDDLogFactory;
@@ -102,23 +103,26 @@ public class NTPService{
 		this.setThreadName();
 		LOGGER.log(Level.INFO, "/ntp/time");
 		
+		long [] times = new long [2];
+		
 		// sample time
-		long time1 = System.currentTimeMillis(); 
+		times[0] = System.currentTimeMillis(); 
 		
 		// sleep during a random time
 		try {
-			long interval = Utils.randomBetweenInterval(this.generator, INtpConstants.NTP_MIN_SLEEP_MS, INtpConstants.NTP_MAX_SLEEP_MS);
+			long interval = Utils.randomBetweenInterval(this.generator, INtpConstants.MIN_SLEEP_MS, INtpConstants.MAX_SLEEP_MS);
 			Thread.sleep(interval);
 		} catch (InterruptedException e) {
 			LOGGER.log(Level.WARNING, String.format("/ntp/time: ERROR InterruptedException: %s", e.getMessage()));
-			return "";
+			String errorresponse = new Gson().toJson(new long [0],long[].class);
+			return errorresponse;
 		}
 		
 		// sample for second time
-		long time2 = System.currentTimeMillis();
+		times[1] = System.currentTimeMillis();
 		
 		// build the response
-		String response = String.format("%d_%d", time1, time2);
+		String response = new Gson().toJson(times,long[].class);
 		
 		return response;
 	}

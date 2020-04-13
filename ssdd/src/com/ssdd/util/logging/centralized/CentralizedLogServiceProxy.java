@@ -2,6 +2,7 @@ package com.ssdd.util.logging.centralized;
 
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
 
 import org.glassfish.jersey.uri.UriComponent;
@@ -19,7 +20,24 @@ public class CentralizedLogServiceProxy extends CentralizedLogService{
 	
 	@Override
 	public void log(String line){
-		String encodedLine = UriComponent.encode(line, UriComponent.Type.FRAGMENT);
-		this.service.path("write").queryParam("line", encodedLine).request().get();
+		try {
+			String encodedLine = UriComponent.encode(line, UriComponent.Type.FRAGMENT);
+			this.service.path("write").queryParam("line", encodedLine).request().get();
+		} catch (Exception e) {}
+	}
+	
+	@Override
+	public String isAvailable() {
+		try {
+			String result = this.service.path("available").request(MediaType.TEXT_PLAIN).get(String.class);
+			return result;
+		} catch (Exception e){
+			return new Boolean(false).toString();
+		}
+		
+	}
+	
+	public static boolean parseIsAvailableResponse(String response) {
+		return Boolean.parseBoolean(response);
 	}
 }

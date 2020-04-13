@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.ssdd.util.constants.IConstants;
 import com.ssdd.util.logging.SSDDLogFactory;
 
 /** 
@@ -47,6 +48,7 @@ public class SimulationLog {
 			this.file = new FileWriter(logFile, true);
 		} catch (IOException e) {
 			LOGGER.log(Level.WARNING, String.format("constructor: error %s", e.getMessage()), e);
+			System.exit(IConstants.EXIT_CODE_IO_ERROR);
 		}
 	}
 	
@@ -65,6 +67,7 @@ public class SimulationLog {
 			this.file.flush();
 		} catch (IOException e) {
 			LOGGER.log(Level.WARNING, String.format("logIn: error %s", e.getMessage()), e);
+			System.exit(IConstants.EXIT_CODE_IO_ERROR);
 		}
 	}
 	
@@ -83,6 +86,7 @@ public class SimulationLog {
 			this.file.flush();
 		} catch (IOException e) {
 			LOGGER.log(Level.WARNING, String.format("logOut: error %s", e.getMessage()), e);
+			System.exit(IConstants.EXIT_CODE_IO_ERROR);
 		}
 	}
 	

@@ -7,7 +7,7 @@
     
     <init-param>
       <param-name>jersey.config.server.provider.packages</param-name>
-      <param-value>com.ssdd.ntp.service;com.ssdd.cs.service;com.ssdd.simulation.centralizedLog;com.ssdd.util.logging.centralized</param-value>
+      <param-value>com.ssdd.ntp.service;com.ssdd.cs.service;com.ssdd.util.logging.centralized</param-value>
     </init-param>
     <load-on-startup>1</load-on-startup>
   </servlet>

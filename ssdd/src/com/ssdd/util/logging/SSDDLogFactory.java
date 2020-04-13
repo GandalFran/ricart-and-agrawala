@@ -1,16 +1,14 @@
 package com.ssdd.util.logging;
 
-import java.io.IOException;
 import java.util.Date;
 import java.util.logging.ConsoleHandler;
-import java.util.logging.FileHandler;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 
-import com.ssdd.util.constants.IConstants;
+import com.ssdd.util.constants.ILoggingConstants;
 import com.ssdd.util.logging.centralized.CentralizedLogHandler;
 
 /** 
@@ -18,7 +16,7 @@ import com.ssdd.util.logging.centralized.CentralizedLogHandler;
  * @see <a href="https://www.logicbig.com/tutorials/core-java-tutorial/logging/customizing-default-format.html">https://www.logicbig.com/tutorials/core-java-tutorial/logging/customizing-default-format.html</a> 
  * 
  * @version 1.0
- * @author Héctor Sánchez San Blas
+ * @author Hï¿½ctor Sï¿½nchez San Blas
  * @author Francisco Pinto Santos
 */
 public class SSDDLogFactory {
@@ -28,7 +26,7 @@ public class SSDDLogFactory {
 	 * buils a {@link java.util.logging.Logger} for a given class.
 	 * 
 	 * @version 1.0
-	 * @author Héctor Sánchez San Blas
+	 * @author Hï¿½ctor Sï¿½nchez San Blas
 	 * @author Francisco Pinto Santos
 	 * 
 	 * @param c class which the name for the logger will be taken from
@@ -52,24 +50,6 @@ public class SSDDLogFactory {
 		return log;
 	}
 	
-	public static Logger fileLogger(String file) {
-
-		// generate handler and formatter
-		Handler handler = null;
-		try {
-			handler = new FileHandler(file);
-		} catch (SecurityException | IOException e) {
-			System.exit(IConstants.EXIT_CODE_IO_ERROR);
-		}
-	    
-	    // create and configure log
-		Logger log = Logger.getLogger(file);
-		log.addHandler(handler);
-	    log.setUseParentHandlers(false);
-	    
-		return log;
-	}
-	
 	
 	/**
 	 * buils a Handler for {@link java.util.logging.Logger}.
@@ -77,16 +57,30 @@ public class SSDDLogFactory {
 	 * only the warning and error information is logged to console.
 	 * 
 	 * @version 1.0
-	 * @author Héctor Sánchez San Blas
+	 * @author Hï¿½ctor Sï¿½nchez San Blas
 	 * @author Francisco Pinto Santos
 	 * 
 	 * @return a {@link java.util.logging.Handler} for the configured medium (currently console).
 	 * */
 	public static Handler buildHandler() {
-		Handler handler = (IConstants.CENTRALIZED_LOG) ? (new CentralizedLogHandler()) : (new ConsoleHandler());
-		if(! IConstants.DEBUG) {
+		Handler handler = null;
+		
+		if(ILoggingConstants.CENTRALIZED_LOG) {
+			CentralizedLogHandler centralizedHandler = new CentralizedLogHandler();
+			if(centralizedHandler.isServerAvailable()) {
+				handler = centralizedHandler;
+			}else {
+				System.err.println("\n\n\n[ERROR] Logging server not available, using local logging\\n\\n\\n");
+				handler = new ConsoleHandler();
+			}
+		}else {
+			handler = new ConsoleHandler();
+		}
+		
+		if(! ILoggingConstants.DEBUG) {
 			handler.setLevel(Level.WARNING);
 		}
+		
 		return handler; 
 	}
 	
@@ -94,7 +88,7 @@ public class SSDDLogFactory {
 	 * buils a Formatter for the {@link java.util.logging.Logger}
 	 * 
 	 * @version 1.0
-	 * @author Héctor Sánchez San Blas
+	 * @author Hï¿½ctor Sï¿½nchez San Blas
 	 * @author Francisco Pinto Santos
 	 * 
 	 * @param className string containig the name of the class where the logger is instanced

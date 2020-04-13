@@ -3,9 +3,20 @@ package com.ssdd.cs.bean;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Semaphore;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import com.ssdd.cs.service.CriticalSectionService;
+import com.ssdd.util.logging.SSDDLogFactory;
 
 public class CriticalSectionQueue {
 
+	/**
+	 * Class logger generated with {@link com.ssdd.util.logging.SSDDLogFactory#logger(Class)}
+	 * */
+    private final static Logger LOGGER = SSDDLogFactory.logger(CriticalSectionQueue.class);
+ 
+    
 	private boolean queueingAllowed;
 	private List<Semaphore> waitingProcesses;
 	
@@ -19,8 +30,7 @@ public class CriticalSectionQueue {
 	}
 	
 	public synchronized void deactivateAndRelease(){
-		for(Semaphore s : this.waitingProcesses)
-			s.release();
+		this.waitingProcesses.forEach(s -> s.release());
 		this.waitingProcesses.clear();
 		this.queueingAllowed = false;
 	}
@@ -37,7 +47,7 @@ public class CriticalSectionQueue {
 			try {
 				s.acquire();
 			} catch (InterruptedException e) {
-				e.printStackTrace();
+				LOGGER.log(Level.WARNING, String.format("error waiting in queue"), e);
 			}
 		}
 	}
