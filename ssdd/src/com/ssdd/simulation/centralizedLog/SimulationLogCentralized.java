@@ -18,12 +18,12 @@ public class SimulationLogCentralized extends SimulationLog{
 	
 	public SimulationLogCentralized(String processId, String logFile) {
 		super(processId, logFile);
-		String service = SimulationLogCentralized.buildServiceUri(ISimulationConstants.LOG_SERVER);
+		String service = SimulationLogCentralized.buildServiceUri(ISimulationConstants.SIMULATION_LOG_SERVER);
 		this.service = ClientBuilder.newClient().target(UriBuilder.fromUri(service).build());
 	}
 	
 	public static String buildServiceUri(String host){
-		return String.format("http://%s:8080/ssdd/log", host);
+		return String.format("http://%s:8080/ssdd/simulation", host);
 	}
 	
 	public void logIn() {

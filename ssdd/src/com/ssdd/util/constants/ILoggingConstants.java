@@ -8,7 +8,7 @@ public class ILoggingConstants {
 	/** 
 	 * If log is centralized
 	 */
-	public static final boolean CENTRALIZED_LOG = false;
+	public static final boolean CENTRALIZED_LOG = true;
 	/** 
 	 * If log is centralized, centralized log host
 	 */

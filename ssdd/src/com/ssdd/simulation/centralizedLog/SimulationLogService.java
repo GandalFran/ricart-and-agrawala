@@ -16,7 +16,7 @@ import com.ssdd.util.constants.ISimulationConstants;
 import com.ssdd.util.logging.SSDDLogFactory;
 
 @Singleton
-@Path("/log")
+@Path("/simulation")
 public class SimulationLogService {
 
     private final static Logger LOGGER = SSDDLogFactory.logger(SimulationLogService.class);
@@ -28,7 +28,7 @@ public class SimulationLogService {
 	
 	public SimulationLogService() {
 		try {
-			this.file = new FileWriter(ISimulationConstants.LOG_FILE, true);
+			this.file = new FileWriter(ISimulationConstants.SIMULATION_LOG_FILE, true);
 		} catch (IOException e) {
 			LOGGER.log(Level.WARNING, String.format("constructor: error %s", e.getMessage()), e);
 		}
@@ -38,7 +38,7 @@ public class SimulationLogService {
 	@Path("/status")
 	@Produces(MediaType.TEXT_PLAIN)
 	public String status() {
-		return "{ \"service\": \"log\", \"status\": \"ok\"}";
+		return "{ \"service\": \"simulation log\", \"status\": \"ok\"}";
 	}
 	
 	@GET

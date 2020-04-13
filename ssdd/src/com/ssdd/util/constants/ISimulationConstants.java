@@ -9,8 +9,8 @@ package com.ssdd.util.constants;
 */
 public interface ISimulationConstants {
 
-	public static final String LOG_SERVER = "192.168.230.133";	
-	public static final String LOG_FILE = "/home/gandalfran/centralizedlogFile.log";
+	public static final String SIMULATION_LOG_SERVER = "vm1";	
+	public static final String SIMULATION_LOG_FILE = "/home/vagrant/ssdd/simulation.log";
 	
 	/** 
 	 * Number of iterations of calculus and critical section wait in simulation.
