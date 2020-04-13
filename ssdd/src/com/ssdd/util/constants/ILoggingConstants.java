@@ -8,11 +8,11 @@ public class ILoggingConstants {
 	/** 
 	 * If log is centralized
 	 */
-	public static final boolean CENTRALIZED_LOG = true;
+	public static final boolean CENTRALIZED_LOG = false;
 	/** 
 	 * If log is centralized, centralized log host
 	 */
-	public static final String CENTRALIZED_LOG_IP = "192.168.33.10";
+	public static final String CENTRALIZED_LOG_IP = "vm1";
 	/** 
 	 * If log is centralized, centralized log host
 	 */
