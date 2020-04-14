@@ -61,8 +61,8 @@ public class MarzulloTuple implements Comparable<MarzulloTuple>{
 
 	@Override
 	public int compareTo(MarzulloTuple o) {
-		//return (o.offset > this.offset) ? (-1) : ( (o.offset < this.offset) ? (1) : this.type);
-		return ((this.offset == o.offset) ? (o.type - this.type) : ((this.offset < o.offset) ? (-1) : (1)) );
+		return (o.offset > this.offset) ? (-1) : ( (o.offset < this.offset) ? (1) : this.type);
+		//return ((this.offset == o.offset) ? (o.type - this.type) : ((this.offset < o.offset) ? (-1) : (1)) );
 	}
 	
 }

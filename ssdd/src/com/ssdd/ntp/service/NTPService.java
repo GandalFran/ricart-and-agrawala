@@ -11,6 +11,7 @@ import javax.ws.rs.core.MediaType;
 
 import com.google.gson.Gson;
 import com.ssdd.util.Utils;
+import com.ssdd.util.constants.IConstants;
 import com.ssdd.util.constants.INtpConstants;
 import com.ssdd.util.logging.SSDDLogFactory;
 
@@ -66,7 +67,7 @@ public class NTPService{
 	 * @return String containing the URI to the service, served in the given host
 	 * */
 	public static String buildServiceUri(String host) {
-		return String.format("http://%s:8080/ssdd/ntp", host);
+		return String.format(IConstants.BASE_URI + "/ntp", host);
 	}
 	
 	/**
