@@ -72,6 +72,8 @@ public class SimulationLogAdjuster{
 		Scanner s = null;
 		for(String line : log) {
 			
+			LOGGER.log(Level.INFO, "Parsing line  |" + line + "|");
+			
 			// get groups of a log line
 			s = new Scanner(line);
 			s.useDelimiter(" ");
@@ -79,9 +81,13 @@ public class SimulationLogAdjuster{
 			String pid = s.next();
 			String operation = s.next();
 			long time = Long.parseLong(s.next());
+
+			LOGGER.log(Level.INFO, String.format("Parsed   line |%s %s %d|",pid, operation, time));
 			
 			// increment time
 			double finalTime = time + offset;
+
+			LOGGER.log(Level.INFO, String.format("Obtained line |%s %s %f|",pid, operation, finalTime));
 			
 			// write new line
 			try {

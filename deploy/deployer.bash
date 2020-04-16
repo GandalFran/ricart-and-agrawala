@@ -28,7 +28,6 @@ ntp_file=$tmp_folder/ntp.bin
 log_folder=$tmp_folder/log
 log_file_sufix=simulation.log
 
-
 # ================================================== #
 # 					  utils							 #
 # ================================================== #
@@ -81,15 +80,17 @@ clean_file(){
 
 # ntp utils
 enable_ntp(){
+	echo ""
 	user_host=$1
-	remote_exec $user_host "timedatectl set-ntp 1"
 	remote_exec $user_host "sudo service ntp start"
 }
 
 disable_ntp(){
+	echo ""
 	user_host=$1
-	remote_exec $user_host "timedatectl set-ntp 1"
-	remote_exec $user_host "sudo service ntp start"
+	# se activa ntp porque no va a haber comprobaciones
+	#remote_exec $user_host "timedatectl set-ntp 1"
+	#remote_exec $user_host "sudo service ntp start"
 }
 
 # tomcat utils
@@ -161,7 +162,7 @@ run_application(){
 	log_file_host2=$(get_log_name 2)
 	log_file_host3=$(get_log_name 3)
 	log_file_total=$(get_log_name total_)
-
+	
 	# cleaning files from other executions
 	echo "cleaning temporary files in remotes (results of other executions) ..."
 	clean_tmp_files $user_host1 $user_host2 $user_host3
@@ -216,7 +217,7 @@ run_application(){
 	# clean temporary files in remotes
 	echo "cleaning temporary files in remotes ..."
 	#clean_tmp_files $user_host1 $user_host2 $user_host3
-	remote_exec $user_host1 "cp $log_file_total /home/vagrant/total.log"
+	remote_exec $user_host1 "cp $log_file_total /home/vagrant/ssdd/simulation.log"
 }
 
 # ================================================== #
@@ -403,6 +404,7 @@ do
 			# start or stop ntp
 			if [ $ntp_enabled == "true" ]
 			then
+				echo ""
 				enable_ntp $user_host1
 				enable_ntp $user_host2
 				enable_ntp $user_host3
@@ -423,7 +425,10 @@ do
 
 			# run application
 			echo "running application ..."
+			START=$SECONDS
 			run_application $ntp_enabled $user $host1 $host2 $host3
+			ELAPSED=$(( SECONDS - START ))
+			echo "elapsed time: $(TZ=UTC0 printf '%(%H:%M:%S)T\n' "$ELAPSED")"
       ;;
       "-clean")
 			i=$((i+1))
