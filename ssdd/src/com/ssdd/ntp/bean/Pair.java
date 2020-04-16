@@ -98,7 +98,7 @@ public class Pair implements Serializable{
 	private double calculateDelay(long time0, long time1, long time2, long time3) {
 		long tx = time1-time0;
 		long ty = time3-time2;
-		double tz = (double) (tx - ty);
+		double tz = (double) (tx + ty);
 		return tz;
 	}
 	

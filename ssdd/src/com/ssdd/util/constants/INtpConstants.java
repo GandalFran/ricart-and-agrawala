@@ -21,5 +21,7 @@ public interface INtpConstants {
 	 */
 	public static final long MAX_SLEEP_MS = 2000;
 	
+	public static final boolean SLEEP_BETWEEN_SAMPLES = true;
+	
 	public static final int MAX_FAILED_ATTEMPTS = 10;
 }

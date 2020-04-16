@@ -77,18 +77,19 @@ public class NTPClient {
 		for(int currIteration=0; currIteration<INtpConstants.NUM_SAMPLES && failed<INtpConstants.MAX_FAILED_ATTEMPTS; currIteration++) {
 			// get times
 			time0 = System.currentTimeMillis();
-			long [] response = NTPServiceProxy.parseTimeResponse(service.time());
-			time3 = System.currentTimeMillis();
 			
+			long [] response = NTPServiceProxy.parseTimeResponse(service.time());
 			if(response == null) {
 				LOGGER.log(Level.INFO, "error sampling pair");
 				currIteration--;
 				failed++;
 				continue;
+			}else {
+				time1 = response[0]; 
+				time2 = response[1]; 
 			}
-			
-			time1 = response[0]; 
-			time2 = response[1]; 
+
+			time3 = System.currentTimeMillis();
 			pairs[currIteration] = new Pair(time0, time1, time2, time3);
 			LOGGER.log(Level.INFO, String.format("sampled pair %s", pairs[currIteration].toString()));
 		}

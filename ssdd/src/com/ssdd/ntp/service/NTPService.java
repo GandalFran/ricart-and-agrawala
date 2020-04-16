@@ -107,16 +107,18 @@ public class NTPService{
 		long [] times = new long [2];
 		
 		// sample time
-		times[0] = System.currentTimeMillis(); 
+		times[0] = System.currentTimeMillis();
 		
 		// sleep during a random time
-		try {
-			long interval = Utils.randomBetweenInterval(this.generator, INtpConstants.MIN_SLEEP_MS, INtpConstants.MAX_SLEEP_MS);
-			Thread.sleep(interval);
-		} catch (InterruptedException e) {
-			LOGGER.log(Level.WARNING, String.format("/ntp/time: ERROR InterruptedException: %s", e.getMessage()));
-			String errorresponse = new Gson().toJson(new long [0],long[].class);
-			return errorresponse;
+		if(INtpConstants.SLEEP_BETWEEN_SAMPLES) {
+			try {
+				long interval = Utils.randomBetweenInterval(this.generator, INtpConstants.MIN_SLEEP_MS, INtpConstants.MAX_SLEEP_MS);
+				Thread.sleep(interval);
+			} catch (InterruptedException e) {
+				LOGGER.log(Level.WARNING, String.format("/ntp/time: ERROR InterruptedException: %s", e.getMessage()));
+				String errorresponse = new Gson().toJson(new long [0],long[].class);
+				return errorresponse;
+			}
 		}
 		
 		// sample for second time
