@@ -19,6 +19,7 @@ import com.google.gson.Gson;
 import com.ssdd.cs.bean.CritialSectionProcessState;
 import com.ssdd.cs.bean.CriticalSectionState;
 import com.ssdd.cs.bean.LamportCounter;
+import com.ssdd.util.constants.IConstants;
 import com.ssdd.util.logging.SSDDLogFactory;
 
 /**
@@ -84,7 +85,7 @@ public class CriticalSectionService{
 	 * @return String containing the URI to the service, served in the given host
 	 * */
 	public static String buildServiceUri(String host) {
-		return String.format("http://%s:8080/ssdd/cs", host);
+		return String.format(IConstants.BASE_URI + "/cs", host);
 	}
 	
 	/**

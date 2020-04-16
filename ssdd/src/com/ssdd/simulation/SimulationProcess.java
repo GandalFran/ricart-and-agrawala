@@ -65,7 +65,7 @@ public class SimulationProcess extends Thread{
 		// wait until the other processs are ready
 		this.cs.ready();
 		// iterate N times simulating calculus and entering in the critical section
-		for(int i=0; i< ISimulationConstants.SIMULATION_NUM_ITERATIONS; i++) {
+		for(int i=1; i<= ISimulationConstants.SIMULATION_NUM_ITERATIONS; i++) {
 			LOGGER.log(Level.INFO, String.format("iter %d", i));
 			this.simulateSleep(ISimulationConstants.SIMULATION_MIN_CALULUS_TIME, ISimulationConstants.SIMULATION_MAX_CALULUS_TIME);
 			this.enterCriticalSection();

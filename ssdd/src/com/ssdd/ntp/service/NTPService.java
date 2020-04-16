@@ -11,6 +11,7 @@ import javax.ws.rs.core.MediaType;
 
 import com.google.gson.Gson;
 import com.ssdd.util.Utils;
+import com.ssdd.util.constants.IConstants;
 import com.ssdd.util.constants.INtpConstants;
 import com.ssdd.util.logging.SSDDLogFactory;
 
@@ -66,7 +67,7 @@ public class NTPService{
 	 * @return String containing the URI to the service, served in the given host
 	 * */
 	public static String buildServiceUri(String host) {
-		return String.format("http://%s:8080/ssdd/ntp", host);
+		return String.format(IConstants.BASE_URI + "/ntp", host);
 	}
 	
 	/**
@@ -106,16 +107,18 @@ public class NTPService{
 		long [] times = new long [2];
 		
 		// sample time
-		times[0] = System.currentTimeMillis(); 
+		times[0] = System.currentTimeMillis();
 		
 		// sleep during a random time
-		try {
-			long interval = Utils.randomBetweenInterval(this.generator, INtpConstants.MIN_SLEEP_MS, INtpConstants.MAX_SLEEP_MS);
-			Thread.sleep(interval);
-		} catch (InterruptedException e) {
-			LOGGER.log(Level.WARNING, String.format("/ntp/time: ERROR InterruptedException: %s", e.getMessage()));
-			String errorresponse = new Gson().toJson(new long [0],long[].class);
-			return errorresponse;
+		if(INtpConstants.SLEEP_BETWEEN_SAMPLES) {
+			try {
+				long interval = Utils.randomBetweenInterval(this.generator, INtpConstants.MIN_SLEEP_MS, INtpConstants.MAX_SLEEP_MS);
+				Thread.sleep(interval);
+			} catch (InterruptedException e) {
+				LOGGER.log(Level.WARNING, String.format("/ntp/time: ERROR InterruptedException: %s", e.getMessage()));
+				String errorresponse = new Gson().toJson(new long [0],long[].class);
+				return errorresponse;
+			}
 		}
 		
 		// sample for second time

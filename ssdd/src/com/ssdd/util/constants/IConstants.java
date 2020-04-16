@@ -8,6 +8,9 @@ package com.ssdd.util.constants;
  * @author Francisco Pinto Santos
 */
 public interface IConstants {
+	
+	public static final String BASE_URI = "http://%s:8080/ssdd";
+	
 	/**
 	 * Error code given when an error related to HTTP request occurs.
 	 * */
@@ -23,7 +26,7 @@ public interface IConstants {
 	/**
 	 * Error code given when an error related to I/O occurs.
 	 * */
-	public static final int EXIT_CODE_IO_ERROR =400;
+	public static final int EXIT_CODE_IO_ERROR = 400;
 	/**
 	 * Error code given when an error related to number of arguments in any main class occurs.
 	 * */

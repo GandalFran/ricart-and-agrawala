@@ -10,6 +10,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
+import com.ssdd.util.constants.IConstants;
 import com.ssdd.util.constants.ILoggingConstants;
 
 @Singleton
@@ -34,7 +35,7 @@ public class CentralizedLogService {
 	}
 	
 	public static String buildServiceUri(String host){
-		return String.format("http://%s:8080/ssdd/log", host);
+		return String.format(IConstants.BASE_URI + "/log", host);
 	}
 	
 	/**
