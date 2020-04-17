@@ -16,11 +16,11 @@ public class CritialSectionProcessState {
      * */
     private String id;
     /**
-     * process's time counter based in the Lamport's counter (gided by events)
+     * process's time counter based in the Lamport's counter (guided by events)
      * */
 	private LamportCounter counter;
     /**
-     * process's timestamp (lamport counter value) for the last message
+     * process's timestamp (Lamport counter value) for the last message
      * */
     private long lastTimeStamp;
     /**
@@ -56,7 +56,7 @@ public class CritialSectionProcessState {
 	 * @author Francisco Pinto Santos
 	 * 
 	 * @param senderId the process's id of the request's sender
-	 * @param senderTimeStamp the lamport counter value of the request's sender at the moment of the build of request
+	 * @param senderTimeStamp the Lamport counter value of the request's sender at the moment of the build of request
 	 * 
 	 * @return true if the request is accepted and false if the request should be queued
 	 */

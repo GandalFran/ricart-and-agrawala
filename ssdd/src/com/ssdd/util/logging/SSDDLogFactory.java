@@ -9,7 +9,7 @@ import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 
 import com.ssdd.util.constants.ILoggingConstants;
-import com.ssdd.util.logging.centralized.CentralizedLogHandler;
+import com.ssdd.util.logging.centralized.client.CentralizedLogHandler;
 
 /** 
  * Class with static methods to build and configure {@link java.util.logging.Logger}
@@ -53,8 +53,10 @@ public class SSDDLogFactory {
 	
 	/**
 	 * buils a Handler for {@link java.util.logging.Logger}.
-	 * If the {@link com.ssdd.util.constants.IConstants#DEBUG} is set to false,
+	 * If the {@link com.ssdd.util.constants.ILoggingConstants#DEBUG} is set to false,
 	 * only the warning and error information is logged to console.
+	 * If the {@link com.ssdd.util.constants.ILoggingConstants#CENTRALIZED_LOG} is set to true,
+	 * a {@link com.ssdd.util.logging.centralized.client.CentralizedLogHandler} is instanced.
 	 * 
 	 * @version 1.0
 	 * @author H�ctor S�nchez San Blas

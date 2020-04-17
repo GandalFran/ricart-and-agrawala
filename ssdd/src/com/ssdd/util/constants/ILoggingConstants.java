@@ -1,5 +1,12 @@
 package com.ssdd.util.constants;
 
+/** 
+ * Stores the constant values related to logging.
+ * 
+ * @version 1.0
+ * @author Héctor Sánchez San Blas
+ * @author Francisco Pinto Santos
+*/
 public class ILoggingConstants {
 	/** 
 	 * Log information

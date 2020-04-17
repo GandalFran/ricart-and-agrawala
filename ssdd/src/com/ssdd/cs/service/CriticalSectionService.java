@@ -64,7 +64,7 @@ public class CriticalSectionService{
 	 * @author Héctor Sánchez San Blas
 	 * @author Francisco Pinto Santos
 	 * 
-	 * @param host the IP adress and PORT of server in which the service is allocated.
+	 * @param host the IP address and PORT of server in which the service is allocated.
 	 * 
 	 * @return CriticalSectionService to serve as proxy for the /cs service, served in the given host
 	 * */
@@ -249,8 +249,8 @@ public class CriticalSectionService{
 	 * @author Francisco Pinto Santos
 	 * 
 	 * @param processId the id of the process that will be asked to access the critical section. Must be suscribed to requested service.
-	 * @param sender the id of the process trying to accces the critical section.
-	 * @param messageTimeStamp the message's timestamp (process's lamport time counter value)
+	 * @param sender the id of the process trying to acccess the critical section.
+	 * @param messageTimeStamp the message's timestamp (process's Lamport time counter value)
 	 * 
 	 * @throws ProcessNotFoundException when then processId doesn't corresponds to any process suscribed to current service
 	 * */

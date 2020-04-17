@@ -11,3 +11,5 @@ com.ssdd.util
 com.ssdd.util.concurrent
 com.ssdd.util.constants
 com.ssdd.util.logging
+com.ssdd.util.logging.centralized.client
+com.ssdd.util.logging.centralized.service

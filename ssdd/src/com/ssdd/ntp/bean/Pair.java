@@ -38,14 +38,14 @@ public class Pair implements Serializable{
 	}
 	
 	/**
-	 * transform the pair into a pair of marzullo tuples (ofset - delay/2, -1) 
-	 * and (ofset - delay/2, 1). 
+	 * transform the pair into a pair of Marzullo tuples (offset - delay/2, -1) 
+	 * and (offset - delay/2, 1). 
 	 * 
 	 * @version 1.0
 	 * @author Héctor Sánchez San Blas
 	 * @author Francisco Pinto Santos
 	 * 
-	 * @return a pair of Marzullo tuples representing the strat and end of the interval represented by the Pair
+	 * @return a pair of Marzullo tuples representing the start and end of the interval represented by the Pair
 	 */
 	public MarzulloTuple[] toMarzulloTuple() {
 		double halfDelay = this.delay/2.0;
@@ -81,7 +81,7 @@ public class Pair implements Serializable{
 	}
 	
 	/**
-	 * given four time stamples (two in the client side and two in the server side),
+	 * given four time samples (two in the client side and two in the server side),
 	 * calculates the delay between two hosts.
 	 * 
 	 * @version 1.0

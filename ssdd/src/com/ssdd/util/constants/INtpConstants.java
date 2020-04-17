@@ -21,8 +21,13 @@ public interface INtpConstants {
 	 * Maximum time (in milliseconds) between time samples in NTP service.
 	 */
 	public static final long MAX_SLEEP_MS = 2000;
-	
+	/**
+	 * If set to true in the NTP service it waits a random time interval between samples, else the two time samples
+	 * are taken consecutively.
+	 * */
 	public static final boolean SLEEP_BETWEEN_SAMPLES = true;
-		
+	/**
+	 * Maximum failed attempts for the time sample request process  (/ntp/time) in the NTP service.
+	 * */
 	public static final int MAX_FAILED_ATTEMPTS = 10;
 }

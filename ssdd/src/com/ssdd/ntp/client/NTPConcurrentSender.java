@@ -41,6 +41,12 @@ public class NTPConcurrentSender extends ConcurrentSender{
 	 * @author Héctor Sánchez San Blas
 	 * @author Francisco Pinto Santos
 	 * 
+	 * @param client the NTP client to call the {@link com.ssdd.ntp.client.NTPClient#sample(NTPService)} method.
+	 * @param services the list of services to ask for samples
+	 * @param samples the map to store the results (association between service and an array of NTP Pairs)
+	 * 
+	 * @return list of NTP sampling tasks, to be run in a threadpool
+	 * 
 	 */
 	public List<Runnable> buildTasks(NTPClient client, NTPService[] services, Map<NTPService, Pair []> samples){
 		
