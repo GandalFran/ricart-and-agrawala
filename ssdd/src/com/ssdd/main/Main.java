@@ -16,11 +16,7 @@ public class Main {
 	public static void main(String [] args){
 		// args length check
 		if(args.length < 1) {
-			System.err.println("ERROR: error number of arguments");
-			System.err.println("usage: <command>");
-			System.err.println("\t supervisor: for ntp sampling and log correction");
-			System.err.println("\t simulation: for critical section simulation");
-			System.err.println("\t verification: for log verification");
+			System.err.println("ERROR: error number of arguments. use -h option for information");
 			System.exit(IConstants.EXIT_CODE_ARGS_ERROR);
 		}
 		
@@ -28,6 +24,13 @@ public class Main {
 		args = Arrays.copyOfRange(args, 1, args.length);
 		
 		switch(command) {
+			case "-h": 
+			case "help":
+				System.err.println("usage: <command>");
+				System.err.println("\t supervisor: for ntp sampling and log correction. use supervisor -h for help.");
+				System.err.println("\t simulation: for critical section simulation. use simulation -h for help.");
+				System.err.println("\t verification: for log verification. use verification -h for help.");
+				break;
 			case "supervisor":
 				MainSupervisor.main(args);
 				break;
@@ -38,11 +41,7 @@ public class Main {
 				MainLogVerification.main(args);
 				break;
 			default:
-				System.out.println("ERROR: selected command (" + command + ") not found.");
-				System.out.println("usage: availabe commands");
-				System.err.println("\t supervisor: for ntp sampling and log correction");
-				System.err.println("\t simulation: for critical section simulation");
-				System.err.println("\t verification: for log verification");
+				System.out.println("ERROR: selected command (" + command + ") not found. use -h option for information.");
 				System.exit(IConstants.EXIT_CODE_ARGS_ERROR);
 		}
 	}

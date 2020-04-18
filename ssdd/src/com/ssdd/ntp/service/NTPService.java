@@ -67,7 +67,7 @@ public class NTPService{
 	 * @return String containing the URI to the service, served in the given host
 	 * */
 	public static String buildServiceUri(String host) {
-		return String.format(IConstants.BASE_URI + "/ntp", host);
+		return String.format(IConstants.BASE_URI_FORMAT + "/ntp", host);
 	}
 	
 	/**
@@ -126,6 +126,8 @@ public class NTPService{
 		
 		// build the response
 		String response = new Gson().toJson(times,long[].class);
+		
+		LOGGER.log(Level.INFO, String.format("/ntp/time: %s", response));
 		
 		return response;
 	}

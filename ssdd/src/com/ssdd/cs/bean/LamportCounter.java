@@ -1,7 +1,7 @@
 package com.ssdd.cs.bean;
 
 /** 
- * Represents a lamport clock.
+ * Represents a Lamport clock.
  * 
  * @version 1.0
  * @author Héctor Sánchez San Blas
@@ -25,7 +25,7 @@ public class LamportCounter {
 	}
 
 	/** 
-	 * Increments the lamport counter in one unit. Uses LC1 formule.
+	 * Increments the Lamport counter in one unit. Uses LC1 formulae.
 	 * 
 	 * @version 1.0
 	 * @author Héctor Sánchez San Blas
@@ -36,14 +36,14 @@ public class LamportCounter {
 	}
 
 	/** 
-	 * Updates the lamport counter with other counter value and then increments 
-	 * the lamport counter in one unit. Uses LC2 formule.
+	 * Updates the Lamport counter with other counter value and then increments 
+	 * the Lamport counter in one unit. Uses LC2 formulae.
 	 * 
 	 * @version 1.0
 	 * @author Héctor Sánchez San Blas
 	 * @author Francisco Pinto Santos
 	 * 
-	 * @param otherCounter the value of other lamport time counter
+	 * @param otherCounter the value of other Lamport time counter
 	 */
 	public void update(long otherCounter) {
 		this.counter = ((this.counter > otherCounter) ? this.counter : otherCounter) + 1;

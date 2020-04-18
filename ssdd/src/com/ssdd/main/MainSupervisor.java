@@ -40,20 +40,24 @@ public class MainSupervisor {
 	public static void main(String [] args){
 		// args length check
 		if(args.length < 1) {
-			System.err.println("ERROR: error number of arguments");
-			System.err.println("usage: <command> command args");
+			System.err.println("ERROR: error number of arguments. use -h option for help.");
 			System.exit(IConstants.EXIT_CODE_ARGS_ERROR);
+		}else if (args.length == 1 && (args[0].contentEquals("-h") || args[0].contentEquals("help"))) {
+			System.err.println("usage: <command> command args");System.err.println("usage: available commands:");
+			System.err.println("\t restart <number of processes> <server1> [<server2> ... <serverN>]");
+			System.err.println("\t ntp <ntp results file> <server1> [<server2> ... <serverN>]");
+			System.err.println("\t normalize  <ntp results file> <simulationHost1> <simulationHost1LogFile> [<simulationHost2> <simulationHost2LogFile> ... <simulationHostN> <simulationHostNLogFile>]");
+			return;
 		}
 		
 		// take service type argument
 		String command = args[0];
 
 		switch(command) {
-			case "restartCs":
+			case "restart":
 				// args length check
 				if(args.length < 3) {
-					System.err.println("ERROR: error number of arguments");
-					System.err.println("usage: restartCs <number of processes> <server1> [<server2> ... <serverN>]");
+					System.err.println("ERROR: error number of arguments. Use -h option for help.");
 					System.exit(IConstants.EXIT_CODE_ARGS_ERROR);
 				}
 				// take arguments
@@ -65,8 +69,7 @@ public class MainSupervisor {
 			case "ntp":
 				// args length check
 				if(args.length < 3) {
-					System.err.println("ERROR: error number of arguments");
-					System.err.println("usage: ntp <ntp results file> <server1> [<server2> ... <serverN>]");
+					System.err.println("ERROR: error number of arguments. Use -h option for help.");
 					System.exit(IConstants.EXIT_CODE_ARGS_ERROR);
 				}
 				// take arguments
@@ -75,11 +78,10 @@ public class MainSupervisor {
 				// sample ntp and store to file
 				MainSupervisor.sampleNtp(file, ntpServers);
 				break;
-			case "correctLog":
+			case "normalize":
 				// args length check
 				if(args.length < 3) {
-					System.err.println("ERROR: error number of arguments");
-					System.err.println("usage: <ntp results file> <simulationHost1> <simulationHost1LogFile> [<simulationHost2> <simulationHost2LogFile> ... <simulationHostN> <simulationHostNLogFile>]");
+					System.err.println("ERROR: error number of arguments. Use -h option for help.");
 					System.exit(IConstants.EXIT_CODE_ARGS_ERROR);
 				}
 				// take arguments
@@ -94,11 +96,7 @@ public class MainSupervisor {
 				MainSupervisor.correctLogs(ntpFile, logAndServer);
 				break;
 			default:
-				System.err.println("ERROR: selected command (" + command + ") not found.");
-				System.err.println("usage: available commands:");
-				System.err.println("\t restartCs <number of processes> <server1> [<server2> ... <serverN>]");
-				System.err.println("\t ntp <ntp results file> <server1> [<server2> ... <serverN>]");
-				System.err.println("\t correctLog  <ntp results file> <simulationHost1> <simulationHost1LogFile> [<simulationHost2> <simulationHost2LogFile> ... <simulationHostN> <simulationHostNLogFile>]");
+				System.err.println("ERROR: selected command (" + command + ") not found. use -h option for help.");
 				System.exit(IConstants.EXIT_CODE_ARGS_ERROR);
 		}
 		
@@ -202,7 +200,6 @@ public class MainSupervisor {
 			Pair p = logsAndPairs.get(log);
 			adjuster.adjustTime(log, p.getOffset());
 		}
-		
 		
 		// store association between log and pair into ntp file
 		new File(ntpFile).delete();

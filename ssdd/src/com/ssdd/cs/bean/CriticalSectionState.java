@@ -9,11 +9,11 @@ package com.ssdd.cs.bean;
 */
 public enum CriticalSectionState {
 	/**
-	 * the node is not trying to acces the critical section
+	 * the node is not trying to access the critical section
 	 * */
 	FREE, 
 	/**
-	 * the node is trying to acces the critical section
+	 * the node is trying to access the critical section
 	 * */
 	REQUESTED, 
 	/**

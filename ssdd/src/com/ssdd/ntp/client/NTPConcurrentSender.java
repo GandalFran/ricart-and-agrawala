@@ -8,7 +8,7 @@ import java.util.logging.Logger;
 
 import com.ssdd.ntp.bean.Pair;
 import com.ssdd.ntp.service.NTPService;
-import com.ssdd.util.concurrent.ConcurrentSender;
+import com.ssdd.util.concurrent.ConcurrentExecutor;
 import com.ssdd.util.constants.IConstants;
 import com.ssdd.util.logging.SSDDLogFactory;
 
@@ -22,7 +22,7 @@ import com.ssdd.util.logging.SSDDLogFactory;
  * @author Héctor Sánchez San Blas
  * @author Francisco Pinto Santos
  */
-public class NTPConcurrentSender extends ConcurrentSender{
+public class NTPConcurrentSender extends ConcurrentExecutor{
 
 	/**
 	 * Class logger generated with {@link com.ssdd.util.logging.SSDDLogFactory#logger(Class)}

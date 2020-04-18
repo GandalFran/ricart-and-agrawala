@@ -69,7 +69,7 @@ public class CriticalSectionClient {
 	}
 
 	/** 
-	 * suscribes this client to a service
+	 * Subscribes this client to a service
 	 * 
 	 * @version 1.0
 	 * @author Héctor Sánchez San Blas
@@ -99,7 +99,7 @@ public class CriticalSectionClient {
 	}
 	
 	/** 
-	 * indicates the services that the current process has finished and waits untill all processes has finished
+	 * indicates the services that the current process has finished and waits until all processes has finished
 	 * 
 	 * @version 1.0
 	 * @author Héctor Sánchez San Blas
@@ -149,7 +149,7 @@ public class CriticalSectionClient {
 	}
 	
 	/** 
-	 *  releases the critical section with the Ricart and Argawala algorithm.
+	 *  releases the critical section with the Ricart and Argawala's algorithm.
 	 * 
 	 * @version 1.0
 	 * @author Héctor Sánchez San Blas

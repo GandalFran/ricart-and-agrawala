@@ -10,9 +10,9 @@ package com.ssdd.util.constants;
 public interface IConstants {
 	
 	/**
-	 * Base URI to build URIs for services
+	 * Base URI format string to build URIs for services
 	 * */
-	public static final String BASE_URI = "http://%s:8080/ssdd";
+	public static final String BASE_URI_FORMAT = "http://%s:8080/ssdd";
 	/**
 	 * Error code given when an error related to HTTP request occurs.
 	 * */

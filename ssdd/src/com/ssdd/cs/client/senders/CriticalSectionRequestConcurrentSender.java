@@ -8,18 +8,18 @@ import java.util.logging.Logger;
 import com.ssdd.cs.client.CriticalSectionRouter;
 import com.ssdd.cs.service.CriticalSectionService;
 import com.ssdd.cs.service.ProcessNotFoundException;
-import com.ssdd.util.concurrent.ConcurrentSender;
+import com.ssdd.util.concurrent.ConcurrentExecutor;
 import com.ssdd.util.constants.IConstants;
 import com.ssdd.util.logging.SSDDLogFactory;
 
 /**
- * sends in a concurrent way messages to all processes to request the acces to critical section.
+ * sends in a concurrent way messages to all processes to request the access to critical section.
  * 
  * @version 1.0
  * @author Héctor Sánchez San Blas
  * @author Francisco Pinto Santos
  */
-public class CriticalSectionRequestConcurrentSender extends ConcurrentSender{
+public class CriticalSectionRequestConcurrentSender extends ConcurrentExecutor{
 
 	/**
 	 * Class logger generated with {@link com.ssdd.util.logging.SSDDLogFactory#logger(Class)}
@@ -31,7 +31,7 @@ public class CriticalSectionRequestConcurrentSender extends ConcurrentSender{
 	}
 	
 	/**
-	 * Builds as many runnables as given processes to perform all message send tasks in a concurrent way.
+	 * Builds as many runnable as given processes to perform all message send tasks in a concurrent way.
 	 * 
 	 * @version 1.0
 	 * @author Héctor Sánchez San Blas
@@ -42,7 +42,7 @@ public class CriticalSectionRequestConcurrentSender extends ConcurrentSender{
 	 * @param router to route messages between current sender and receivers
 	 * @param messageTimeStamp the timestamp associated with the message
 	 * 
-	 * @return the list of runnables to perform the send task to each process
+	 * @return the list of runnable to perform the send task to each process
 	 */
 	public List<Runnable> buildCommunicationTasks(String sender, List<String> receivers, CriticalSectionRouter router, long messageTimeStamp){
 		List<Runnable> tasks = new ArrayList<>();

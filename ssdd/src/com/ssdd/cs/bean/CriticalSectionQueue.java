@@ -9,10 +9,10 @@ import java.util.logging.Logger;
 import com.ssdd.util.logging.SSDDLogFactory;
 
 /** 
- * manages the critical section queue in a syncrhonized way.
+ * manages the critical section queue in a synchronized way.
  * 
  * @version 1.0
- * @author Hï¿½ctor Sï¿½nchez San Blas
+ * @author Héctor Sánchez San Blas
  * @author Francisco Pinto Santos
  */
 public class CriticalSectionQueue {
@@ -40,7 +40,7 @@ public class CriticalSectionQueue {
 	 * enables the queuing, allowing processes to wait in the critical section in the {@link #waitInQueue()} method.
 	 * 
 	 * @version 1.0
-	 * @author Hï¿½ctor Sï¿½nchez San Blas
+	 * @author Héctor Sánchez San Blass
 	 * @author Francisco Pinto Santos
 	 */
 	public synchronized void activate(){
@@ -53,7 +53,7 @@ public class CriticalSectionQueue {
 	 * and cleans the {@link #waitingProcesses} list.
 	 * 
 	 * @version 1.0
-	 * @author Hï¿½ctor Sï¿½nchez San Blas
+	 * @author Héctor Sánchez San Blas
 	 * @author Francisco Pinto Santos
 	 */
 	public synchronized void deactivateAndRelease(){
@@ -63,12 +63,12 @@ public class CriticalSectionQueue {
 	}	
 	
 	/** 
-	 * synchronizedly checks if the queueing is allowed. In that case instances a  {@link java.util.concurrent.Semaphore} with 0
-	 * permits and pushes it into the {@link #waitingProcesses} list. Then goes out the syncrhonyzed code fragment and waits for the semaphore.
+	 * synchronously checks if the queuing is allowed. In that case instances a  {@link java.util.concurrent.Semaphore} with 0
+	 * permits and pushes it into the {@link #waitingProcesses} list. Then goes out the synchronized code fragment and waits for the semaphore.
 	 * In the case that is not allowed, the semaphore is not instanced, and in the not synchronized part of the method, is not waited for.
 	 * 
 	 * @version 1.0
-	 * @author Hï¿½ctor Sï¿½nchez San Blas
+	 * @author Héctor Sánchez San Blas
 	 * @author Francisco Pinto Santos
 	 */
 	

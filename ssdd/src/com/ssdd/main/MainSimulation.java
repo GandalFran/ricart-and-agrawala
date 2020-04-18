@@ -28,9 +28,12 @@ public class MainSimulation {
 	public static void main(String [] args) {
 		// args length check
 		if(args.length < 5) {
-			System.err.println("ERROR: error number of arguments");
-			System.err.println("usage: <logFile> <numProcess> <assignedProcessRangeStart> <assignedProcessRangeEnd> <assignedServerPosition> <server1> [<server2> ... <serverN>]");
-			System.err.println("NOTE: assignedServerPosition is the server position in the server array given in next parameters, from 0 to N-1.");
+			if(args[0].contentEquals("-h") || args[0].contentEquals("help")) {
+				System.err.println("usage: <logFile> <numProcess> <assignedProcessRangeStart> <assignedProcessRangeEnd> <assignedServerPosition> <server1> [<server2> ... <serverN>]");
+				System.err.println("NOTE: assignedServerPosition is the server position in the server array given in next parameters, from 0 to N-1.");
+				return;
+			}
+			System.err.println("ERROR: error number of arguments. use -h for help.");
 			System.exit(IConstants.EXIT_CODE_ARGS_ERROR);
 		}
 		

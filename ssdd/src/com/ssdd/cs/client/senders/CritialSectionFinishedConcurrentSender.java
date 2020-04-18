@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.ssdd.cs.service.CriticalSectionService;
-import com.ssdd.util.concurrent.ConcurrentSender;
+import com.ssdd.util.concurrent.ConcurrentExecutor;
 
 
 /**
@@ -16,14 +16,14 @@ import com.ssdd.util.concurrent.ConcurrentSender;
  * @author Héctor Sánchez San Blas
  * @author Francisco Pinto Santos
  */
-public class CritialSectionFinishedConcurrentSender extends ConcurrentSender{
+public class CritialSectionFinishedConcurrentSender extends ConcurrentExecutor{
 
 	public CritialSectionFinishedConcurrentSender() {
 		super();
 	}
 	
 	/**
-	 * Builds as many runnables as services to perform all message send tasks in a concurrent way.
+	 * Builds as many runnable as services to perform all message send tasks in a concurrent way.
 	 * 
 	 * @version 1.0
 	 * @author Héctor Sánchez San Blas
@@ -31,7 +31,7 @@ public class CritialSectionFinishedConcurrentSender extends ConcurrentSender{
 	 * 
 	 * @param services list to services to send the message 
 	 * 
-	 * @return the list of runnables to perform the send task to each service
+	 * @return the list of runnable to perform the send task to each service
 	 */
 	public List<Runnable> buildCommunicationTasks(List<CriticalSectionService> services){
 		List<Runnable> tasks = new ArrayList<Runnable>();

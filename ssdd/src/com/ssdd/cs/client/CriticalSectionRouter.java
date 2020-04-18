@@ -12,7 +12,7 @@ import com.ssdd.cs.service.CriticalSectionServiceProxy;
 /** 
  * Provides access to a process by it's associated service.
  * If the process is not found, the class will request all available services
- * for the suscribed processes, to know which service is the one associated with
+ * for the subscribed processes, to know which service is the one associated with
  * the requested process.
  * 
  * @version 1.0
@@ -22,11 +22,11 @@ import com.ssdd.cs.service.CriticalSectionServiceProxy;
 public class CriticalSectionRouter {
 	
 	/**
-	 * List of availabe services to request the suscribed processes
+	 * List of available services to request the subscribed processes
 	 * */
 	private List<CriticalSectionService> services;
 	/**
-	 * Cached asociation between process and service
+	 * Cached association between process and service
 	 * */
 	private Map<String, CriticalSectionService> router;
 
@@ -46,7 +46,7 @@ public class CriticalSectionRouter {
 	/** 
 	 * given a process, provides its associated service.
 	 * If the process is not found, it will request all available services
-	 * for the suscribed processes, to know which service is the one associated with
+	 * for the subscribed processes, to know which service is the one associated with
 	 * the requested process.
 	 * 
 	 * @version 1.0
@@ -80,7 +80,7 @@ public class CriticalSectionRouter {
 	}
 	
 	/** 
-	 * requests all services for all suscribed processes, and updates the local association information.
+	 * requests all services for all subscribed processes, and updates the local association information.
 	 * 
 	 * @version 1.0
 	 * @author Héctor Sánchez San Blas

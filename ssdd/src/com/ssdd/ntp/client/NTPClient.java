@@ -1,7 +1,6 @@
 package com.ssdd.ntp.client;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -76,20 +75,20 @@ public class NTPClient {
 		int failed = 0;
 		for(int currIteration=0; currIteration<INtpConstants.NUM_SAMPLES && failed<INtpConstants.MAX_FAILED_ATTEMPTS; currIteration++) {
 			// get times
-			time0 = System.currentTimeMillis();
-			
+			time0 = System.currentTimeMillis();			
 			long [] response = NTPServiceProxy.parseTimeResponse(service.time());
+			time3 = System.currentTimeMillis();
+
 			if(response == null) {
 				LOGGER.log(Level.INFO, "error sampling pair");
 				currIteration--;
 				failed++;
 				continue;
 			}else {
-				time1 = response[0]; 
-				time2 = response[1]; 
+				time1 = response[0];
+				time2 = response[1];
 			}
 
-			time3 = System.currentTimeMillis();
 			pairs[currIteration] = new Pair(time0, time1, time2, time3);
 			LOGGER.log(Level.INFO, String.format("sampled pair %s", pairs[currIteration].toString()));
 		}
@@ -149,7 +148,9 @@ public class NTPClient {
 	private List <MarzulloTuple> populateMarzulloTable(Pair [] pairs) {
 		List <MarzulloTuple> table = new ArrayList<>();
 		for(Pair p: pairs) {
-			table.addAll(Arrays.asList(p.toMarzulloTuple()));
+			MarzulloTuple [] inverval = p.toMarzulloTuple();
+			table.add(inverval[0]);
+			table.add(inverval[1]);
 		}
 		return table;
 	}

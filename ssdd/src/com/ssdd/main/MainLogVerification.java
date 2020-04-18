@@ -30,8 +30,11 @@ public class MainLogVerification {
 		
 		// args length check
 		if(args.length < 2) {
-			System.err.println("ERROR: error number of arguments");
-			System.err.println("usage: <ntpPairsFile> <mainLogFile> [<logFileHost2>] [<logFileHost3>]");
+			if(args[0].contentEquals("-h") || args[0].contentEquals("help")) {
+				System.err.println("usage: <ntpPairsFile> <mainLogFile> [<logFileHost2>] [<logFileHost3>]");
+				return;
+			}
+			System.err.println("ERROR: error number of arguments. use -h for help");
 			System.exit(IConstants.EXIT_CODE_ARGS_ERROR);
 		}
 		

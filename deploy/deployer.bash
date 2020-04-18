@@ -78,21 +78,6 @@ clean_file(){
 	remote_exec $user_host "rm -rf $file"
 }
 
-# ntp utils
-enable_ntp(){
-	echo ""
-	user_host=$1
-	remote_exec $user_host "sudo service ntp start"
-}
-
-disable_ntp(){
-	echo ""
-	user_host=$1
-	# se activa ntp porque no va a haber comprobaciones
-	#remote_exec $user_host "timedatectl set-ntp 1"
-	#remote_exec $user_host "sudo service ntp start"
-}
-
 # tomcat utils
 download_tomcat(){
 	wget -q $tomcat_uri -O $tomcat_tar
@@ -104,7 +89,7 @@ download_tomcat(){
 deploy_tomcat(){
 	user_host=$1
 	copy_file $user_host $tomcat_download_folder $tomcat_folder_final
-	remote_exec $user_host "sudo chown -R vagrant:vagrant $tomcat_folder_final"
+	remote_exec $user_host "sudo chown -R root:root $tomcat_folder_final"
 	copy_file $user_host tomcat.service /etc/systemd/system/tomcat.service
 	remote_exec $user_host "sudo systemctl enable tomcat.service"
 	remote_exec $user_host "sudo systemctl daemon-reload"
@@ -176,7 +161,7 @@ run_application(){
 
 	# restart critical section and run simulation
 	echo "running simulation ..."
-	remote_exec_app $user_host1 "supervisor restartCs 6 $host1 $host2 $host3"
+	remote_exec_app $user_host1 "supervisor restart 6 $host1 $host2 $host3"
 	remote_exec_app $user_host1 "simulation $log_file_host1 6 1 2 0 $host1 $host2 $host3" &
 	remote_exec_app $user_host2 "simulation $log_file_host2 6 3 4 1 $host1 $host2 $host3" &
 	remote_exec_app $user_host3 "simulation $log_file_host3 6 5 6 2 $host1 $host2 $host3"
@@ -193,11 +178,14 @@ run_application(){
 	copy_file_between_remotes $user_host2 $user_host1 $log_file_host2 $log_file_host2
 	copy_file_between_remotes $user_host3 $user_host1 $log_file_host3 $log_file_host3
 
+	# joke
+	echo "baking some cupcakes ..."
+
 	# correct time in logs
 	if [ $ntp_enabled == "true" ]
 	then
 		echo "adjusting time in logs ..."
-		remote_exec_app $user_host1 "supervisor correctLog $ntp_file $log_file_host2 $host2 $log_file_host3 $host3"
+		remote_exec_app $user_host1 "supervisor normalize $ntp_file $log_file_host2 $host2 $log_file_host3 $host3"
 	fi
 	
 	# join and sort logs
@@ -214,10 +202,7 @@ run_application(){
 		remote_exec_app $user_host1 "verification $ntp_file $log_file_total"
 	fi
 
-	# clean temporary files in remotes
-	echo "cleaning temporary files in remotes ..."
 	#clean_tmp_files $user_host1 $user_host2 $user_host3
-	remote_exec $user_host1 "cp $log_file_total /home/vagrant/ssdd/simulation.log"
 }
 
 # ================================================== #
@@ -401,24 +386,8 @@ do
 			user_host2="$user@$host2"
 			user_host3="$user@$host3"
 
-			# start or stop ntp
-			if [ $ntp_enabled == "true" ]
-			then
-				echo ""
-				enable_ntp $user_host1
-				enable_ntp $user_host2
-				enable_ntp $user_host3
-			elif  [ $ntp_enabled == "false" ]
-			then
-				disable_ntp $user_host1
-				disable_ntp $user_host2
-				disable_ntp $user_host3
-			else
-				echo "ERROR: ntp value should be true or false"
-				break
-			fi
-
 			# kill old java processes
+			echo "killing alive processes from other executions ..."
 			remote_exec $user_host1 "pkill -f 'java -jar $client_jar_final'"
 			remote_exec $user_host2 "pkill -f 'java -jar $client_jar_final'"
 			remote_exec $user_host3 "pkill -f 'java -jar $client_jar_final'"
@@ -452,12 +421,19 @@ do
 			clean_file $user_host3 $client_jar_final
 
 			# clean tomcat and server files in remotes
-			echo "cleaning tomcat and server files ..."
-			clean_file $user_host1 $tomcat_folder_final
-			clean_file $user_host2 $tomcat_folder_final
-			clean_file $user_host3 $tomcat_folder_final
+			echo "cleaning older server files ..."
+			clean_server $user_host1
+			clean_server $user_host2
+			clean_server $user_host3
+
+			# kill alive processes
+			echo "killing alive processes from other executions ..."
+			remote_exec $user_host1 "pkill -f 'java -jar $client_jar_final'"
+			remote_exec $user_host2 "pkill -f 'java -jar $client_jar_final'"
+			remote_exec $user_host3 "pkill -f 'java -jar $client_jar_final'"
 
 			# clean log and tmp files folders
+			echo "cleaning temporal files ..."
 			clean_file $user_host1 $log_folder
 			clean_file $user_host2 $log_folder
 			clean_file $user_host3 $log_folder

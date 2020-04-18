@@ -39,7 +39,7 @@ public class CriticalSectionService{
     private final static Logger LOGGER = SSDDLogFactory.logger(CriticalSectionService.class);
  
 	/**
-     * barrier to wait all processes to be suscribed
+     * barrier to wait all processes to be subscribed
      * */
 	private CyclicBarrier startBarrier;
 
@@ -80,12 +80,12 @@ public class CriticalSectionService{
 	 * @author Héctor Sánchez San Blas
 	 * @author Francisco Pinto Santos
 	 * 
-	 * @param host the IP adress and PORT of server in which the service is allocated.
+	 * @param host the IP address and PORT of server in which the service is allocated.
 	 * 
 	 * @return String containing the URI to the service, served in the given host
 	 * */
 	public static String buildServiceUri(String host) {
-		return String.format(IConstants.BASE_URI + "/cs", host);
+		return String.format(IConstants.BASE_URI_FORMAT + "/cs", host);
 	}
 	
 	/**
@@ -113,7 +113,7 @@ public class CriticalSectionService{
 	 * @author Héctor Sánchez San Blas
 	 * @author Francisco Pinto Santos
 	 * 
-	 * @param numProcesses the number of processes that will try to access to critial section
+	 * @param numProcesses the number of processes that will try to access to critical section
 	 * */
 	@GET
 	@Path("/restart")
@@ -126,7 +126,7 @@ public class CriticalSectionService{
 	}
 
 	/**
-	 * waits untill all processes are ready
+	 * waits until all processes are ready
 	 * 
 	 * @version 1.0
 	 * @author Héctor Sánchez San Blas
@@ -145,7 +145,7 @@ public class CriticalSectionService{
 	}
 	
 	/**
-	 * waits untill all processes has finished
+	 * waits until all processes has finished
 	 * 
 	 * @version 1.0
 	 * @author Héctor Sánchez San Blas

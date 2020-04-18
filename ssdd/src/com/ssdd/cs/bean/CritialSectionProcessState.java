@@ -6,7 +6,7 @@ import java.util.concurrent.Semaphore;
  * stores all the relative information to a process's in the critical section context in the server side.
  * 
  * @version 1.0
- * @author Hï¿½ctor Sï¿½nchez San Blas
+ * @author Héctor Sánchez San Blas
  * @author Francisco Pinto Santos
  */
 public class CritialSectionProcessState {
@@ -52,7 +52,7 @@ public class CritialSectionProcessState {
 	 * criteria set on the Ricart and Argawala's algorithm.
 	 * 
 	 * @version 1.0
-	 * @author Hï¿½ctor Sï¿½nchez San Blas
+	 * @author Héctor Sánchez San Blas
 	 * @author Francisco Pinto Santos
 	 * 
 	 * @param senderId the process's id of the request's sender
@@ -82,7 +82,7 @@ public class CritialSectionProcessState {
 	 * stores the process's current counter value, to be used as last message timestamp
 	 * 
 	 * @version 1.0
-	 * @author Hï¿½ctor Sï¿½nchez San Blas
+	 * @author Héctor Sánchez San Blas
 	 * @author Francisco Pinto Santos
 	 * 
 	 * @return the process's current counter value, to be used as message timestamp
@@ -96,7 +96,7 @@ public class CritialSectionProcessState {
 	 * locks operations relative to process in the critical section
 	 * 
 	 * @version 1.0
-	 * @author Hï¿½ctor Sï¿½nchez San Blas
+	 * @author Héctor Sánchez San Blas
 	 * @author Francisco Pinto Santos
 	 */
 	public void lock() {
@@ -111,7 +111,7 @@ public class CritialSectionProcessState {
 	 * unlocks operations relative to process in the critical section
 	 * 
 	 * @version 1.0
-	 * @author Hï¿½ctor Sï¿½nchez San Blas
+	 * @author Héctor Sánchez San Blas
 	 * @author Francisco Pinto Santos
 	 */
 	public void unlock() {

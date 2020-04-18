@@ -70,7 +70,7 @@ public class CentralizedLogService {
 	 * @return String containing the URI to the service, served in the given host
 	 * */
 	public static String buildServiceUri(String host){
-		return String.format(IConstants.BASE_URI + "/log", host);
+		return String.format(IConstants.BASE_URI_FORMAT + "/log", host);
 	}
 	
 	/**

@@ -3,8 +3,8 @@ Description=Tomcat server - instance
 After=syslog.target network.target
 
 [Service]
-User=vagrant
-Group=vagrant
+User=root
+Group=root
 Type=forking
 
 ExecStart=/opt/tomcat/bin/startup.sh

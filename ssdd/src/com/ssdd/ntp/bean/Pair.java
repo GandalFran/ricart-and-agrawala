@@ -53,7 +53,7 @@ public class Pair implements Serializable{
 		double end = this.offset + halfDelay;
 		return new MarzulloTuple [] {
 				new MarzulloTuple(start, -1),
-				new MarzulloTuple(end, +1)
+				new MarzulloTuple(end, 1)
 		};
 	}
 	
@@ -104,7 +104,7 @@ public class Pair implements Serializable{
 	
 	@Override
 	public String toString() {
-		return String.format("(o:%f, d:%f)",this.offset, this.delay);
+		return String.format("{ o:%f, d:%f }",this.offset, this.delay);
 	}
 	
 	public double getOffset() {
